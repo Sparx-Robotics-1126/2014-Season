@@ -8,6 +8,7 @@
 package org.gosparx;
 
 import edu.wpi.first.wpilibj.SimpleRobot;
+import org.gosparx.subsystem.GenericSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -18,17 +19,54 @@ import edu.wpi.first.wpilibj.SimpleRobot;
  */
 public class EntryPoint extends SimpleRobot {
     /**
+     * The list of all the subsystems.
+     */
+    private GenericSubsystem[] subsystems;
+    
+    /**
+     * Robot-wide initialization code should go here. Users should override this 
+     * method for default Robot-wide initialization which will be called when 
+     * the robot is first powered on. Called exactly 1 time when the competition 
+     * starts.
+     */
+    public void robotInit(){
+        subsystems = new GenericSubsystem[0];
+        
+        // Place the subsytems here
+        
+        
+        for (int i = 0; i < subsystems.length; i++) {
+            subsystems[i].init();
+        }
+    }
+    
+    /**
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
-        
+        for(int i=0; i<subsystems.length; i++){
+            subsystems[i].setMode(GenericSubsystem.MODE_AUTO);
+        }
     }
 
     /**
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-
+        for(int i=0; i<subsystems.length; i++){
+            subsystems[i].setMode(GenericSubsystem.MODE_TELE);
+        }
+    }
+    
+    /**
+     * Disabled should go here. Users should overload this method to run code 
+     * that should run while the field is disabled. Called once each time the 
+     * robot enters the disabled state.
+     */
+    public void disabled(){
+        for(int i=0; i<subsystems.length; i++){
+            subsystems[i].setMode(GenericSubsystem.MODE_DISABLED);
+        }
     }
     
     /**
