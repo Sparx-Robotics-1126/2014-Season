@@ -19,12 +19,12 @@ public abstract class GenericSubsystem extends Thread {
     /**
      * This mode is used when the robot is in teleop mode.
      */
-    public static final int MODE_TELE = 0;
+    public static final int MODE_TELE = 1;
     
     /**
      * This mode is used when the robot is in a disabled mode.
      */
-    public static final int MODE_DISABLED = 0;
+    public static final int MODE_DISABLED = 2;
     
     /**
      * This is the name of the subsystem, used for logs.
@@ -52,7 +52,18 @@ public abstract class GenericSubsystem extends Thread {
      *
      * @param mode either MODE_AUTO, MODE_TELE, MODE_DISABLED
      */
-    public abstract void setMode(int mode);
+    public void setMode(int mode){
+        switch(mode){
+            case MODE_AUTO:
+            case MODE_TELE:
+            case MODE_DISABLED:
+                this.mode = mode;
+                break;
+            default:
+                throw new RuntimeException("Cannot set mode to something unknown!");
+        }
+        this.mode = mode;
+    }
     
     /**
      * This method is in charge of keeping executeAuto and executeTele running.
@@ -71,15 +82,10 @@ public abstract class GenericSubsystem extends Thread {
     public abstract void init();
     
     /**
-     * This method is executed repeatedly while the robot is in auto mode.  The 
-     * intent for this method is to be auto restarted when things crash.
+     * This method is executed repeatedly while the robot is on.  The intent for
+     * this method is to be auto restarted when things crash.  The implementer 
+     * is in charge of making sure to follow the mode rules!
      */
-    public abstract void executeAuto();
-    
-    /**
-     * This method is executed repeatedly while the robot is in teleop mode.  
-     * The intent for this method is to be auto restarted when things crash.
-     */
-    public abstract void executeTele();
+    public abstract void execute();
     
 }
