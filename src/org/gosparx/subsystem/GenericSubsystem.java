@@ -1,6 +1,6 @@
 package org.gosparx.subsystem;
 
-import com.sun.squawk.util.NotImplementedYetException;
+import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * The most basic version of any subsystem.  This class is used to have a 
@@ -10,31 +10,10 @@ import com.sun.squawk.util.NotImplementedYetException;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public abstract class GenericSubsystem extends Thread {
-    
-    /**
-     * This mode is used when the robot is in auto mode.
-     */
-    public static final int MODE_AUTO = 0;
-    
-    /**
-     * This mode is used when the robot is in teleop mode.
-     */
-    public static final int MODE_TELE = 1;
-    
-    /**
-     * This mode is used when the robot is in a disabled mode.
-     */
-    public static final int MODE_DISABLED = 2;
-    
     /**
      * This is the name of the subsystem, used for logs.
      */
     protected String nameOfSubsystem;
-    
-    /**
-     * The mode of the robot.
-     */
-    protected int mode;
     
     /**
      * This creates a generic subsystem.
@@ -43,26 +22,9 @@ public abstract class GenericSubsystem extends Thread {
      * @param threadPriority The {@link java.lang.Thread}'s priority.
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
+        super(nameOfSubsystem);
         this.nameOfSubsystem = nameOfSubsystem;
         this.setPriority(threadPriority);
-    }
-    
-    /**
-     * Sets the robot mode based on the field or operator controls.
-     *
-     * @param mode either MODE_AUTO, MODE_TELE, MODE_DISABLED
-     */
-    public void setMode(int mode){
-        switch(mode){
-            case MODE_AUTO:
-            case MODE_TELE:
-            case MODE_DISABLED:
-                this.mode = mode;
-                break;
-            default:
-                throw new RuntimeException("Cannot set mode to something unknown!");
-        }
-        this.mode = mode;
     }
     
     /**
@@ -70,8 +32,14 @@ public abstract class GenericSubsystem extends Thread {
      * It must recall the correct method if it crashes.
      */
     public void run(){
-        throw new NotImplementedYetException();
-        //TODO: Implement me!
+        while (true) {
+            try {
+                execute();
+                Thread.sleep(10);
+            } catch (Throwable e) {
+                // TODO: Log me!
+            }
+        }
     }
     
     /**
@@ -84,7 +52,9 @@ public abstract class GenericSubsystem extends Thread {
     /**
      * This method is executed repeatedly while the robot is on.  The intent for
      * this method is to be auto restarted when things crash.  The implementer 
-     * is in charge of making sure to follow the mode rules!
+     * is in charge of making sure to follow the mode rules!  To get the current
+     * mode use {@link DriverStation#isEnabled() isEnabled()} or 
+     * {@link DriverStation#isAutonomous() isAutonomous()}
      */
     public abstract void execute();
     
