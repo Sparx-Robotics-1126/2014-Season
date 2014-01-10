@@ -12,7 +12,7 @@ import javax.microedition.io.Connector;
  */
 public class LogWriter{
     private static LogWriter writer;
-    private FileConnection logFile;
+    private FileConnection fileCon;
     private DataOutputStream dos;
     
     /**
@@ -30,14 +30,14 @@ public class LogWriter{
      */
     private LogWriter(){
         try {
-            logFile = (FileConnection)Connector.open("file:///log.txt", Connector.READ_WRITE);
-            if(logFile.exists()){
-                logFile.delete();
-                logFile = (FileConnection)Connector.open("file:///log.txt", Connector.READ_WRITE);
+            fileCon = (FileConnection)Connector.open("file:///log.txt", Connector.READ_WRITE);
+            if(fileCon.exists()){
+                fileCon.delete();
+                fileCon = (FileConnection)Connector.open("file:///log.txt", Connector.READ_WRITE);
             }
-            logFile.create();
-            if (logFile != null){
-                dos = logFile.openDataOutputStream();
+            fileCon.create();
+            if (fileCon != null){
+                dos = fileCon.openDataOutputStream();
             }
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -54,21 +54,27 @@ public class LogWriter{
             } catch (IOException ex) {
                ex.printStackTrace();
             }
+        }else{
+            try {
+                throw new Exception("The DataOutputStream is null!");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
     /**
      * Closes and sets to null both the FileConnector and DataOutputStream
      */
     public void close(){
-        if(dos != null && logFile != null){
+        if(dos != null && fileCon != null){
             try {
                 dos.close();
-                logFile.close();
+                fileCon.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
             dos = null;
-            logFile = null;
+            fileCon = null;
         }
     }
     /**
@@ -77,7 +83,7 @@ public class LogWriter{
     public void pause(){
         try {
             dos.close();
-            logFile.close();
+            fileCon.close();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -87,8 +93,8 @@ public class LogWriter{
      */
     public void resume(){
         try {
-            logFile.create();
-            dos = logFile.openDataOutputStream();
+            fileCon.create();
+            dos = fileCon.openDataOutputStream();
         } catch (IOException ex) {
             ex.printStackTrace();
         }

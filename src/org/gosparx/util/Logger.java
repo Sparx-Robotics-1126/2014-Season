@@ -12,6 +12,9 @@ public class Logger {
     private String subsystem;
     private DriverStation ds = DriverStation.getInstance();
     
+    public static String SUB_DRIVES = "Drives";
+    public static String SUB_SHOOTER = "Shooter";
+    public static String SUB_ACQUISITIONS = "Acquisitions";
     /**
      * Creates a new Logger to log
      * @param subsystem The desired prefix for the log messages
