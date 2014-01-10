@@ -1,8 +1,6 @@
 package org.gosparx.util;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
-import org.gosparx.subsystem.GenericSubsystem;
 
 /**
  * @author Alex
@@ -13,12 +11,22 @@ public class Logger {
     private LogWriter writer;
     private String subsystem;
     private DriverStation ds = DriverStation.getInstance();
-    //[Comp Time] {Current Mode} Subsystem: Message
+    
+    /**
+     * Creates a new Logger to log
+     * @param subsystem The desired prefix for the log messages
+     */
     public Logger(String subsystem){
         this.subsystem = subsystem;
         writer = LogWriter.getInstance();
     }
     
+    /**
+     * Logs a message in the following format: 
+     * "[Time into the match] {Current mode} Subsystem: message"
+     * followed by a new line
+     * @param message the desired message to log
+     */
     public void logMessage(String message){
         String mode;
         if(ds.isAutonomous()){
@@ -28,7 +36,7 @@ public class Logger {
         }else{
             mode = "Disabled";
         }
-        String toWrite = "[" + ds.getMatchTime() + "] {" + mode + "} " + subsystem + ": " + message;
+        String toWrite = "[" + ds.getMatchTime() + "] {" + mode + "} " + subsystem + ": " + message + "/n";
         writer.log(toWrite);
     }
 }
