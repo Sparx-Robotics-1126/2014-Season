@@ -2,6 +2,7 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -60,7 +61,9 @@ public class Drives extends GenericSubsystem {
     /**
      * The max speed (inches per second) that the robot can obtain.
      */
-    private static final double MAX_ROBOT_SPEED         = 168;
+    private static final double MAX_ROBOT_SPEED         = 16;
+    
+    private static final int TURNING_THRESHOLD          = 1;
     
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -115,6 +118,7 @@ public class Drives extends GenericSubsystem {
      */
     private Solenoid shifter;
     
+    private Gyro gyro;
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -154,6 +158,8 @@ public class Drives extends GenericSubsystem {
         rightDrivesEncoder.start();
         
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
+ 
+        gyro = new Gyro(IO.GYRO_ANALOG);
     }
 
     /**
@@ -236,4 +242,12 @@ public class Drives extends GenericSubsystem {
         wantedRightSpeed = right;
     }
     
+    /**
+     * 
+     */
+    public void turn(double degrees, boolean turnLeft){
+        double current = gyro.getAngle();
+        double desired = gyro.getAngle() + degrees;
+        if(current < desired)
+    }
 }
