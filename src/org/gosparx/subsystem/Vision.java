@@ -346,6 +346,10 @@ public class Vision{
 		return isHot;
 	}
         
+        /**
+         * Gets an image and determines if there is a horizontal bar present.  
+         * @return if the best goal is hot or not 
+         */
         public boolean isHotGoal(){
         try {
             getBestTarget();
@@ -356,6 +360,11 @@ public class Vision{
             return imageHotGoal;
         }
         
+        /**
+         * Gets an image and finds the reflective tape. After some fancy MATH it 
+         * returns the distance from the target in feet
+         * @return distance - how far away the target is from the camera in feet
+         */
         public double getDistance(){
             try {
                 getBestTarget();
@@ -366,6 +375,14 @@ public class Vision{
         return imageDistance;
         }
         
+        /**
+         * Gets an image from the camera, then does a partical analysis and determines where
+         * the center of the target is relative to the image
+         * @return location - the location of the best target. 
+         * 180 is middle
+         * 0 is right
+         * 360 is left
+         */
         public int getLocation(){
             try {
                 findCenterofTarget();
