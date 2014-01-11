@@ -35,21 +35,19 @@ public class Vision{
     boolean imageHotGoal;//true if hot goal in image, false if not
     Scores scores[];
             
-    BinaryImage thresholdImage;
-    BinaryImage filteredImage;
-    ColorImage image;
-    static Vision vision;
+    private BinaryImage thresholdImage;
+    private BinaryImage filteredImage;
+    private ColorImage image;
+    private static Vision vision;
     
-    TargetReport target = new TargetReport();
-    int verticalTargets[];
-    int horizontalTargets[];
+    private TargetReport target = new TargetReport();
+    private int verticalTargets[];
+    private int horizontalTargets[];
     int verticalTargetCount, horizontalTargetCount;
         
     //Camera constants used for distance calculation
     final int Y_IMAGE_RES = 480;		//X Image resolution in pixels, should be 120, 240 or 480
-//    final double VIEW_ANGLE = 49;		//Axis M1013
     final double VIEW_ANGLE = 41.7;		//Axis 206 camera
-    //final double VIEW_ANGLE = 37.4;  //Axis M1011 camera
     final double PI = 3.141592653;
 
     //Score limits used for target identification
@@ -67,16 +65,16 @@ public class Vision{
     //Maximum number of particles to process
     final int MAX_PARTICLES = 8;
 
-    AxisCamera camera;          // the axis camera object (connected to the switch)
-    CriteriaCollection cc;      // the criteria for doing the particle filter operation
+    private AxisCamera camera;          // the axis camera object (connected to the switch)
+    private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
-    public class Scores {
+    private class Scores {
         double rectangularity;
         double aspectRatioVertical;
         double aspectRatioHorizontal;
     }
     
-    public class TargetReport {
+    private class TargetReport {
 		int verticalIndex;
 		int horizontalIndex;
 		boolean Hot;
@@ -90,6 +88,9 @@ public class Vision{
                 double location;
     };
     
+    /**
+     * Gets the camera and sets some of the image analysis
+     */
     public Vision(){
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
@@ -106,7 +107,7 @@ public class Vision{
     }
 
     /**
-     * Gets an image and puts constrants to find target.
+     * Gets an image and uses color and small particle conversions to find target.
      * @throws NIVisionException 
      */
     public void getImage() throws NIVisionException{      
@@ -122,6 +123,10 @@ public class Vision{
                 filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
     
+    /**
+     * Finds the target and then calculates the center of the vertical tape.
+     * @throws NIVisionException 
+     */
     public void findCenterofTarget() throws NIVisionException{
             getImage();
                 //iterate through each particle and score to see if it is a target
@@ -155,6 +160,11 @@ public class Vision{
                 }
     }
                 
+    /**
+     * Finds the distance the camera is from the target. It then sees if the aspect ratio and
+     * the distance match up to determine if the goal is a normal goal or a hot goal.
+     * @throws NIVisionException 
+     */
                 public void getBestTarget() throws NIVisionException{
 			findCenterofTarget();
 			target.totalScore = target.leftScore = target.rightScore = target.tapeWidthScore = target.verticalScore = 0;
