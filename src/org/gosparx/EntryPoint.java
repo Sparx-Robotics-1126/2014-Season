@@ -7,8 +7,11 @@
 
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.util.LogWriter;
+import org.gosparx.util.Logger;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,6 +25,7 @@ public class EntryPoint extends SimpleRobot {
      * The list of all the subsystems.
      */
     private GenericSubsystem[] subsystems;
+    private Logger logger;
     
     /**
      * Robot-wide initialization code should go here. Users should override this 
@@ -31,8 +35,9 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[0];
-        
+        subsystems = new GenericSubsystem[1];
+        subsystems[0] = LogWriter.getInstance();
+        logger = new Logger("Robot State");
         // Place the subsytems here
         
         
@@ -46,14 +51,14 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
-        //TODO: Log swap to autonomous
+        logger.logMessage("Switched to Autonomous");
     }
 
     /**
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        //TODO: Log swap to operator control
+        logger.logMessage("Switched to Teleop");
     }
     
     /**
@@ -62,7 +67,7 @@ public class EntryPoint extends SimpleRobot {
      * robot enters the disabled state.
      */
     public void disabled(){
-        //TODO: Log swap to disabled
+        logger.logMessage("Switched to Disabled");
     }
     
     /**

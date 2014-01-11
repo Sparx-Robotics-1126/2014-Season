@@ -55,7 +55,9 @@ public abstract class GenericSubsystem extends Thread {
      * is in charge of making sure to follow the mode rules!  To get the current
      * mode use {@link DriverStation#isEnabled() isEnabled()} or 
      * {@link DriverStation#isAutonomous() isAutonomous()}
+     * 
+     * @throws Exception
      */
-    public abstract void execute();
+    public abstract void execute() throws Exception;
     
 }
