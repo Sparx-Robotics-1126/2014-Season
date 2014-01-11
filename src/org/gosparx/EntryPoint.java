@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.subsystem.Vision;
 import org.gosparx.util.LogWriter;
 import org.gosparx.util.Logger;
 
@@ -36,9 +37,10 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[2];
+        subsystems = new GenericSubsystem[3];
         subsystems[0] = LogWriter.getInstance();
         subsystems[1] = new Drives();
+        subsystems[2] = Vision.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
@@ -52,6 +54,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
+
     }
 
     /**
