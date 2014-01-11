@@ -43,27 +43,27 @@ public class Vision extends GenericSubsystem{
     private TargetReport target = new TargetReport();
     private int verticalTargets[];
     private int horizontalTargets[];
-    int verticalTargetCount, horizontalTargetCount;
+    private int verticalTargetCount, horizontalTargetCount;
         
     //Camera constants used for distance calculation
-    final int Y_IMAGE_RES = 480;		//X Image resolution in pixels, should be 120, 240 or 480
-    final double VIEW_ANGLE = 41.7;		//Axis 206 camera
-    final double PI = 3.141592653;
+    private final int Y_IMAGE_RES = 480;		//X Image resolution in pixels, should be 120, 240 or 480
+    private final double VIEW_ANGLE = 41.7;		//Axis 206 camera
+    private final double PI = 3.141592653;
 
     //Score limits used for target identification
-    final int  RECTANGULARITY_LIMIT = 40;
-    final int ASPECT_RATIO_LIMIT = 55;
+    private final int  RECTANGULARITY_LIMIT = 40;
+    private final int ASPECT_RATIO_LIMIT = 55;
 
     //Score limits used for hot target determination
-    final int TAPE_WIDTH_LIMIT = 50;
-    final int  VERTICAL_SCORE_LIMIT = 50;
-    final int LR_SCORE_LIMIT = 50;
+    private final int TAPE_WIDTH_LIMIT = 50;
+    private final int  VERTICAL_SCORE_LIMIT = 50;
+    private final int LR_SCORE_LIMIT = 50;
 
     //Minimum area of particles to be considered
-    final int AREA_MINIMUM = 150;
+    private final int AREA_MINIMUM = 150;
 
     //Maximum number of particles to process
-    final int MAX_PARTICLES = 8;
+    private final int MAX_PARTICLES = 8;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
@@ -72,6 +72,9 @@ public class Vision extends GenericSubsystem{
         super("Vision", Thread.MIN_PRIORITY);
     }
     
+    /**
+     * starts camera and some of the image criteria
+     */
     public void init() {
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
@@ -80,6 +83,10 @@ public class Vision extends GenericSubsystem{
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
     }
 
+    /**
+     * Runs all the systems
+     * @throws Exception 
+     */
     public void execute() throws Exception {
         while(true){
             sleep(50);
@@ -88,12 +95,18 @@ public class Vision extends GenericSubsystem{
         }
     }
     
+    /**
+     * scoring criteria
+     */
     private class Scores {
         double rectangularity;
         double aspectRatioVertical;
         double aspectRatioHorizontal;
     }
     
+    /**
+     * Gets and stores information from the target image
+     */
     private class TargetReport {
 		int verticalIndex;
 		int horizontalIndex;
@@ -108,6 +121,10 @@ public class Vision extends GenericSubsystem{
                 double location;
     };
     
+    /**
+     * Sees if a Vision has been created, if not it creates one
+     * @return the current class 
+     */
     public static Vision getInstance(){
         if(vision == null){
             vision = new Vision();
@@ -241,6 +258,9 @@ public class Vision extends GenericSubsystem{
                             }
                 }
         
+       /**
+        * frees all the images and saves space
+        */
         public void freeImage(){
             try {
                 filteredImage.free();
