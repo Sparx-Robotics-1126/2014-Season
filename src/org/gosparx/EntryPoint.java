@@ -31,6 +31,7 @@ public class EntryPoint extends SimpleRobot {
      * starts.
      */
     public void robotInit(){
+        //TODO: Log init starting
         subsystems = new GenericSubsystem[0];
         
         // Place the subsytems here
@@ -38,6 +39,7 @@ public class EntryPoint extends SimpleRobot {
         
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
+            subsystems[i].start();
         }
         Logger logger = new Logger("Test");
         logger.logMessage("Test");
@@ -48,18 +50,14 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_AUTO);
-        }
+        //TODO: Log swap to autonomous
     }
 
     /**
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_TELE);
-        }
+        //TODO: Log swap to operator control
     }
     
     /**
@@ -68,9 +66,7 @@ public class EntryPoint extends SimpleRobot {
      * robot enters the disabled state.
      */
     public void disabled(){
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_DISABLED);
-        }
+        //TODO: Log swap to disabled
     }
     
     /**
