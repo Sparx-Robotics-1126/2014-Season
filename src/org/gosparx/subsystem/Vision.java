@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
  * images.
  */
 
-public class Vision{
+public class Vision extends GenericSubsystem{
     //Nathan
     int imageLocation;//middle is 180, left is 0, right is 360
     double imageDistance;//distance from target
@@ -68,6 +68,26 @@ public class Vision{
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
+    private Vision(){
+        super("Vision", Thread.MIN_PRIORITY);
+    }
+    
+    public void init() {
+        horizontalTargets = new int[MAX_PARTICLES];
+        verticalTargets = new int[MAX_PARTICLES];
+        camera = AxisCamera.getInstance();  // get an instance of the camera
+        cc = new CriteriaCollection();      // create the criteria for the particle filter
+        cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
+    }
+
+    public void execute() throws Exception {
+        while(true){
+            sleep(50);
+            getBestTarget();
+            freeImage();
+        }
+    }
+    
     private class Scores {
         double rectangularity;
         double aspectRatioVertical;
@@ -87,17 +107,6 @@ public class Vision{
                 double horizonalPeremeter;
                 double location;
     };
-    
-    /**
-     * Gets the camera and sets some of the image analysis
-     */
-    public Vision(){
-        horizontalTargets = new int[MAX_PARTICLES];
-        verticalTargets = new int[MAX_PARTICLES];
-        camera = AxisCamera.getInstance();  // get an instance of the camera
-        cc = new CriteriaCollection();      // create the criteria for the particle filter
-        cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
-    }
     
     public static Vision getInstance(){
         if(vision == null){
