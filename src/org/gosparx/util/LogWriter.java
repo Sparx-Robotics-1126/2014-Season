@@ -11,8 +11,6 @@ import org.gosparx.subsystem.GenericSubsystem;
 /**
  * @author Alex
  * @date 1/08/14
- * @version 1
- * Fix the stupid error
  */
 
 public class LogWriter extends GenericSubsystem{
@@ -97,16 +95,15 @@ public class LogWriter extends GenericSubsystem{
                 fileConConfig = (FileConnection)Connector.open(configPath, Connector.READ_WRITE);
                 dis = fileConConfig.openDataInputStream();
                 dosConfig = fileConConfig.openDataOutputStream();
-                char lastUsedChar = dis.readChar();
+                char lastUsedChar = (char) dis.read();
                 String toParse = "" + lastUsedChar;
                 toUse = Integer.parseInt(toParse) + 1;
-                if(toUse >= 5){
-                    toUse = 0;
-                }
+                toUse %= 5;
                 String toWrite = "" + toUse;
                 try{
                     fileConConfig.delete();
                     fileConConfig.create();
+                    dosConfig = fileConConfig.openDataOutputStream();
                     dosConfig.write(toWrite.getBytes());
                     dosConfig.close();
                     dis.close();
@@ -127,12 +124,15 @@ public class LogWriter extends GenericSubsystem{
                 fileCon.delete();
             }
             fileCon.create();
+            fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             dos = fileCon.openDataOutputStream();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
-
+    /**
+     * Logs the first message to log in the queue every 20 ms
+     */
     public void execute() throws Exception {
         String message;
         while (true) {
@@ -144,7 +144,7 @@ public class LogWriter extends GenericSubsystem{
                 messagesToLog.remove(0);
             }
             dos.write(message.getBytes(), 0, message.getBytes().length);
-
+            Thread.sleep(20);
         }
     }
 }

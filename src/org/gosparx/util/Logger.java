@@ -5,16 +5,19 @@ import edu.wpi.first.wpilibj.DriverStation;
 /**
  * @author Alex
  * @date 1/08/14
- * @version 1.0
  */
 public class Logger {
     private LogWriter writer;
     private String subsystem;
     private DriverStation ds = DriverStation.getInstance();
+    private final int DIGITS_IN_TIME = 8;
+    private final int PRECISION = 4;
     
-    public static String SUB_DRIVES = "Drives";
-    public static String SUB_SHOOTER = "Shooter";
-    public static String SUB_ACQUISITIONS = "Acquisitions";
+    public static String SUB_DRIVES = "Drive";
+    public static String SUB_SHOOTER = "Shoot";
+    public static String SUB_ACQUISITIONS = "Acqui";
+    public static String SUB_VISON = "Vison";
+    
     /**
      * Creates a new Logger to log
      * @param subsystem The desired prefix for the log messages
@@ -33,13 +36,22 @@ public class Logger {
     public void logMessage(String message){
         String mode;
         if(ds.isAutonomous()){
-            mode = "Auto";
+            mode = "Aut";
         }else if(ds.isOperatorControl()){
-            mode = "Teleop";
+            mode = "Tel";
         }else{
-            mode = "Disabled";
+            mode = "Dis";
         }
-        String toWrite = "[" + ds.getMatchTime() + "] {" + mode + "} " + subsystem + ": " + message + "\n";
+        double time = ds.getMatchTime();
+        time *= com.sun.squawk.util.MathUtils.pow(10, PRECISION);
+        int timeInt = (int)time;
+        String timeToFormat = "" + timeInt;
+        String timeFormatted = timeToFormat;
+        if(timeToFormat.length()<= DIGITS_IN_TIME) {
+            timeFormatted = "0000000000000000".substring(0, DIGITS_IN_TIME - timeToFormat.length()) + timeInt;
+        }
+        timeFormatted = timeFormatted.substring(0,timeFormatted.length() - PRECISION) + "." + timeFormatted.substring(timeFormatted.length() - PRECISION);
+        String toWrite = "[" + timeFormatted + "] {" + mode + "} " + subsystem + ": " + message + "\n";
         writer.log(toWrite);
     }
     public void close(){
