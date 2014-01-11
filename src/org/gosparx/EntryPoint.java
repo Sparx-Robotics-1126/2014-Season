@@ -9,6 +9,7 @@ package org.gosparx;
 
 import edu.wpi.first.wpilibj.SimpleRobot;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.util.Logger;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -38,6 +39,9 @@ public class EntryPoint extends SimpleRobot {
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
         }
+        Logger logger = new Logger("Test");
+        logger.logMessage("Test");
+        logger.close();
     }
     
     /**

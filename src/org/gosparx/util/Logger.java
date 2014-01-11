@@ -39,7 +39,10 @@ public class Logger {
         }else{
             mode = "Disabled";
         }
-        String toWrite = "[" + ds.getMatchTime() + "] {" + mode + "} " + subsystem + ": " + message + "/n";
+        String toWrite = "[" + ds.getMatchTime() + "] {" + mode + "} " + subsystem + ": " + message + "\n";
         writer.log(toWrite);
+    }
+    public void close(){
+        writer.close();
     }
 }
