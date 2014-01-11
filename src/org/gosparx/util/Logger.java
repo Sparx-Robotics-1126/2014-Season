@@ -54,7 +54,4 @@ public class Logger {
         String toWrite = "[" + timeFormatted + "] {" + mode + "} " + subsystem + ": " + message + "\n";
         writer.log(toWrite);
     }
-    public void close(){
-        writer.close();
-    }
 }

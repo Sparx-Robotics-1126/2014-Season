@@ -22,6 +22,7 @@ public class LogWriter extends GenericSubsystem{
     private DataOutputStream dosConfig;
     private DataInputStream dis;
     private final String configPath = "file:///loggingConfig.txt";
+    private final int MAX_LOGS = 5;
     
     /**
      * Returns the singleton LogWriter
@@ -51,43 +52,10 @@ public class LogWriter extends GenericSubsystem{
         }
     }
     /**
-     * Closes and sets to null both the FileConnector and DataOutputStream
+     * Setups up the config file if it does not exist and sets the first log to
+     * use as log0.txt. Otherwise it reads the last used logs and increments it
+     * by 1. It wraps around.
      */
-    public void close(){
-        if(dos != null && fileCon != null){
-            try {
-                dos.close();
-                fileCon.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            dos = null;
-            fileCon = null;
-        }
-    }
-    /**
-     * Temporally pauses logging by closing the streams
-     */
-    public void pause(){
-        try {
-            dos.close();
-            fileCon.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-    /**
-     * Resumes paused file logging
-     */
-    public void resume(){
-        try {
-            fileCon.create();
-            dos = fileCon.openDataOutputStream();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-
     public void init() {
         try {
             int toUse = 0;
@@ -98,7 +66,7 @@ public class LogWriter extends GenericSubsystem{
                 char lastUsedChar = (char) dis.read();
                 String toParse = "" + lastUsedChar;
                 toUse = Integer.parseInt(toParse) + 1;
-                toUse %= 5;
+                toUse %= MAX_LOGS;
                 String toWrite = "" + toUse;
                 try{
                     fileConConfig.delete();
