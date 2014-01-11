@@ -1,10 +1,12 @@
 package org.gosparx.util;
 
 import com.sun.squawk.microedition.io.FileConnection;
+import edu.wpi.first.wpilibj.networktables2.util.List;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import javax.microedition.io.Connector;
+import org.gosparx.subsystem.GenericSubsystem;
 
 /**
  * @author Alex
@@ -13,8 +15,9 @@ import javax.microedition.io.Connector;
  * Fix the stupid error
  */
 
-public class LogWriter{
+public class LogWriter extends GenericSubsystem{
     private static LogWriter writer;
+    private final List messagesToLog;
     private FileConnection fileCon;
     private FileConnection fileConConfig;
     private DataOutputStream dos;
@@ -36,6 +39,58 @@ public class LogWriter{
      * Makes a new LogWriter
      */
     private LogWriter(){
+        super("LogWriter", Thread.MIN_PRIORITY);
+        messagesToLog = new List();
+    }
+    /**
+     * Logs the message to the file
+     * @param message The message to log
+     */
+    public void log(String message){
+        synchronized(messagesToLog){
+            messagesToLog.add(message);
+            messagesToLog.notify();
+        }
+    }
+    /**
+     * Closes and sets to null both the FileConnector and DataOutputStream
+     */
+    public void close(){
+        if(dos != null && fileCon != null){
+            try {
+                dos.close();
+                fileCon.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            dos = null;
+            fileCon = null;
+        }
+    }
+    /**
+     * Temporally pauses logging by closing the streams
+     */
+    public void pause(){
+        try {
+            dos.close();
+            fileCon.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    /**
+     * Resumes paused file logging
+     */
+    public void resume(){
+        try {
+            fileCon.create();
+            dos = fileCon.openDataOutputStream();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void init() {
         try {
             int toUse = 0;
             try {
@@ -77,60 +132,19 @@ public class LogWriter{
             ex.printStackTrace();
         }
     }
-    /**
-     * Logs the message to the file
-     * @param message The message to log
-     */
-    public void log(String message){
-        if(dos != null){
-            try {
-              dos.write(message.getBytes(), 0, message.getBytes().length);
-            } catch (IOException ex) {
-               ex.printStackTrace();
+
+    public void execute() throws Exception {
+        String message;
+        while (true) {
+            synchronized(messagesToLog){
+                if(messagesToLog.isEmpty())
+                    messagesToLog.wait();
+                
+                message = (String) messagesToLog.get(0);
+                messagesToLog.remove(0);
             }
-        }else{
-            try {
-                throw new Exception("The DataOutputStream is null!");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    /**
-     * Closes and sets to null both the FileConnector and DataOutputStream
-     */
-    public void close(){
-        if(dos != null && fileCon != null){
-            try {
-                dos.close();
-                fileCon.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            dos = null;
-            fileCon = null;
-        }
-    }
-    /**
-     * Temporally pauses logging by closing the streams
-     */
-    public void pause(){
-        try {
-            dos.close();
-            fileCon.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
-    /**
-     * Resumes paused file logging
-     */
-    public void resume(){
-        try {
-            fileCon.create();
-            dos = fileCon.openDataOutputStream();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+            dos.write(message.getBytes(), 0, message.getBytes().length);
+
         }
     }
 }
