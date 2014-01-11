@@ -7,8 +7,12 @@
 
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
+import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.util.LogWriter;
+import org.gosparx.util.Logger;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,6 +26,7 @@ public class EntryPoint extends SimpleRobot {
      * The list of all the subsystems.
      */
     private GenericSubsystem[] subsystems;
+    private Logger logger;
     
     /**
      * Robot-wide initialization code should go here. Users should override this 
@@ -30,13 +35,15 @@ public class EntryPoint extends SimpleRobot {
      * starts.
      */
     public void robotInit(){
-        subsystems = new GenericSubsystem[0];
-        
-        // Place the subsytems here
-        
+        //TODO: Log init starting
+        subsystems = new GenericSubsystem[2];
+        subsystems[0] = LogWriter.getInstance();
+        subsystems[1] = new Drives();
+        logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
+            subsystems[i].start();
         }
     }
     
@@ -44,18 +51,14 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters autonomous mode.
      */
     public void autonomous() {
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_AUTO);
-        }
+        logger.logMessage("Switched to Autonomous");
     }
 
     /**
      * This function is called once each time the robot enters operator control.
      */
     public void operatorControl() {
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_TELE);
-        }
+        logger.logMessage("Switched to Teleop");
     }
     
     /**
@@ -64,9 +67,7 @@ public class EntryPoint extends SimpleRobot {
      * robot enters the disabled state.
      */
     public void disabled(){
-        for(int i=0; i<subsystems.length; i++){
-            subsystems[i].setMode(GenericSubsystem.MODE_DISABLED);
-        }
+        logger.logMessage("Switched to Disabled");
     }
     
     /**
