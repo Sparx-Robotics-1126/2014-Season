@@ -17,6 +17,11 @@ import org.gosparx.IO;
 public class Drives extends GenericSubsystem {
     
     /**
+     * The Drives Class reference
+     */
+    private static Drives drives;
+    
+    /**
      * The distance the robot travels per tick of the encoder.
      */
     private static final double DIST_PER_TICK           = 0.0245;
@@ -114,6 +119,16 @@ public class Drives extends GenericSubsystem {
     private Solenoid shifter;
     
     private Gyro gyro;
+    /**
+     * Look to see if there is a drive class, if not it creates one
+     * @return the Drives Class 
+     */
+    public static Drives getInstance(){
+        if(drives == null){
+            drives = new Drives();
+        }
+        return drives;
+    }
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
      */
