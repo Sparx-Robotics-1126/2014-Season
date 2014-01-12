@@ -16,15 +16,15 @@ public class Autonomous {
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
-    public static final double AUTO_SETTING_1 = 3.208;
-    public static final double AUTO_SETTING_2 = 3.126;
-    public static final double AUTO_SETTING_3 = 3.036;
-    public static final double AUTO_SETTING_4 = 2.935;
-    public static final double AUTO_SETTING_5 = 2.824;
-    public static final double AUTO_SETTING_6 = 2.701;
-    public static final double AUTO_SETTING_7 = 2.563;
-    public static final double AUTO_SETTING_8 = 2.405;
-    public static final double AUTO_SETTING_9 = 2.225;
+    public static final double AUTO_SETTING_0 = 3.208;
+    public static final double AUTO_SETTING_1 = 3.126;
+    public static final double AUTO_SETTING_2 = 3.036;
+    public static final double AUTO_SETTING_3 = 2.935;
+    public static final double AUTO_SETTING_4 = 2.824;
+    public static final double AUTO_SETTING_5 = 2.701;
+    public static final double AUTO_SETTING_6 = 2.563;
+    public static final double AUTO_SETTING_7 = 2.405;
+    public static final double AUTO_SETTING_8 = 2.225;
     /**************************************************************************/
     /************************ Autonomous commands *****************************/
     /**************************************************************************/
@@ -64,7 +64,9 @@ public class Autonomous {
     
     public void getAutoMode(){
            double voltage = 0; // need voltage reaading;
-           if (voltage >= AUTO_SETTING_1){
+           if (voltage >= AUTO_SETTING_0){
+               currentAutonomous = null;
+           }else if (voltage >= AUTO_SETTING_1){
                currentAutonomous = null;
            }else if (voltage >= AUTO_SETTING_2){
                currentAutonomous = null;
@@ -75,8 +77,6 @@ public class Autonomous {
            }else if (voltage >= AUTO_SETTING_5){
                currentAutonomous = null;
            }else if (voltage >= AUTO_SETTING_6){
-               currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_7){
                currentAutonomous = noAuto;
            }else{
                currentAutonomous = noAuto;
