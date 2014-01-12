@@ -233,6 +233,17 @@ public class Drives extends GenericSubsystem {
     public void turn(double degrees, boolean turnLeft){
         double current = gyro.getAngle();
         double desired = gyro.getAngle() + degrees;
-        if(current < desired)
+        if(turnLeft)setSpeed(-.4 ,.4);
+        if(!turnLeft)setSpeed(.4, -.4);
+        boolean done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
+        while(!done){
+            current = gyro.getAngle();
+            done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }
