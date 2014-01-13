@@ -21,11 +21,12 @@ public class Controls extends GenericSubsystem{
     
     private Joystick opJoy;
     
+    private Drives drives;
+    
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
-    //TODO Check these values
     private final int LEFT_X_AXIS = 1;
     private final int LEFT_Y_AXIS = 2;
     private final int RIGHT_X_AXIS = 4;
@@ -46,9 +47,8 @@ public class Controls extends GenericSubsystem{
     private final int R3 = 12;
     
     //********************************************************************
-    //*******************Attack 3 Controller Mapping**********************
+    //*******************Driver Controller Mapping**********************
     //********************************************************************
-    //TODO Check these values
     private final int ATTACK3_Y_AXIS = 2;
     private final int ATTACK3_X_AXIS = 2;
     private final int ATTACK3_Z_AXIS = 3;
@@ -89,24 +89,35 @@ public class Controls extends GenericSubsystem{
     private double driverRightZAxis;
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
-    
+    /**
+     * Creates a new Controls
+     */
     private Controls(){
-        super("Controls", Thread.MAX_PRIORITY);
+        super("Controls", Thread.NORM_PRIORITY);
     }
-    
+    /**
+     * Returns a pointer to the Controls 
+     */
     public static Controls getInstance(){
         if(controls == null){
             controls = new Controls();
         }
         return controls;
     }
-    
+    /**
+     * Creates the joystick objects and grabs an instance of the Drives 
+     * subsystem 
+     */
     public void init() {
         leftJoy = new Joystick(IO.LEFT_DRIVER_JOY_PORT);
         rightJoy = new Joystick(IO.RIGHT_DRIVER_JOY_PORT);
         opJoy = new Joystick(IO.OPER_JOY_PORT);
+        drives = Drives.getInstance();
     }
-
+    /**
+     * Reassigns all of the variables and sets drives speed to the Y variables 
+     * of the driver joysticks
+     */
     public void execute() throws Exception {
         while(true){
             opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
@@ -137,6 +148,7 @@ public class Controls extends GenericSubsystem{
             driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
             driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
             driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+            drives.setSpeed(driverLeftYAxis, driverRightYAxis);
             Thread.sleep(20);
         }
     }
