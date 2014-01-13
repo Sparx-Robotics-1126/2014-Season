@@ -2,10 +2,11 @@ package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import org.gosparx.subsystem.Drives;
+import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
 
 
-public class Autonomous {
+public class Autonomous extends GenericSubsystem{
     private Autonomous auto;
     private Drives drives;
     private Vision vision;
@@ -62,10 +63,10 @@ public class Autonomous {
     };
     
     private Autonomous(){
+        super("Autonomous", GenericSubsystem.NORM_PRIORITY);
 //        drives = Drives.getInstance();
         drives = new Drives();//getInstance hasen't been implemented
         vision = Vision.getInstance();
-        
     }
     
     public Autonomous getInstance(){
@@ -97,13 +98,12 @@ public class Autonomous {
     }
     
     public void run(){
-        getAutoMode();
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
-            while(DriverStation.isAutonomous() &&  isEnabled()){
+            while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
                 for (int i = start; i <= finished; i++){
-                    if (isEnabled() && runAutonomous){
+                    if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
                             throw new java.lang.RuntimeException("Drive Foward hasen't been created!!!");
@@ -154,5 +154,13 @@ public class Autonomous {
         }            
         sleep(30);   
       }
+    }
+
+    public void init() {
+        throw new java.lang.UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public void execute() throws Exception {
+        throw new java.lang.UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

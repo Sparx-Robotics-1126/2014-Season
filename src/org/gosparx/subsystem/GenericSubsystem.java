@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 import edu.wpi.first.wpilibj.DriverStation;
+import org.gosparx.util.Logger;
 
 /**
  * The most basic version of any subsystem.  This class is used to have a 
@@ -12,6 +13,7 @@ public abstract class GenericSubsystem extends Thread {
     /**
      * This is the name of the subsystem, used for logs.
      */
+    protected Logger Logger;
     protected DriverStation ds;
     protected String nameOfSubsystem;
     
