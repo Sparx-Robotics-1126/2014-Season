@@ -63,12 +63,12 @@ public class Controls extends GenericSubsystem{
     //********************************************************************
     //**********************Operator Joy Vars*****************************
     //********************************************************************
-    private int opLeftXAxis;
-    private int opLeftYAxis;
-    private int opRightXAxis;
-    private int opRightYAxis;
-    private int opDPadXAxis;
-    private int opDPadYAxis;
+    private double opLeftXAxis;
+    private double opLeftYAxis;
+    private double opRightXAxis;
+    private double opRightYAxis;
+    private double opDPadXAxis;
+    private double opDPadYAxis;
     private boolean opTriangle;
     private boolean opCircle;
     private boolean opCross;
@@ -84,6 +84,16 @@ public class Controls extends GenericSubsystem{
     //********************************************************************
     //***********************Driver Joy Vars******************************
     //********************************************************************
+    private double driverLeftYAxis;
+    private double driverLeftXAxis;
+    private double driverLeftZAxis;
+    private boolean driverLeftTrigger;
+    private boolean driverLeftTopButton;
+    private double driverRightYAxis;
+    private double driverRightXAxis;
+    private double driverRightZAxis;
+    private boolean driverRightTrigger;
+    private boolean driverRightTopButton;
     
     private Controls(){
         super("Controls", Thread.MAX_PRIORITY);
@@ -104,25 +114,123 @@ public class Controls extends GenericSubsystem{
 
     public void execute() throws Exception {
         while(true){
-            
+            opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
+            opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
+            opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
+            opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
         }
     }
     
     //TODO Rename all of these to their mapped functions;
-    public int getOpLeftX(){
+    public double getOpLeftX(){
         return opLeftXAxis;
     }
     
-    public int getOpLeftY(){
+    public double getOpLeftY(){
         return opLeftYAxis;
     }
     
-    public int getOpRightX(){
+    public double getOpRightX(){
         return opRightXAxis;
     }
     
-    public int getOpRightY(){
+    public double getOpRightY(){
         return opRightYAxis;
     }
     
+    public double getOpDPadX(){
+        return opDPadYAxis;
+    }
+    
+    public double getOpDPadY(){
+        return opDPadYAxis;
+    }
+    
+    public boolean getOpTriangle(){
+        return opTriangle;
+    }
+    
+    public boolean getOpCross(){
+        return opCross;
+    }
+    
+    public boolean getOpCircle(){
+        return opCircle;
+    }
+    
+    public boolean getOpSquare(){
+        return opSquare;
+    }
+    
+    public boolean getOpSelect(){
+        return opSelect;
+    }
+    
+    public boolean getOpStart(){
+        return opStart;
+    }
+    
+    public boolean getOpL1(){
+        return opL1;
+    }
+    
+    public boolean getOpL2(){
+        return opL2;
+    }
+    
+    public boolean getOpL3(){
+        return opL3;
+    }
+    
+    public boolean getOpR1(){
+        return opR1;
+    }
+    
+    public boolean getOpR2(){
+        return opR2;
+    }
+    
+    public boolean getOpR3(){
+        return opR3;
+    }
+    
+    public double getDriverLeftY(){
+        return driverLeftYAxis;
+    }
+    
+    public double getDriverLeftX(){
+        return driverLeftXAxis;
+    }
+    
+    public double getDriverLeftZ(){
+        return driverLeftZAxis;
+    }
+    
+    public boolean getDriverLeftTrigger(){
+        return driverLeftTrigger;
+    }
+    
+    public boolean getDriverLeftTopButton(){
+        return driverLeftTopButton;
+    }
+    
+    public double getDriverRightY(){
+        return driverRightYAxis;
+    }
+    
+    public double getDriverRightX(){
+        return driverRightXAxis;
+    }
+    
+    public double getDriverRightZ(){
+        return driverRightZAxis;
+    }
+    
+    public boolean getDriverRightTrigger(){
+        return driverRightTrigger;
+    }
+    
+    public boolean getDriverRightTopButton(){
+        return driverRightTopButton;
+    }
 }
