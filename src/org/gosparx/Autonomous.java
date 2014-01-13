@@ -13,6 +13,9 @@ public class Autonomous extends GenericSubsystem{
     private int[][] currentAutonomous;
     
     private boolean runAutonomous = false;
+    private int loopTime = 0;
+    private double vision_distance = 0;
+    private int vision_angle = 0;
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
@@ -49,6 +52,13 @@ public class Autonomous extends GenericSubsystem{
     private static final int SHOOTER_SET_PRESET             = 21;
     private static final int SHOOTER_IN_POSITION            = 22;
     private static final int SHOOTER_DONE                   = 23;
+    
+    /* Vision */
+    private static final int VISION_DISTANCE                = 30;
+    private static final int VISION_ANGLE                   = 31;
+    private static final int VISION_HOT_TARGET              = 32;
+    
+    private static final int CUSTOM_1                       = 40;
 
     /* Misc */
     private static final int LOOP                           = 97;//number of loops, 
@@ -97,7 +107,7 @@ public class Autonomous extends GenericSubsystem{
            }
     }
     
-    public void run(){
+    public void runAutonomous(){
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -106,61 +116,86 @@ public class Autonomous extends GenericSubsystem{
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
-                            throw new java.lang.RuntimeException("Drive Foward hasen't been created!!!");
-                            //break;
+                            
+                            break;
                         case DRIVES_GO_REVERSE:
-                            throw new java.lang.RuntimeException("Drive Reverse hasen't been created!!!");
-                            //break;
+                            
+                            break;
                         case DRIVES_TURN_LEFT:
-                            throw new java.lang.RuntimeException("Drive Left hasen't been created!!!");
-                            //break;
+                            
+                            break;
                         case DRIVES_TURN_RIGHT:
-                            print("Turning Right");
+                            
+                            break;
                         case DRIVES_STOP:
-                            print("Stopping");
-                            //break;
+                            
+                            break;
                         case DRIVES_DONE:
-                            print("DriveDone() was called");
-                            //break;
+                            
+                            break;
                         case INTAKE_AQUIRE_BALL:
-                            //break;
+                            
+                            break;
                         case INTAKE_REVERSE:
-                            //break;
+                            
+                            break;
                         case INTAKE_IN_POSITION:
-                            //break;
+                            
+                            break;
                         case INTAKE_DONE:
-                            //break;
+                            
+                            break;
                         case SHOOTER_SHOOT:
-                            //break;
+                            
+                            break;
                         case SHOOTER_SET_PRESET:
-                            //break;
+                            
+                            break;
                         case SHOOTER_IN_POSITION:
-                            //break;
+                            
+                            break;
                         case SHOOTER_DONE:
-                            //break;
+                            
+                            break;
+                        case VISION_DISTANCE:
+                            vision_distance = vision.getDistance();
+                            break;
+                        case VISION_ANGLE:
+                            vision_angle = vision.getLocation();
+                            break;
+                        case VISION_HOT_TARGET:
+                            
+                            break;
+                        case CUSTOM_1:
+                            
+                            break;
                         case LOOP:
-                            //break;
+                            loopTime = currentAutonomous[i][1];
+                            
+                            break;
                         case WAIT:
-//                            wait(currentAutonomous[i][1]);
-                            //break;
+                            
+                            break;
                         case END:
                             runAutonomous = false;
                         default:
 //                            print("No case statement: " + currentAutonomous[i]);
                     }
-                } 
-                sleep(30);   
+                }   
+                    if(loopTime > 0){
+                        i = i - 1;
+                        loopTime = loopTime - 1;
+                    }
             }
-        }            
-        sleep(30);   
+        }              
       }
     }
 
     public void init() {
-        throw new java.lang.UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     public void execute() throws Exception {
-        throw new java.lang.UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 }
