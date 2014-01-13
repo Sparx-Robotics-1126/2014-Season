@@ -31,4 +31,12 @@ public class IO {
     
     // Drives Pnumatic Slots
     public static final int SHIFT_CHAN                  = 1;
+    
+    // Controls IO Ports
+        
+    public static final int LEFT_DRIVER_JOY_PORT                                  = 1;
+    
+    public static final int RIGHT_DRIVER_JOY_PORT                                 = 2;
+    
+    public static final int OPER_JOY_PORT                                         = 3;
 }

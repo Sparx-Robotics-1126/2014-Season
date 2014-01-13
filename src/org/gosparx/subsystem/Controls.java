@@ -5,6 +5,7 @@
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Joystick;
+import org.gosparx.IO;
 
 /**
  * @author Alex
@@ -13,12 +14,6 @@ import edu.wpi.first.wpilibj.Joystick;
 public class Controls extends GenericSubsystem{
     
     private static Controls controls;
-    
-    private final int LEFT_DRIVER_JOY_PORT                                  = 1;
-    
-    private final int RIGHT_DRIVER_JOY_PORT                                 = 2;
-    
-    private final int OPER_JOY_PORT                                         = 3;
     
     private Joystick leftJoy;
     
@@ -107,9 +102,9 @@ public class Controls extends GenericSubsystem{
     }
     
     public void init() {
-        leftJoy = new Joystick(LEFT_DRIVER_JOY_PORT);
-        rightJoy = new Joystick(RIGHT_DRIVER_JOY_PORT);
-        opJoy = new Joystick(OPER_JOY_PORT);
+        leftJoy = new Joystick(IO.LEFT_DRIVER_JOY_PORT);
+        rightJoy = new Joystick(IO.RIGHT_DRIVER_JOY_PORT);
+        opJoy = new Joystick(IO.OPER_JOY_PORT);
     }
 
     public void execute() throws Exception {
@@ -118,119 +113,31 @@ public class Controls extends GenericSubsystem{
             opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
             opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
             opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
+            opDPadXAxis = opJoy.getRawAxis(DPAD_X_AXIS);
+            opDPadYAxis = opJoy.getRawAxis(DPAD_Y_AXIS);
+            opTriangle = opJoy.getRawButton(TRIANGLE);
+            opCircle = opJoy.getRawButton(CIRCLE);
+            opSquare = opJoy.getRawButton(SQUARE);
+            opCross = opJoy.getRawButton(CROSS);
+            opStart = opJoy.getRawButton(START);
+            opSelect = opJoy.getRawButton(SELECT);
+            opL1 = opJoy.getRawButton(LONE);
+            opL2 = opJoy.getRawButton(LTWO);
+            opL3 = opJoy.getRawButton(L3);
+            opR1 = opJoy.getRawButton(RONE);
+            opR2 = opJoy.getRawButton(RTWO);
+            opR3 = opJoy.getRawButton(R3);
+            driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
+            driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
+            driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
+            driverLeftTopButton = leftJoy.getRawButton(ATTACK3_TOP_BUTTON);
+            driverLeftTrigger = leftJoy.getRawButton(ATTACK3_TRIGGER);
+            driverRightXAxis = rightJoy.getRawAxis(ATTACK3_X_AXIS);
+            driverRightYAxis = rightJoy.getRawAxis(ATTACK3_Y_AXIS);
+            driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
+            driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
+            driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+            Thread.sleep(20);
         }
-    }
-    
-    //TODO Rename all of these to their mapped functions;
-    public double getOpLeftX(){
-        return opLeftXAxis;
-    }
-    
-    public double getOpLeftY(){
-        return opLeftYAxis;
-    }
-    
-    public double getOpRightX(){
-        return opRightXAxis;
-    }
-    
-    public double getOpRightY(){
-        return opRightYAxis;
-    }
-    
-    public double getOpDPadX(){
-        return opDPadYAxis;
-    }
-    
-    public double getOpDPadY(){
-        return opDPadYAxis;
-    }
-    
-    public boolean getOpTriangle(){
-        return opTriangle;
-    }
-    
-    public boolean getOpCross(){
-        return opCross;
-    }
-    
-    public boolean getOpCircle(){
-        return opCircle;
-    }
-    
-    public boolean getOpSquare(){
-        return opSquare;
-    }
-    
-    public boolean getOpSelect(){
-        return opSelect;
-    }
-    
-    public boolean getOpStart(){
-        return opStart;
-    }
-    
-    public boolean getOpL1(){
-        return opL1;
-    }
-    
-    public boolean getOpL2(){
-        return opL2;
-    }
-    
-    public boolean getOpL3(){
-        return opL3;
-    }
-    
-    public boolean getOpR1(){
-        return opR1;
-    }
-    
-    public boolean getOpR2(){
-        return opR2;
-    }
-    
-    public boolean getOpR3(){
-        return opR3;
-    }
-    
-    public double getDriverLeftY(){
-        return driverLeftYAxis;
-    }
-    
-    public double getDriverLeftX(){
-        return driverLeftXAxis;
-    }
-    
-    public double getDriverLeftZ(){
-        return driverLeftZAxis;
-    }
-    
-    public boolean getDriverLeftTrigger(){
-        return driverLeftTrigger;
-    }
-    
-    public boolean getDriverLeftTopButton(){
-        return driverLeftTopButton;
-    }
-    
-    public double getDriverRightY(){
-        return driverRightYAxis;
-    }
-    
-    public double getDriverRightX(){
-        return driverRightXAxis;
-    }
-    
-    public double getDriverRightZ(){
-        return driverRightZAxis;
-    }
-    
-    public boolean getDriverRightTrigger(){
-        return driverRightTrigger;
-    }
-    
-    public boolean getDriverRightTopButton(){
-        return driverRightTopButton;
     }
 }
