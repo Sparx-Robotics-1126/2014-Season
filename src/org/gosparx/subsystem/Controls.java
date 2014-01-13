@@ -31,8 +31,10 @@ public class Controls extends GenericSubsystem{
     private final int LEFT_Y_AXIS = 2;
     private final int RIGHT_X_AXIS = 4;
     private final int RIGHT_Y_AXIS = 3;
-    private final int DPAD_X_AXIS = 5;// right == 1, left == -1
-    private final int DPAD_Y_AXIS = 6;// down == 1, up == -1
+    /** right == 1, left == -1 */
+    private final int DPAD_X_AXIS = 5;
+    /** down == 1, up == -1 */
+    private final int DPAD_Y_AXIS = 6;
     private final int TRIANGLE = 1;
     private final int CIRCLE = 2;
     private final int CROSS = 3;
@@ -148,7 +150,7 @@ public class Controls extends GenericSubsystem{
             driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
             driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
             driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
-            drives.setSpeed(driverLeftYAxis, driverRightYAxis);
+            drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis, Drives.MAX_ROBOT_SPEED * driverRightYAxis);
             Thread.sleep(20);
         }
     }

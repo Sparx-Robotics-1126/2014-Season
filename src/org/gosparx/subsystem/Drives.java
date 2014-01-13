@@ -60,7 +60,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The max speed (inches per second) that the robot can obtain.
      */
-    private static final double MAX_ROBOT_SPEED         = 168;
+    public static final double MAX_ROBOT_SPEED         = 168;
     
     /**
      * This is the speed in inches per second we want the left side of the 
