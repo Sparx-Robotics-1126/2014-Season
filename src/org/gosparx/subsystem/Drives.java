@@ -16,6 +16,11 @@ import org.gosparx.IO;
 public class Drives extends GenericSubsystem {
     
     /**
+     * The Drives Class reference
+     */
+    private static Drives drives;
+    
+    /**
      * The distance the robot travels per tick of the encoder.
      */
     private static final double DIST_PER_TICK           = 0.0245;
@@ -55,7 +60,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The max speed (inches per second) that the robot can obtain.
      */
-    private static final double MAX_ROBOT_SPEED         = 168;
+    public static final double MAX_ROBOT_SPEED         = 168;
     
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -110,6 +115,16 @@ public class Drives extends GenericSubsystem {
      */
     private Solenoid shifter;
     
+    /**
+     * Look to see if there is a drive class, if not it creates one
+     * @return the Drives Class 
+     */
+    public static Drives getInstance(){
+        if(drives == null){
+            drives = new Drives();
+        }
+        return drives;
+    }
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
      */
