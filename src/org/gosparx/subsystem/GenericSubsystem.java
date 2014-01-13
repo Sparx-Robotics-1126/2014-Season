@@ -1,5 +1,4 @@
 package org.gosparx.subsystem;
-
 import edu.wpi.first.wpilibj.DriverStation;
 
 /**
@@ -13,6 +12,7 @@ public abstract class GenericSubsystem extends Thread {
     /**
      * This is the name of the subsystem, used for logs.
      */
+    protected DriverStation ds;
     protected String nameOfSubsystem;
     
     /**
@@ -25,6 +25,7 @@ public abstract class GenericSubsystem extends Thread {
         super(nameOfSubsystem);
         this.nameOfSubsystem = nameOfSubsystem;
         this.setPriority(threadPriority);
+        ds = DriverStation.getInstance();
     }
     
     /**
