@@ -176,15 +176,18 @@ public class Autonomous extends GenericSubsystem{
                             visionDistance = vision.getDistance();
                             visionAngle = vision.getLocation();
                             System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
-                            if(visionAngle > 190){
-                                drives.setSpeed(36, -36);
-                            }else if(visionAngle < 170){
-                                drives.setSpeed(-36, 36);
-                            }else if(visionDistance > 14){
-                                drives.setSpeed(-36, -36);
-                            }else if(visionDistance < 10){
-                                drives.setSpeed(36, 36);
-                            }
+//                            if(visionAngle > 190){
+//                                drives.setSpeed(0, 10);
+//                            }else if(visionAngle < 170){
+//                                drives.setSpeed(10, 0);
+//                            }else if(visionDistance > 20){
+//                                drives.setSpeed(10, 10);
+//                            }else if(visionDistance < 15){
+//                                drives.setSpeed(-10, -10);
+//                            }else{
+//                                drives.setSpeed(0, 0);
+//                            }
+                            drives.setSpeed(10, 10);
                             break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
