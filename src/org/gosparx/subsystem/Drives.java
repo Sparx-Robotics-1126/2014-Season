@@ -170,6 +170,8 @@ public class Drives extends GenericSubsystem {
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
         double leftMotorOutput = 0, rightMotorOutput = 0;
+        shiftTime = Timer.getFPGATimestamp();
+        System.out.println("STARTING VDRIVES");
         
         while(true){
             leftCurrentSpeed = leftDrivesEncoder.getRate();
@@ -180,7 +182,7 @@ public class Drives extends GenericSubsystem {
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
             
-            if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+            if(Timer.getFPGATimestamp() < shiftTime + SHIFT_TIME){
                 // if we are shifting don't change the speeds
                leftMotorOutput = leftFrontDrives.get();
                rightMotorOutput = rightFrontDrives.get();
@@ -198,13 +200,13 @@ public class Drives extends GenericSubsystem {
                 rightMotorOutput = MOTOR_SHIFTING_SPEED;
             }
             
-            if(wantedLeftSpeed < 0){
+            if(wantedLeftSpeed < 0)
                 leftMotorOutput *= -1;
+            if(wantedRightSpeed < 0)
                 rightMotorOutput *= -1;
-            }
             
-            leftFrontDrives.set(leftMotorOutput);
-            leftRearDrives.set(leftMotorOutput);
+            leftFrontDrives.set(leftMotorOutput);//WRONG!!!!
+            leftRearDrives.set(-leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
             
@@ -238,6 +240,7 @@ public class Drives extends GenericSubsystem {
      * @param right speed of left drives system in Inches per Second
      */
     public void setSpeed(double left, double right){
+        System.out.println("Left: " + left + " Right: " + right);
         wantedLeftSpeed = left;
         wantedRightSpeed = right;
     }
