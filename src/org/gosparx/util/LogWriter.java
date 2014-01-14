@@ -90,7 +90,6 @@ public class LogWriter extends GenericSubsystem{
                     dis.close();
                     fileConConfig.close();
                 }catch(IOException e){
-                    e.printStackTrace();
                 }
             }catch(IOException e){
                 if(fileConConfig.fileSize() != 0){
@@ -109,7 +108,6 @@ public class LogWriter extends GenericSubsystem{
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             dos = fileCon.openDataOutputStream();
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
     /**
@@ -132,6 +130,7 @@ public class LogWriter extends GenericSubsystem{
             }
             String toWrite = info + message + "/n";
             dos.write(toWrite.getBytes(), 0, message.getBytes().length);
+            System.out.print(toWrite);
             Thread.sleep(20);
             System.out.println(message);
             if(level == LEVEL_ERROR){
