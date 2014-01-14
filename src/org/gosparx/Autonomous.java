@@ -7,15 +7,17 @@ import org.gosparx.subsystem.Vision;
 
 
 public class Autonomous extends GenericSubsystem{
-    private Autonomous auto;
+    private static Autonomous auto;
     private Drives drives;
     private Vision vision;
     private int[][] currentAutonomous;
     
-    private boolean runAutonomous = false;
+    private boolean runAutonomous = true;
     private int loopTime = 0;
-    private double vision_distance = 0;
-    private int vision_angle = 0;
+    private double visionDistance = 0;
+    private int visionAngle = 0;
+    private boolean visionHotGoal = false;
+    private boolean firstLoop = true;
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
@@ -56,7 +58,7 @@ public class Autonomous extends GenericSubsystem{
     /* Vision */
     private static final int VISION_DISTANCE                = 30;
     private static final int VISION_ANGLE                   = 31;
-    private static final int VISION_HOT_TARGET              = 32;
+    private static final int VISION_HOT_TARGET          = 32;
     
     private static final int CUSTOM_1                       = 40;
 
@@ -72,14 +74,17 @@ public class Autonomous extends GenericSubsystem{
         
     };
     
+    public static final int[][] cameraFollow = { 
+        {LOOP, Integer.MAX_VALUE},
+        {CUSTOM_1},
+        {END}
+    };
+    
     private Autonomous(){
-        super("Autonomous", GenericSubsystem.NORM_PRIORITY);
-//        drives = Drives.getInstance();
-        drives = new Drives();//getInstance hasen't been implemented
-        vision = Vision.getInstance();
+        super("Autonomous", GenericSubsystem.NORM_PRIORITY);       
     }
     
-    public Autonomous getInstance(){
+    public static Autonomous getInstance(){
         if(auto == null){
             auto = new Autonomous();
         }
@@ -107,7 +112,8 @@ public class Autonomous extends GenericSubsystem{
            }
     }
     
-    public void runAutonomous(){
+    private void runAutonomous(){
+        currentAutonomous = cameraFollow;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -158,20 +164,30 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case VISION_DISTANCE:
-                            vision_distance = vision.getDistance();
+                            visionDistance = vision.getDistance();
                             break;
                         case VISION_ANGLE:
-                            vision_angle = vision.getLocation();
+                            visionAngle = vision.getLocation();
                             break;
                         case VISION_HOT_TARGET:
-                            
+                            visionHotGoal = vision.isHotGoal();
                             break;
                         case CUSTOM_1:
-                            
+                            visionDistance = vision.getDistance();
+                            visionAngle = vision.getLocation();
+                            System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
+                            if(visionAngle > 190){
+                                drives.setSpeed(36, -36);
+                            }else if(visionAngle < 170){
+                                drives.setSpeed(-36, 36);
+                            }else if(visionDistance > 14){
+                                drives.setSpeed(-36, -36);
+                            }else if(visionDistance < 10){
+                                drives.setSpeed(36, 36);
+                            }
                             break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
-                            
                             break;
                         case WAIT:
                             
@@ -182,9 +198,13 @@ public class Autonomous extends GenericSubsystem{
 //                            print("No case statement: " + currentAutonomous[i]);
                     }
                 }   
-                    if(loopTime > 0){
+                    if(loopTime > 0 && !firstLoop){
                         i = i - 1;
                         loopTime = loopTime - 1;
+                    }else if(firstLoop){
+                        firstLoop = false;
+                    }else{
+                        firstLoop = true;
                     }
             }
         }              
@@ -192,10 +212,17 @@ public class Autonomous extends GenericSubsystem{
     }
 
     public void init() {
-        
+        drives = Drives.getInstance();
+        vision = Vision.getInstance();
     }
 
     public void execute() throws Exception {
-        
+        System.out.println("I HAVE STARTED");
+        while(true){
+            Thread.sleep(20);
+            if(ds.isAutonomous() && ds.isEnabled()){
+                auto.runAutonomous();
+            }
+        }
     }
 }
