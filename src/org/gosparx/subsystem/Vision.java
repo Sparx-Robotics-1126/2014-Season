@@ -8,26 +8,6 @@ import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
 
-/**
- * Sample program to use NIVision to find rectangles in the scene that are illuminated
- * by a LED ring light (similar to the model from FIRSTChoice). The camera sensitivity
- * is set very low so as to only show light sources and remove any distracting parts
- * of the image.
- * 
- * The CriteriaCollection is the set of criteria that is used to filter the set of
- * rectangles that are detected. In this example we're looking for rectangles with
- * a minimum width of 30 pixels and maximum of 400 pixels.
- * 
- * The algorithm first does a color threshold operation that only takes objects in the
- * scene that have a bright green color component. Then a small object filter
- * removes small particles that might be caused by green reflection scattered from other 
- * parts of the scene. Finally all particles are scored on rectangularity, and aspect ratio,
- * to determine if they are a target.
- *
- * Look in the VisionImages directory inside the project that is created for the sample
- * images.
- */
-
 public class Vision extends GenericSubsystem{
     //Nathan
     int imageLocation;//middle is 180, left is 0, right is 360
@@ -69,7 +49,7 @@ public class Vision extends GenericSubsystem{
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     private Vision(){
-        super("Vision", Thread.MIN_PRIORITY);
+        super("Vision", Thread.NORM_PRIORITY);
     }
     
     /**
@@ -89,7 +69,7 @@ public class Vision extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            sleep(50);
+            sleep(20);
             getBestTarget();
             freeImage();
         }
@@ -136,7 +116,7 @@ public class Vision extends GenericSubsystem{
      * Gets an image and uses color and small particle conversions to find target.
      * @throws NIVisionException 
      */
-    public void getImage() throws NIVisionException{      
+    private void getImage() throws NIVisionException{      
                 image = null;
                 try {
                     image = camera.getImage(); // comment if using stored images
@@ -153,7 +133,7 @@ public class Vision extends GenericSubsystem{
      * Finds the target and then calculates the center of the vertical tape.
      * @throws NIVisionException 
      */
-    public void findCenterofTarget() throws NIVisionException{
+    private void findCenterofTarget() throws NIVisionException{
             getImage();
                 //iterate through each particle and score to see if it is a target
                 scores = new Scores[filteredImage.getNumberParticles()];
@@ -191,7 +171,7 @@ public class Vision extends GenericSubsystem{
      * the distance match up to determine if the goal is a normal goal or a hot goal.
      * @throws NIVisionException 
      */
-                public void getBestTarget() throws NIVisionException{
+                private void getBestTarget() throws NIVisionException{
 			findCenterofTarget();
 			target.totalScore = target.leftScore = target.rightScore = target.tapeWidthScore = target.verticalScore = 0;
 			target.verticalIndex = verticalTargets[0];
@@ -261,7 +241,7 @@ public class Vision extends GenericSubsystem{
        /**
         * frees all the images and saves space
         */
-        public void freeImage(){
+        private void freeImage(){
             try {
                 filteredImage.free();
                 thresholdImage.free();
@@ -304,7 +284,7 @@ public class Vision extends GenericSubsystem{
      * @param outer	Indicates whether the particle aspect ratio should be compared to the ratio for the inner target or the outer
      * @return The aspect ratio score (0-100)
      */
-    public double scoreAspectRatio(BinaryImage image, ParticleAnalysisReport report, int particleNumber, boolean vertical) throws NIVisionException
+    private double scoreAspectRatio(BinaryImage image, ParticleAnalysisReport report, int particleNumber, boolean vertical) throws NIVisionException
     {
         double rectLong, rectShort, aspectRatio, idealAspectRatio;
 
@@ -390,12 +370,6 @@ public class Vision extends GenericSubsystem{
          * @return if the best goal is hot or not 
          */
         public boolean isHotGoal(){
-        try {
-            getBestTarget();
-        } catch (NIVisionException ex) {
-            ex.printStackTrace();
-        }
-        vision.freeImage();
             return imageHotGoal;
         }
         
@@ -405,12 +379,6 @@ public class Vision extends GenericSubsystem{
          * @return distance - how far away the target is from the camera in feet
          */
         public double getDistance(){
-            try {
-                getBestTarget();
-            } catch (NIVisionException ex) {
-                ex.printStackTrace();
-            }
-            vision.freeImage();
         return imageDistance;
         }
         
@@ -423,16 +391,7 @@ public class Vision extends GenericSubsystem{
          * 360 is left
          */
         public int getLocation(){
-            try {
-                findCenterofTarget();
-            } catch (NIVisionException ex) {
-                ex.printStackTrace();
-            }
-            vision.freeImage();
-        return imageLocation;
-        }
-        
-        
-    
+            return imageLocation;
+        }   
 }
         
