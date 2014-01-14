@@ -63,6 +63,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int CUSTOM_1                       = 40;
 
     /* Misc */
+    private static final int NEXT                           = 96;//next i, how many lines up to repeat
     private static final int LOOP                           = 97;//number of loops, 
     private static final int WAIT                           = 98;
     private static final int END                            = 99;
@@ -71,12 +72,15 @@ public class Autonomous extends GenericSubsystem{
     /**************************************************************************/
     
     public static final int[][] noAuto = { 
-        
+        {END}
     };
     
     public static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
+        {VISION_DISTANCE},
+        {VISION_ANGLE},
         {CUSTOM_1},
+        {NEXT, 3},
         {END}
     };
     
@@ -173,8 +177,6 @@ public class Autonomous extends GenericSubsystem{
                             visionHotGoal = vision.isHotGoal();
                             break;
                         case CUSTOM_1:
-                            visionDistance = vision.getDistance();
-                            visionAngle = vision.getLocation();
                             System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
 //                            if(visionAngle > 190){
 //                                drives.setSpeed(0, 10);
@@ -189,6 +191,12 @@ public class Autonomous extends GenericSubsystem{
 //                            }
                             drives.setSpeed(10, 10);
                             break;
+                        case NEXT:
+                            if(loopTime > 0){
+                                i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
+                                loopTime--;
+                            }
+                            break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
                             break;
@@ -201,14 +209,6 @@ public class Autonomous extends GenericSubsystem{
 //                            print("No case statement: " + currentAutonomous[i]);
                     }
                 }   
-                    if(loopTime > 0 && !firstLoop){
-                        i = i - 1;
-                        loopTime = loopTime - 1;
-                    }else if(firstLoop){
-                        firstLoop = false;
-                    }else{
-                        firstLoop = true;
-                    }
             }
         }              
       }
@@ -225,6 +225,8 @@ public class Autonomous extends GenericSubsystem{
             Thread.sleep(20);
             if(ds.isAutonomous() && ds.isEnabled()){
                 auto.runAutonomous();
+            }else{
+                auto.getAutoMode();
             }
         }
     }
