@@ -2,6 +2,7 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -62,6 +63,8 @@ public class Drives extends GenericSubsystem {
      */
     public static final double MAX_ROBOT_SPEED         = 168;
     
+    private static final int TURNING_THRESHOLD          = 1;
+    
     /**
      * This is the speed in inches per second we want the left side of the 
      * drives to achieve.
@@ -115,6 +118,7 @@ public class Drives extends GenericSubsystem {
      */
     private Solenoid shifter;
     
+    private Gyro gyro;
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -154,6 +158,8 @@ public class Drives extends GenericSubsystem {
         rightDrivesEncoder.start();
         
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
+ 
+        gyro = new Gyro(IO.GYRO_ANALOG);
     }
 
     /**
@@ -164,6 +170,7 @@ public class Drives extends GenericSubsystem {
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
         double leftMotorOutput = 0, rightMotorOutput = 0;
+        shiftTime = Timer.getFPGATimestamp();
         
         while(true){
             leftCurrentSpeed = leftDrivesEncoder.getRate();
@@ -174,7 +181,7 @@ public class Drives extends GenericSubsystem {
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
             
-            if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+            if(Timer.getFPGATimestamp() < shiftTime + SHIFT_TIME){
                 // if we are shifting don't change the speeds
                leftMotorOutput = leftFrontDrives.get();
                rightMotorOutput = rightFrontDrives.get();
@@ -192,13 +199,13 @@ public class Drives extends GenericSubsystem {
                 rightMotorOutput = MOTOR_SHIFTING_SPEED;
             }
             
-            if(wantedLeftSpeed < 0){
+            if(wantedLeftSpeed < 0)
                 leftMotorOutput *= -1;
+            if(wantedRightSpeed < 0)
                 rightMotorOutput *= -1;
-            }
             
-            leftFrontDrives.set(leftMotorOutput);
-            leftRearDrives.set(leftMotorOutput);
+            leftFrontDrives.set(leftMotorOutput);//WRONG!!!!
+            leftRearDrives.set(-leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
             
@@ -232,8 +239,28 @@ public class Drives extends GenericSubsystem {
      * @param right speed of left drives system in Inches per Second
      */
     public void setSpeed(double left, double right){
+        System.out.println("Left: " + left + " Right: " + right);
         wantedLeftSpeed = left;
         wantedRightSpeed = right;
     }
     
+    /**
+     * 
+     */
+    public void turn(double degrees, boolean turnLeft){
+        double current = gyro.getAngle();
+        double desired = gyro.getAngle() + degrees;
+        if(turnLeft)setSpeed(-.4 ,.4);
+        if(!turnLeft)setSpeed(.4, -.4);
+        boolean done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
+        while(!done){
+            current = gyro.getAngle();
+            done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 }
