@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import org.gosparx.IO;
+import org.gosparx.util.Logger;
 
 /**
  * The purpose of this class is to implement the drives subsystem.  This class 
@@ -113,6 +114,12 @@ public class Drives extends GenericSubsystem {
      */
     private double shiftTime;
     
+    private Logger logger = new Logger(Logger.SUB_DRIVES);
+    
+    private double lastLogTime = 0;
+    
+    private double LOG_EVERY = 5.0;
+    
     /**
      * The solenoid that controls the pneumatics to shift the drives.
      */
@@ -199,16 +206,15 @@ public class Drives extends GenericSubsystem {
                 rightMotorOutput = MOTOR_SHIFTING_SPEED;
             }
             
-            if(wantedLeftSpeed < 0)
-                leftMotorOutput *= -1;
-            if(wantedRightSpeed < 0)
-                rightMotorOutput *= -1;
-            
             leftFrontDrives.set(leftMotorOutput);//WRONG!!!!
             leftRearDrives.set(-leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
             
+            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
+                lastLogTime = Timer.getFPGATimestamp();
+                logger.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+            }
             Thread.sleep(10);
         }
     }
