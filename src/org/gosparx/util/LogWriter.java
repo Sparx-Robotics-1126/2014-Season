@@ -1,6 +1,7 @@
 package org.gosparx.util;
 
 import com.sun.squawk.microedition.io.FileConnection;
+import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.networktables2.util.List;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -23,7 +24,12 @@ public class LogWriter extends GenericSubsystem{
     private DataInputStream dis;
     private final String configPath = "file:///loggingConfig.txt";
     private final int MAX_LOGS = 5;
+    private String[] prevMessages  = new String[6];
+    private DriverStationLCD dsLCD = DriverStationLCD.getInstance();
     
+    public static int LEVEL_DEBUG                                           = 0;
+    public static int LEVEL_ERROR                                           = 1;
+   
     /**
      * Returns the singleton LogWriter
      * @return the singleton LogWriter
@@ -45,9 +51,9 @@ public class LogWriter extends GenericSubsystem{
      * Logs the message to the file
      * @param message The message to log
      */
-    public void log(String message){
+    public void log(String info, String message, int level){
         synchronized(messagesToLog){
-            messagesToLog.add(message);
+            messagesToLog.add(new LogMessage(level, info, message));
             messagesToLog.notify();
         }
     }
@@ -57,6 +63,13 @@ public class LogWriter extends GenericSubsystem{
      * by 1. It wraps around.
      */
     public void init() {
+        String emptyString = "";
+        prevMessages[0] = emptyString;
+        prevMessages[1] = emptyString;
+        prevMessages[2] = emptyString;
+        prevMessages[3] = emptyString;
+        prevMessages[4] = emptyString;
+        prevMessages[5] = emptyString;
         try {
             int toUse = 0;
             try {
@@ -77,15 +90,15 @@ public class LogWriter extends GenericSubsystem{
                     dis.close();
                     fileConConfig.close();
                 }catch(IOException e){
-                    e.printStackTrace();
                 }
             }catch(IOException e){
-                e.printStackTrace();
+                if(fileConConfig.fileSize() != 0){
                 fileConConfig.create();
                 dosConfig = fileConConfig.openDataOutputStream();
                 String toWrite = "" + toUse;
                 dosConfig.write(toWrite.getBytes());
                 dosConfig.close();
+                }
             }
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
@@ -95,24 +108,46 @@ public class LogWriter extends GenericSubsystem{
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             dos = fileCon.openDataOutputStream();
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
     /**
      * Logs the first message to log in the queue every 20 ms
      */
     public void execute() throws Exception {
-        String message;
+        String message, info;
+        LogMessage logMessage;
+        int level;
         while (true) {
             synchronized(messagesToLog){
                 if(messagesToLog.isEmpty())
                     messagesToLog.wait();
                 
-                message = (String) messagesToLog.get(0);
+                logMessage = (LogMessage) messagesToLog.get(0);
+                message = logMessage.getMessage();
+                level = logMessage.getLevel();
+                info = logMessage.getInfo();
                 messagesToLog.remove(0);
             }
-            dos.write(message.getBytes(), 0, message.getBytes().length);
+            String toWrite = info + message + "/n";
+            dos.write(toWrite.getBytes(), 0, message.getBytes().length);
+            System.out.print(toWrite);
             Thread.sleep(20);
+            System.out.println(message);
+            if(level == LEVEL_ERROR){
+                prevMessages[0] = prevMessages[1];
+                prevMessages[1] = prevMessages[2];
+                prevMessages[2] = prevMessages[3];
+                prevMessages[3] = prevMessages[4];
+                prevMessages[4] = info;
+                prevMessages[5] = message;
+                dsLCD.println(DriverStationLCD.Line.kUser1, 1, prevMessages[0]);
+                dsLCD.println(DriverStationLCD.Line.kUser2, 1, prevMessages[1]);
+                dsLCD.println(DriverStationLCD.Line.kUser3, 1, prevMessages[2]);
+                dsLCD.println(DriverStationLCD.Line.kUser4, 1, prevMessages[3]);
+                dsLCD.println(DriverStationLCD.Line.kUser5, 1, prevMessages[4]);
+                dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
+                dsLCD.updateLCD();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.gosparx.util;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStationLCD;
 
 /**
  * @author Alex
@@ -51,7 +52,29 @@ public class Logger {
             timeFormatted = "0000000000000000".substring(0, DIGITS_IN_TIME - timeToFormat.length()) + timeInt;
         }
         timeFormatted = timeFormatted.substring(0,timeFormatted.length() - PRECISION) + "." + timeFormatted.substring(timeFormatted.length() - PRECISION);
-        String toWrite = "[" + timeFormatted + "] {" + mode + "} " + subsystem + ": " + message + "\n";
-        writer.log(toWrite);
+        String info = "(DEBUG)" + "[" + timeFormatted + "] {" + mode + "} " + subsystem + ": ";
+        writer.log(info, message, LogWriter.LEVEL_DEBUG);
+    }
+    
+    public void logError(String message){
+        String mode;
+        if(ds.isAutonomous()){
+            mode = "Aut";
+        }else if(ds.isOperatorControl()){
+            mode = "Tel";
+        }else{
+            mode = "Dis";
+        }
+        double time = ds.getMatchTime();
+        time *= com.sun.squawk.util.MathUtils.pow(10, PRECISION);
+        int timeInt = (int)time;
+        String timeToFormat = "" + timeInt;
+        String timeFormatted = timeToFormat;
+        if(timeToFormat.length()<= DIGITS_IN_TIME) {
+            timeFormatted = "0000000000000000".substring(0, DIGITS_IN_TIME - timeToFormat.length()) + timeInt;
+        }
+        timeFormatted = timeFormatted.substring(0,timeFormatted.length() - PRECISION) + "." + timeFormatted.substring(timeFormatted.length() - PRECISION);
+        String info = "(ERROR)" + "[" + timeFormatted + "]{" + mode + "}" + subsystem + ": ";
+        writer.log(info, message, LogWriter.LEVEL_ERROR);;
     }
 }
