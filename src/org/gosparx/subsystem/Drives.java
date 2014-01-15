@@ -171,7 +171,6 @@ public class Drives extends GenericSubsystem {
         double leftCurrentSpeed, rightCurrentSpeed;
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
-        System.out.println("STARTING VDRIVES");
         
         while(true){
             leftCurrentSpeed = leftDrivesEncoder.getRate();
