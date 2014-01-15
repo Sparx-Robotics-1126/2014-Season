@@ -44,7 +44,7 @@ public class LogWriter extends GenericSubsystem{
      * Makes a new LogWriter
      */
     private LogWriter(){
-        super("LogWriter", Thread.MIN_PRIORITY);
+        super("LogWriter", Thread.NORM_PRIORITY);
         messagesToLog = new List();
     }
     /**
@@ -128,8 +128,8 @@ public class LogWriter extends GenericSubsystem{
                 info = logMessage.getInfo();
                 messagesToLog.remove(0);
             }
-            String toWrite = info + message + "/n";
-            dos.write(toWrite.getBytes(), 0, message.getBytes().length);
+            String toWrite = info + message + "\n";
+            dos.write(toWrite.getBytes());
             System.out.print(toWrite);
             Thread.sleep(20);
             System.out.println(message);

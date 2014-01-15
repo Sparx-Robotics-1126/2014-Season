@@ -245,7 +245,6 @@ public class Drives extends GenericSubsystem {
      * @param right speed of left drives system in Inches per Second
      */
     public void setSpeed(double left, double right){
-        System.out.println("Left: " + left + " Right: " + right);
         wantedLeftSpeed = left;
         wantedRightSpeed = right;
     }

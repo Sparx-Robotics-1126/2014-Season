@@ -26,7 +26,7 @@ public class Controls extends GenericSubsystem{
     
     private Drives drives;
     
-    private double JOYSTICK_DEADZONE = .02;   
+    private double JOYSTICK_DEADZONE = .04;   
     
     private double lastLogTime = 0;
     
