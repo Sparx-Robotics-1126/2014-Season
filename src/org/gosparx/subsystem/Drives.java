@@ -136,16 +136,7 @@ public class Drives extends GenericSubsystem {
         }
         return drives;
     }
-    /**
-     * Look to see if there is a drive class, if not it creates one
-     * @return the Drives Class 
-     */
-    public static Drives getInstance(){
-        if(drives == null){
-            drives = new Drives();
-        }
-        return drives;
-    }
+    
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
      */
