@@ -6,6 +6,8 @@
 
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
+
 /**
  * The purpose of this class is to have all the electrical configuration in one 
  * place.
@@ -32,6 +34,13 @@ public class IO {
     // Drives Pnumatic Slots
     public static final int SHIFT_CHAN                  = 1;
     
+    //Drives Gyro slot
+    public static final AnalogChannel GYRO_ANALOG       = new AnalogChannel(1);
+    
+    //Drives Booleans
+    public static final boolean DRIVES_TURN_LEFT        = true;
+    public static final boolean DRIVES_TURN_RIGHT       = false;
+   
     // Controls IO Ports
         
     public static final int LEFT_DRIVER_JOY_PORT                                  = 1;

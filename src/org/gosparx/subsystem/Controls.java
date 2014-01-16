@@ -4,8 +4,11 @@
  */
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
+import org.gosparx.util.Logger;
 
 /**
  * @author Alex
@@ -23,7 +26,13 @@ public class Controls extends GenericSubsystem{
     
     private Drives drives;
     
+    private double JOYSTICK_DEADZONE = .04;   
     
+    private double lastLogTime = 0;
+    
+    private double LOG_EVERY = 5.0;
+    
+    private Logger logger = new Logger("Contr");
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -122,36 +131,48 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
-            opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
-            opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
-            opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
-            opDPadXAxis = opJoy.getRawAxis(DPAD_X_AXIS);
-            opDPadYAxis = opJoy.getRawAxis(DPAD_Y_AXIS);
-            opTriangle = opJoy.getRawButton(TRIANGLE);
-            opCircle = opJoy.getRawButton(CIRCLE);
-            opSquare = opJoy.getRawButton(SQUARE);
-            opCross = opJoy.getRawButton(CROSS);
-            opStart = opJoy.getRawButton(START);
-            opSelect = opJoy.getRawButton(SELECT);
-            opL1 = opJoy.getRawButton(LONE);
-            opL2 = opJoy.getRawButton(LTWO);
-            opL3 = opJoy.getRawButton(L3);
-            opR1 = opJoy.getRawButton(RONE);
-            opR2 = opJoy.getRawButton(RTWO);
-            opR3 = opJoy.getRawButton(R3);
-            driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
-            driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
-            driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
-            driverLeftTopButton = leftJoy.getRawButton(ATTACK3_TOP_BUTTON);
-            driverLeftTrigger = leftJoy.getRawButton(ATTACK3_TRIGGER);
-            driverRightXAxis = rightJoy.getRawAxis(ATTACK3_X_AXIS);
-            driverRightYAxis = rightJoy.getRawAxis(ATTACK3_Y_AXIS);
-            driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
-            driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
-            driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
-            drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis, Drives.MAX_ROBOT_SPEED * driverRightYAxis);
-            Thread.sleep(20);
+            if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+                opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
+                opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
+                opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
+                opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
+                opDPadXAxis = opJoy.getRawAxis(DPAD_X_AXIS);
+                opDPadYAxis = opJoy.getRawAxis(DPAD_Y_AXIS);
+                opTriangle = opJoy.getRawButton(TRIANGLE);
+                opCircle = opJoy.getRawButton(CIRCLE);
+                opSquare = opJoy.getRawButton(SQUARE);
+                opCross = opJoy.getRawButton(CROSS);
+                opStart = opJoy.getRawButton(START);
+                opSelect = opJoy.getRawButton(SELECT);
+                opL1 = opJoy.getRawButton(LONE);
+                opL2 = opJoy.getRawButton(LTWO);
+                opL3 = opJoy.getRawButton(L3);
+                opR1 = opJoy.getRawButton(RONE);
+                opR2 = opJoy.getRawButton(RTWO);
+                opR3 = opJoy.getRawButton(R3);
+                driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
+                driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
+                driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
+                driverLeftTopButton = leftJoy.getRawButton(ATTACK3_TOP_BUTTON);
+                driverLeftTrigger = leftJoy.getRawButton(ATTACK3_TRIGGER);
+                driverRightXAxis = rightJoy.getRawAxis(ATTACK3_X_AXIS);
+                driverRightYAxis = rightJoy.getRawAxis(ATTACK3_Y_AXIS);
+                driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
+                driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
+                driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+                if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
+                    driverLeftYAxis = 0;
+                }
+                if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
+                    driverRightYAxis = 0;
+                }
+                drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
+                    lastLogTime = Timer.getFPGATimestamp();
+                    logger.logMessage("Left: " + Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1 + " Right: " + Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                }
+                Thread.sleep(20);
+            }
         }
     }
 }
