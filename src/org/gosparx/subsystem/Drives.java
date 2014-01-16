@@ -3,6 +3,7 @@ package org.gosparx.subsystem;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
+import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
@@ -120,6 +121,13 @@ public class Drives extends GenericSubsystem {
     
     private double LOG_EVERY = 5.0;
     
+    private double currentAngle;
+    
+    private double desiredAngle;
+    
+    private boolean isTurning;
+    
+    private double TURN_SCALE_FACTOR = 0.005;
     /**
      * The solenoid that controls the pneumatics to shift the drives.
      */
@@ -167,6 +175,8 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
+        gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
+        gyro.setSensitivity(.007);
     }
 
     /**
@@ -180,6 +190,8 @@ public class Drives extends GenericSubsystem {
         shiftTime = Timer.getFPGATimestamp();
         
         while(true){
+            currentAngle = gyro.getAngle();
+            System.out.println(currentAngle);
             leftCurrentSpeed = leftDrivesEncoder.getRate();
             rightCurrentSpeed = rightDrivesEncoder.getRate();
             
@@ -187,8 +199,16 @@ public class Drives extends GenericSubsystem {
             rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
-            
-            if(Timer.getFPGATimestamp() < shiftTime + SHIFT_TIME){
+            if(isTurning){
+                leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
+                rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
+                //System.out.println(leftMotorOutput);
+                if(Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD){
+                    isTurning = false;
+                    leftMotorOutput = 0;
+                    rightMotorOutput = 0;
+                }
+            } else if(Timer.getFPGATimestamp() < shiftTime + SHIFT_TIME){
                 // if we are shifting don't change the speeds
                leftMotorOutput = leftFrontDrives.get();
                rightMotorOutput = rightFrontDrives.get();
@@ -252,20 +272,9 @@ public class Drives extends GenericSubsystem {
     /**
      * 
      */
-    public void turn(double degrees, boolean turnLeft){
-        double current = gyro.getAngle();
-        double desired = gyro.getAngle() + degrees;
-        if(turnLeft)setSpeed(-.4 ,.4);
-        if(!turnLeft)setSpeed(.4, -.4);
-        boolean done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
-        while(!done){
-            current = gyro.getAngle();
-            done = (((current + TURNING_THRESHOLD >= desired) && !turnLeft) || ((current - TURNING_THRESHOLD <= desired) && turnLeft));
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
+    public void turn(double degrees){
+        gyro.reset();
+        desiredAngle = degrees;
+        isTurning = true;
     }
 }

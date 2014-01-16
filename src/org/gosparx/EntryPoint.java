@@ -60,6 +60,8 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
+        
+        Drives.getInstance().turn(90);
     }
     
     /**
