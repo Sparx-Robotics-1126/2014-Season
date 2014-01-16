@@ -58,7 +58,7 @@ public class Autonomous extends GenericSubsystem{
     /* Vision */
     private static final int VISION_DISTANCE                = 30;
     private static final int VISION_ANGLE                   = 31;
-    private static final int VISION_HOT_TARGET          = 32;
+    private static final int VISION_HOT_TARGET              = 32;
     
     private static final int CUSTOM_1                       = 40;
 
@@ -178,18 +178,17 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case CUSTOM_1:
                             System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
-//                            if(visionAngle > 190){
-//                                drives.setSpeed(0, 10);
-//                            }else if(visionAngle < 170){
-//                                drives.setSpeed(10, 0);
-//                            }else if(visionDistance > 20){
-//                                drives.setSpeed(10, 10);
-//                            }else if(visionDistance < 15){
-//                                drives.setSpeed(-10, -10);
-//                            }else{
-//                                drives.setSpeed(0, 0);
-//                            }
-                            drives.setSpeed(10, 10);
+                            if(visionAngle > 190){
+                                drives.setSpeed(5, -5);
+                            }else if(visionAngle < 170){
+                                drives.setSpeed(-5, 5);
+                            }else if(visionDistance > 20){
+                                drives.setSpeed(5, 5);
+                            }else if(visionDistance < 15){
+                                drives.setSpeed(-5, -5);
+                            }else{
+                                drives.setSpeed(0, 0);
+                            }
                             break;
                         case NEXT:
                             if(loopTime > 0){
