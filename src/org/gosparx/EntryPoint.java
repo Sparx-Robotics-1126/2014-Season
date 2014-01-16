@@ -7,8 +7,8 @@
 
 package org.gosparx;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
+import org.gosparx.subsystem.Controls;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -37,10 +37,11 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[3];
+        subsystems = new GenericSubsystem[4];
         subsystems[0] = LogWriter.getInstance();
-        subsystems[1] = new Drives();
-        subsystems[2] = Vision.getInstance();
+        subsystems[1] = Drives.getInstance();
+        subsystems[2] = Controls.getInstance();
+        subsystems[3] = Vision.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
