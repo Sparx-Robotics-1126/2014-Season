@@ -42,6 +42,7 @@ public abstract class GenericSubsystem extends Thread {
                 Thread.sleep(10);
             } catch (Throwable e) {
                 log.logError("Uncaught Exception: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

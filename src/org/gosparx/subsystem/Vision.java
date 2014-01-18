@@ -265,8 +265,8 @@ public class Vision extends GenericSubsystem {
         height = Math.min(report.boundingRectHeight, rectLong);
         targetHeight = 17;//32
         log.logMessage("Report: " + report.boundingRectHeight);
-        log.logMessage("Dist: " + -0.0181818 * (report.boundingRectHeight) + 25.090909 + " Report: " + report.boundingRectHeight);
-        return -0.0181818 * (report.boundingRectHeight) + 25.090909; 
+        log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
+        return (-0.0181818 * (report.boundingRectHeight) + 25.090909); 
     }
 
     /**
