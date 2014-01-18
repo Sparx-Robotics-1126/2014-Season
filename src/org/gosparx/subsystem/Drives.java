@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
@@ -7,7 +8,6 @@ import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.Victor;
 import org.gosparx.IO;
 
 /**
@@ -129,11 +129,6 @@ public class Drives extends GenericSubsystem {
     private double lastLogTime = 0;
     
     /**
-     * The time between logging messages.
-     */
-    private static final double LOG_EVERY = 5.0;
-    
-    /**
      * The current angle that the robot is facing. Resets every time turn() is 
      * called
      */ 
@@ -150,6 +145,11 @@ public class Drives extends GenericSubsystem {
     private boolean isTurning;
     
     /**
+     * The relay that the compressor is on.
+     */
+    private Compressor compressor;
+    
+    /**
      * The solenoid that controls the pneumatics to shift the drives.
      */
     private Solenoid shifter;
@@ -158,10 +158,8 @@ public class Drives extends GenericSubsystem {
      * The Gyro used for turning calculations
      */
     private Gyro gyro;
-        
-    private Logger logger = new Logger(Logger.SUB_DRIVES);
-        
-    private double TURN_SCALE_FACTOR = 0.005;
+    
+    private final double TURN_SCALE_FACTOR = 0.010;
     
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -201,6 +199,8 @@ public class Drives extends GenericSubsystem {
         rightDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         rightDrivesEncoder.start();
         
+        compressor = new Compressor(IO.DEFAULT_SLOT, IO.PRESSURE_SWITCH_CHAN, IO.DEFAULT_SLOT, IO.COMPRESSOR_RELAY_CHAN);
+        compressor.start();
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
@@ -220,7 +220,6 @@ public class Drives extends GenericSubsystem {
         
         while(true){
             currentAngle = gyro.getAngle();
-            System.out.println(currentAngle);
             leftCurrentSpeed = leftDrivesEncoder.getRate();
             rightCurrentSpeed = rightDrivesEncoder.getRate();
             
@@ -231,7 +230,7 @@ public class Drives extends GenericSubsystem {
             if(isTurning){
                 leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
                 rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
-                //System.out.println(leftMotorOutput);
+
                 if(Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD){
                     isTurning = false;
                     leftMotorOutput = 0;
@@ -255,7 +254,7 @@ public class Drives extends GenericSubsystem {
                 rightMotorOutput = MOTOR_SHIFTING_SPEED;
             }
             
-            leftFrontDrives.set(leftMotorOutput);//WRONG!!!!
+            leftFrontDrives.set(leftMotorOutput);
             leftRearDrives.set(leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
