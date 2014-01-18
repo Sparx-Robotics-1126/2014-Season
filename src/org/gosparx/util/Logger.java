@@ -1,7 +1,6 @@
 package org.gosparx.util;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStationLCD;
 
 /**
  * @author Alex
@@ -11,13 +10,14 @@ public class Logger {
     private LogWriter writer;
     private String subsystem;
     private DriverStation ds = DriverStation.getInstance();
-    private final int DIGITS_IN_TIME = 8;
-    private final int PRECISION = 4;
+    private static final int DIGITS_IN_TIME = 8;
+    private static final int PRECISION = 4;
     
-    public static String SUB_DRIVES = "Drive";
-    public static String SUB_SHOOTER = "Shoot";
-    public static String SUB_ACQUISITIONS = "Acqui";
-    public static String SUB_VISON = "Vison";
+    public static final String SUB_DRIVES = "Drive";
+    public static final String SUB_SHOOTER = "Shoot";
+    public static final String SUB_ACQUISITIONS = "Acqui";
+    public static final String SUB_VISON = "Vison";
+    public static final String SUB_CONTROLER = "Contr";
     
     /**
      * Creates a new Logger to log

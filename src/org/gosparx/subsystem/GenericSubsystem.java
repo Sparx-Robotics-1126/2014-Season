@@ -1,6 +1,7 @@
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import org.gosparx.util.Logger;
 
 /**
  * The most basic version of any subsystem.  This class is used to have a 
@@ -13,18 +14,20 @@ public abstract class GenericSubsystem extends Thread {
     /**
      * This is the name of the subsystem, used for logs.
      */
-    protected String nameOfSubsystem;
+    protected Logger log;
     
     /**
      * This creates a generic subsystem.
      *
-     * @param nameOfSubsystem A debugging name for the subsystem.
+     * @param nameOfSubsystem A debugging name for the subsystem. Use a constant
+     * from {@link Logger} constant, ie. {@link Logger#SUB_DRIVES}.
      * @param threadPriority The {@link java.lang.Thread}'s priority.
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
-        this.nameOfSubsystem = nameOfSubsystem;
         this.setPriority(threadPriority);
+        
+        log = new Logger(nameOfSubsystem);
     }
     
     /**
@@ -37,7 +40,7 @@ public abstract class GenericSubsystem extends Thread {
                 execute();
                 Thread.sleep(10);
             } catch (Throwable e) {
-                // TODO: Log me!
+                log.logError("Uncaught Exception: " + e.getMessage());
             }
         }
     }
