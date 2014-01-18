@@ -42,7 +42,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The position of the solenoid when in high gear.
      */
-    private static final boolean HIGH_GEAR              = true;
+    private static final boolean HIGH_GEAR              = !LOW_GEAR;
     
     /**
      * The speed (inches per second) that we shift up into high gear at.
@@ -159,6 +159,8 @@ public class Drives extends GenericSubsystem {
      */
     private Gyro gyro;
     
+    private int drivesState;
+    
     private final double TURN_SCALE_FACTOR = 0.010;
     
     /**
@@ -202,6 +204,7 @@ public class Drives extends GenericSubsystem {
         compressor = new Compressor(IO.DEFAULT_SLOT, IO.PRESSURE_SWITCH_CHAN, IO.DEFAULT_SLOT, IO.COMPRESSOR_RELAY_CHAN);
         compressor.start();
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
+        shifter.set(LOW_GEAR);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
@@ -217,7 +220,7 @@ public class Drives extends GenericSubsystem {
         double leftCurrentSpeed, rightCurrentSpeed;
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
-        
+        drivesState = State.LOW_GEAR;
         while(true){
             currentAngle = gyro.getAngle();
             leftCurrentSpeed = leftDrivesEncoder.getRate();
@@ -227,31 +230,44 @@ public class Drives extends GenericSubsystem {
             rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
-            if(isTurning){
-                leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
-                rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
+            
+            switch(drivesState){
+                case State.LOW_GEAR:
+                    if(averageSpeed > UP_SHIFT_THRESHOLD){
+                        log.logMessage("Up Shift!");
+                        shifter.set(HIGH_GEAR);
+                        drivesState = State.SHIFT_HIGH_GEAR;
+                        shiftTime = Timer.getFPGATimestamp();
+                    }
+                    break;
+                case State.HIGH_GEAR:
+                    if(averageSpeed < DOWN_SHIFT_THRESHOLD){
+                        log.logMessage("Down Shift!");
+                        shifter.set(LOW_GEAR);
+                        drivesState = State.SHIFT_LOW_GEAR;
+                        shiftTime = Timer.getFPGATimestamp();
+                    }
+                    break;
+                case State.SHIFT_LOW_GEAR:
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME)
+                        drivesState = State.LOW_GEAR;
+                    break;
+                case State.SHIFT_HIGH_GEAR:
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME)
+                        drivesState = State.HIGH_GEAR;
+                    break;
+                case State.TURNING:
+                    leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
+                    rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
 
-                if(Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD){
-                    isTurning = false;
-                    leftMotorOutput = 0;
-                    rightMotorOutput = 0;
-                }
-            } else if(Timer.getFPGATimestamp() < shiftTime + SHIFT_TIME){
-                // if we are shifting don't change the speeds
-               leftMotorOutput = leftFrontDrives.get();
-               rightMotorOutput = rightFrontDrives.get();
-            }else if(averageSpeed >= UP_SHIFT_THRESHOLD && shifter.get() == LOW_GEAR){
-                // Shift up
-                shifter.set(HIGH_GEAR);
-                shiftTime = Timer.getFPGATimestamp();
-                leftMotorOutput = MOTOR_SHIFTING_SPEED;
-                rightMotorOutput = MOTOR_SHIFTING_SPEED;
-            }else if(averageSpeed <= DOWN_SHIFT_THRESHOLD && shifter.get() == HIGH_GEAR){
-                // Shift down
-                shifter.set(LOW_GEAR);
-                shiftTime = Timer.getFPGATimestamp();
-                leftMotorOutput = MOTOR_SHIFTING_SPEED;
-                rightMotorOutput = MOTOR_SHIFTING_SPEED;
+                    if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
+                        isTurning = false;
+                        leftMotorOutput = 0;
+                        rightMotorOutput = 0;
+                    }
+                    break;
+                default:
+                    log.logError("Unknown state for drives: " + drivesState);
             }
             
             leftFrontDrives.set(leftMotorOutput);
@@ -313,5 +329,13 @@ public class Drives extends GenericSubsystem {
      */
     public void driveStraight(double inches){
         
+    }
+    
+    private class State{
+        static final int LOW_GEAR           = 1;
+        static final int SHIFT_LOW_GEAR     = 2;
+        static final int HIGH_GEAR          = 4;
+        static final int SHIFT_HIGH_GEAR    = 5;
+        static final int TURNING            = 6;
     }
 }
