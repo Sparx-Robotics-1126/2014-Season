@@ -26,8 +26,9 @@ public abstract class GenericSubsystem extends Thread {
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
         this.setPriority(threadPriority);
-        
-        log = new Logger(nameOfSubsystem);
+        if(!nameOfSubsystem.equals("LogWriter")){
+            log = new Logger(nameOfSubsystem);   
+        }
     }
     
     /**

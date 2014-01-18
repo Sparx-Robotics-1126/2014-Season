@@ -264,8 +264,9 @@ public class Vision extends GenericSubsystem {
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
         targetHeight = 17;//32
-
-        return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE * Math.PI / (180 * 2)));
+        log.logMessage("Report: " + report.boundingRectHeight);
+        log.logMessage("Dist: " + -0.0181818 * (report.boundingRectHeight) + 25.090909 + " Report: " + report.boundingRectHeight);
+        return -0.0181818 * (report.boundingRectHeight) + 25.090909; 
     }
 
     /**
