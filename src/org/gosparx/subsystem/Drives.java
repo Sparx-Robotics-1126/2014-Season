@@ -65,7 +65,15 @@ public class Drives extends GenericSubsystem {
      */
     public static final double MAX_ROBOT_SPEED         = 168;
     
+    /**
+     * The accuracy in degrees for turning 
+     */
     private static final int TURNING_THRESHOLD          = 1;
+    
+    /**
+     * Time in seconds between logging the desired speed 
+     */
+    private final double LOG_EVERY = 5.0;
     
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -115,25 +123,41 @@ public class Drives extends GenericSubsystem {
      */
     private double shiftTime;
     
-    private Logger logger = new Logger(Logger.SUB_DRIVES);
-    
+    /**
+     * The Last time the desired speed was sent to the logger to be written
+     */
     private double lastLogTime = 0;
     
-    private double LOG_EVERY = 5.0;
-    
+    /**
+     * The current angle that the robot is facing. Resets every time turn() is 
+     * called
+     */ 
     private double currentAngle;
-    
+            
+    /**
+     * The desired angle to turn. Is negative if you re turning left
+     */ 
     private double desiredAngle;
     
+    /**
+     * Stores if the robot is currently turning.
+     */ 
     private boolean isTurning;
     
-    private double TURN_SCALE_FACTOR = 0.005;
     /**
      * The solenoid that controls the pneumatics to shift the drives.
      */
     private Solenoid shifter;
     
+    /**
+     * The Gyro used for turning calculations
+     */
     private Gyro gyro;
+        
+    private Logger logger = new Logger(Logger.SUB_DRIVES);
+        
+    private double TURN_SCALE_FACTOR = 0.005;
+    
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -270,11 +294,20 @@ public class Drives extends GenericSubsystem {
     }
     
     /**
-     * 
+     * turn the robot
+     * @param degrees - the desired number of degrees to turn. Use negative 
+     * values to turn left 
      */
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
         isTurning = true;
+    }
+    
+    /**
+     * 
+     */
+    public void driveStraight(double inches){
+        
     }
 }
