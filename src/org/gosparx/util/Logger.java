@@ -36,9 +36,9 @@ public class Logger {
      */
     public void logMessage(String message){
         String mode;
-        if(ds.isAutonomous()){
+        if(ds.isAutonomous() && ds.isEnabled()){
             mode = "Aut";
-        }else if(ds.isOperatorControl()){
+        }else if(ds.isOperatorControl() && ds.isEnabled()){
             mode = "Tel";
         }else{
             mode = "Dis";
@@ -58,9 +58,9 @@ public class Logger {
     
     public void logError(String message){
         String mode;
-        if(ds.isAutonomous()){
+        if(ds.isAutonomous() && ds.isEnabled()){
             mode = "Aut";
-        }else if(ds.isOperatorControl()){
+        }else if(ds.isOperatorControl() && ds.isEnabled()){
             mode = "Tel";
         }else{
             mode = "Dis";
