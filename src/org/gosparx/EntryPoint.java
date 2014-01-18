@@ -7,6 +7,7 @@
 
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import org.gosparx.subsystem.Controls;
 import org.gosparx.subsystem.Drives;
@@ -55,7 +56,6 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
-
     }
 
     /**
@@ -63,6 +63,14 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
+        while(DriverStation.getInstance().isOperatorControl() && DriverStation.getInstance().isEnabled()){
+            System.out.println("Deg to target: " + Vision.getInstance().getDeg());
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
     
     /**

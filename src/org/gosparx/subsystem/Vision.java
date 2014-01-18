@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
@@ -43,6 +44,8 @@ public class Vision extends GenericSubsystem {
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
+    
+    private double degrees = 0.0;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -68,6 +71,7 @@ public class Vision extends GenericSubsystem {
     public void execute() throws Exception {
         while (true) {
             getBestTarget();
+            degreesToTarget();
             freeImage();
             sleep(20);
         }
@@ -97,8 +101,9 @@ public class Vision extends GenericSubsystem {
         double tapeWidthScore;
         double verticalScore;
         double verticalPeremeter;
-        double horizonalPeremeter;
+        double horizontalPeremeter;
         double location;
+        double verticalWidth;
     };
 
     /**
@@ -176,7 +181,7 @@ public class Vision extends GenericSubsystem {
             ParticleAnalysisReport verticalReport = filteredImage.getParticleAnalysisReport(verticalTargets[i]);
             for (int j = 0; j < horizontalTargetCount; j++) {
                 ParticleAnalysisReport horizontalReport = filteredImage.getParticleAnalysisReport(horizontalTargets[j]);
-                double horizWidth, horizHeight, vertWidth, vertPerimeter, horizPerimeter, leftScore, rightScore, tapeWidthScore, verticalScore, total;
+                double horizWidth, horizHeight, vertWidth, vertPerimeter, horizPerimeter, leftScore, rightScore, tapeWidthScore, verticalScore, total, location;
 
                 //Measure equivalent rectangle sides for use in score calculation
                 horizWidth = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_EQUIVALENT_RECT_LONG_SIDE);
@@ -184,6 +189,7 @@ public class Vision extends GenericSubsystem {
                 horizHeight = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_EQUIVALENT_RECT_SHORT_SIDE);
                 vertPerimeter = NIVision.MeasureParticle(filteredImage.image, verticalTargets[i], false, MeasurementType.IMAQ_MT_CONVEX_HULL_PERIMETER);
                 horizPerimeter = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_CONVEX_HULL_PERIMETER);
+                location = 180 - NIVision.MeasureParticle(filteredImage.image, verticalTargets[i], false, MeasurementType.IMAQ_MT_FIRST_PIXEL_X);
 
                 //Determine if the horizontal target is in the expected location to the left of the vertical target
                 leftScore = ratioToScore(1.2 * (verticalReport.boundingRectLeft - horizontalReport.center_mass_x) / horizWidth);
@@ -207,7 +213,9 @@ public class Vision extends GenericSubsystem {
                     target.tapeWidthScore = tapeWidthScore;
                     target.verticalScore = verticalScore;
                     target.verticalPeremeter = vertPerimeter;
-                    target.horizonalPeremeter = horizPerimeter;
+                    target.horizontalPeremeter = horizPerimeter;
+                    target.verticalWidth = vertWidth;
+                    target.location = location;
                 }
             }
             //Determine if the best target is a Hot target
@@ -218,7 +226,7 @@ public class Vision extends GenericSubsystem {
                                     //Information about the target is contained in the "target" structure
             //To get measurement information such as sizes or locations use the
             //horizontal or vertical index to get the particle report as shown below
-            ParticleAnalysisReport distanceReport = filteredImage.getParticleAnalysisReport(target.verticalIndex);
+            ParticleAnalysisReport distanceReport  = filteredImage.getParticleAnalysisReport(target.verticalIndex);
             double distance = computeDistance(filteredImage, distanceReport, target.verticalIndex);
             imageDistance = distance;
             if (target.Hot) {
@@ -265,10 +273,10 @@ public class Vision extends GenericSubsystem {
         height = Math.min(report.boundingRectHeight, rectLong);
         targetHeight = 17;//32
         log.logMessage("Report: " + report.boundingRectHeight);
-        log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
-        return (-0.0181818 * (report.boundingRectHeight) + 25.090909); 
+        log.logMessage("Dist: " + ((-0.181818 * (report.boundingRectHeight) + 25.090909) * 12) + " Report: " + report.boundingRectHeight);
+        return ((-0.181818 * (report.boundingRectHeight) + 25.090909) * 12); 
     }
-
+   
     /**
      * Computes a score (0-100) comparing the aspect ratio to the ideal aspect
      * ratio for the target. This method uses the equivalent rectangle sides to
@@ -394,5 +402,22 @@ public class Vision extends GenericSubsystem {
      */
     public int getLocation() {
         return imageLocation;
+    }
+    
+    private void degreesToTarget(){
+        double hozIn = (-(180 - target.location));
+        System.out.println(" hozIn: " + hozIn);
+        System.out.println("Hot: " + target.Hot);
+        System.out.println("FilteredImage: " + filteredImage);
+        try {
+            double disIn = computeDistance(filteredImage, filteredImage.getParticleAnalysisReport(target.verticalIndex), target.verticalIndex)  / (32/filteredImage.getParticleAnalysisReport(target.verticalIndex).boundingRectHeight);
+            degrees = MathUtils.asin(hozIn/disIn) * (180/Math.PI);
+        } catch (NIVisionException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    public double getDeg(){
+        return degrees;
     }
 }
