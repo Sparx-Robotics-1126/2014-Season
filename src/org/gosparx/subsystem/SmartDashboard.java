@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.gosparx.util;
+package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.subsystem.GenericSubsystem;
