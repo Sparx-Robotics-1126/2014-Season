@@ -6,6 +6,7 @@
 
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.subsystem.GenericSubsystem;
 
@@ -19,9 +20,11 @@ public class SmartDashboard extends GenericSubsystem{
     private double time = 0;
     private double startingTime = 0;
     private double currentTime = 0;
+    private DriverStation ds;
     
     public SmartDashboard(){
         super("Smart", GenericSubsystem.MIN_PRIORITY);
+        ds = DriverStation.getInstance();
     }
     
     public void init() {
