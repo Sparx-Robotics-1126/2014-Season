@@ -71,7 +71,6 @@ public class Vision extends GenericSubsystem {
     public void execute() throws Exception {
         while (true) {
             getBestTarget();
-            degreesToTarget();
             freeImage();
             sleep(20);
         }
@@ -404,20 +403,9 @@ public class Vision extends GenericSubsystem {
         return imageLocation;
     }
     
-    private void degreesToTarget(){
-        double hozIn = (-(180 - target.location));
-        System.out.println(" hozIn: " + hozIn);
-        System.out.println("Hot: " + target.Hot);
-        System.out.println("FilteredImage: " + filteredImage);
-        try {
-            double disIn = computeDistance(filteredImage, filteredImage.getParticleAnalysisReport(target.verticalIndex), target.verticalIndex)  / (32/filteredImage.getParticleAnalysisReport(target.verticalIndex).boundingRectHeight);
-            degrees = MathUtils.asin(hozIn/disIn) * (180/Math.PI);
-        } catch (NIVisionException ex) {
-            ex.printStackTrace();
-        }
-    }
-    
-    public double getDeg(){
+    public double getDegrees(){
+        int pixelsToFeet = 25;
+        degrees = ((getLocation()- 180)/pixelsToFeet)/getDistance();
         return degrees;
     }
 }
