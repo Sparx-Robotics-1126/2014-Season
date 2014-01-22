@@ -26,7 +26,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The distance the robot travels per tick of the encoder.
      */
-    private static final double DIST_PER_TICK           = 0.0245;
+    private static final double DIST_PER_TICK           = 0.0490;
     
     /**
      * The absolute value of the speed at which the motors must be going to 
@@ -70,6 +70,8 @@ public class Drives extends GenericSubsystem {
      */
     private static final int TURNING_THRESHOLD          = 1;
     
+    private static final double DRIVING_THRESHOLD       = .75;
+    
     /**
      * Time in seconds between logging the desired speed 
      */
@@ -94,7 +96,7 @@ public class Drives extends GenericSubsystem {
     /**
      * This is the encoder on the left side of the robot.
      */
-    private Encoder leftDrivesEncoder;
+    public Encoder leftDrivesEncoder;
     
     /**
      * This is the speed in inches per second we want the right side of the 
@@ -162,6 +164,8 @@ public class Drives extends GenericSubsystem {
     private int drivesState;
     
     private final double TURN_SCALE_FACTOR = 0.010;
+    
+    private double inchesToGo;
     
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -259,10 +263,26 @@ public class Drives extends GenericSubsystem {
                 case State.TURNING:
                     leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
                     rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
-
+                    log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
                     if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
+                        log.logMessage("Done Turning");
                         isTurning = false;
                         leftMotorOutput = 0;
+                        rightMotorOutput = 0;
+                    }
+                    break;
+                case State.DRIVE_STRAIGHT:
+                    leftMotorOutput = Math.abs(.002 * inchesToGo) + .25;
+                    rightMotorOutput = Math.abs(.002 * inchesToGo) + .25;
+                    
+                    if(inchesToGo < 0){
+                        leftMotorOutput *= -1;
+                        rightMotorOutput *= -1;
+                    }
+                    if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                        leftMotorOutput = 0;
+                    }
+                    if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         rightMotorOutput = 0;
                     }
                     break;
@@ -318,17 +338,22 @@ public class Drives extends GenericSubsystem {
      * @param degrees - the desired number of degrees to turn. Use negative 
      * values to turn left 
      */
+    //TODO: Test on carpet. Overshoot correction?
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
         isTurning = true;
+        drivesState = State.TURNING;
     }
     
     /**
      * 
      */
     public void driveStraight(double inches){
-        
+        drivesState = State.DRIVE_STRAIGHT;
+        inchesToGo = inches;
+        leftDrivesEncoder.reset();
+        rightDrivesEncoder.reset();
     }
     
     private class State{
@@ -337,5 +362,6 @@ public class Drives extends GenericSubsystem {
         static final int HIGH_GEAR          = 4;
         static final int SHIFT_HIGH_GEAR    = 5;
         static final int TURNING            = 6;
+        static final int DRIVE_STRAIGHT     = 7;
     }
 }
