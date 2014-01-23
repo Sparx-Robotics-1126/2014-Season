@@ -48,8 +48,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The speed (inches per second) that we shift up into high gear at.
      */
-    private static final double UP_SHIFT_THRESHOLD      = 55;
-    
+    private static final double UP_SHIFT_THRESHOLD      = 50.875;    
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
