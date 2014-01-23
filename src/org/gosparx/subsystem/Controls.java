@@ -31,7 +31,14 @@ public class Controls extends GenericSubsystem{
     private double lastLogTime = 0;
     
     private double LOG_EVERY = 5.0;
-
+    
+    private boolean shiftingOverride                                    = false;
+    
+    private boolean lastShiftOverrideState                              = false;
+    
+    private boolean lastShiftUp                                         = false;
+    
+    private boolean lastShiftDown                                       = false;
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -135,6 +142,9 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         while(true){
             if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+                lastShiftDown = driverLeftTrigger;
+                lastShiftUp = driverRightTrigger;
+                lastShiftOverrideState = driverLeftTopButton;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -169,6 +179,23 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
+                if(driverLeftTopButton && !lastShiftOverrideState){
+                    shiftingOverride = !shiftingOverride;
+                    log.logMessage("Toggled manual shifting");
+                }
+                if(driverLeftTrigger && !shiftingOverride){
+                    drives.forceLowGear(true);
+                }else{
+                    drives.forceLowGear(false);
+                }
+                if(shiftingOverride){
+                    if(driverLeftTrigger && !lastShiftDown){
+                        drives.manualShiftDown();
+                    }else if(driverRightTrigger && !lastShiftUp){
+                        drives.manualShiftUp();
+                    }
+                }
+                drives.setManualShifting(shiftingOverride);
                 drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();

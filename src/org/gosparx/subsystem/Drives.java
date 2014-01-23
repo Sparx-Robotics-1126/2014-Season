@@ -2,6 +2,7 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -68,7 +69,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in degrees for turning 
      */
-    private static final int TURNING_THRESHOLD          = 1;
+    private static final double TURNING_THRESHOLD          =  1.5;
     
     private static final double DRIVING_THRESHOLD       = .75;
     
@@ -163,9 +164,15 @@ public class Drives extends GenericSubsystem {
     
     private int drivesState;
     
-    private final double TURN_SCALE_FACTOR = 0.010;
-    
     private double inchesToGo;
+    
+    private boolean needsToManuallyShiftUp                              = false;
+    
+    private boolean needsToManuallyShiftDown                            = false;
+    
+    private boolean forceLowGear                                        = false;
+    
+    private boolean manualShifting                                      = false;
     
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -212,7 +219,7 @@ public class Drives extends GenericSubsystem {
  
         gyro = new Gyro(IO.GYRO_ANALOG);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
-        gyro.setSensitivity(.007);
+        gyro.setSensitivity(.0067);
     }
 
     /**
@@ -237,19 +244,21 @@ public class Drives extends GenericSubsystem {
             
             switch(drivesState){
                 case State.LOW_GEAR:
-                    if(averageSpeed > UP_SHIFT_THRESHOLD){
+                    if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
                         log.logMessage("Up Shift!");
                         shifter.set(HIGH_GEAR);
                         drivesState = State.SHIFT_HIGH_GEAR;
                         shiftTime = Timer.getFPGATimestamp();
+                        needsToManuallyShiftUp = false;
                     }
                     break;
                 case State.HIGH_GEAR:
-                    if(averageSpeed < DOWN_SHIFT_THRESHOLD){
+                    if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
                         log.logMessage("Down Shift!");
                         shifter.set(LOW_GEAR);
                         drivesState = State.SHIFT_LOW_GEAR;
                         shiftTime = Timer.getFPGATimestamp();
+                        needsToManuallyShiftDown = false;
                     }
                     break;
                 case State.SHIFT_LOW_GEAR:
@@ -261,8 +270,13 @@ public class Drives extends GenericSubsystem {
                         drivesState = State.HIGH_GEAR;
                     break;
                 case State.TURNING:
-                    leftMotorOutput = TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
-                    rightMotorOutput = -TURN_SCALE_FACTOR * (desiredAngle - currentAngle);
+                    if(desiredAngle - currentAngle > 0){
+                        leftMotorOutput = (.0048 * (desiredAngle - currentAngle)) + .15;
+                        rightMotorOutput = -((.0048 * (desiredAngle - currentAngle)) + .15);
+                    } else if(desiredAngle - currentAngle < 0){
+                        leftMotorOutput = (.0048 * (desiredAngle - currentAngle)) - .15;
+                        rightMotorOutput = -((.0048 * (desiredAngle - currentAngle)) - .15);
+                    }
                     log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
                     if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
                         log.logMessage("Done Turning");
@@ -270,11 +284,19 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
                     }
+                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
+                        drivesState = State.LOW_GEAR;
+                    }
                     break;
                 case State.DRIVE_STRAIGHT:
-                    leftMotorOutput = Math.abs(.002 * inchesToGo) + .25;
-                    rightMotorOutput = Math.abs(.002 * inchesToGo) + .25;
-                    
+                    if(leftDrivesEncoder.getDistance() - inchesToGo < 0){
+                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() -inchesToGo)) + .25;
+                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() - inchesToGo)) + .25;
+                    }
+                    if(leftDrivesEncoder.getDistance() - inchesToGo > 0){
+                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() -inchesToGo)) - .25;
+                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() - inchesToGo)) - .25;
+                    }
                     if(inchesToGo < 0){
                         leftMotorOutput *= -1;
                         rightMotorOutput *= -1;
@@ -284,6 +306,9 @@ public class Drives extends GenericSubsystem {
                     }
                     if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         rightMotorOutput = 0;
+                    }
+                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
+                        drivesState = State.LOW_GEAR;
                     }
                     break;
                 default:
@@ -298,6 +323,8 @@ public class Drives extends GenericSubsystem {
             if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                 lastLogTime = Timer.getFPGATimestamp();
                 log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+                log.logMessage("Left Encoder Distance: " + leftDrivesEncoder.getDistance() + " Right Encoder Distance: " + rightDrivesEncoder.getDistance());
+                log.logMessage("Left Encoder Rate: " + leftDrivesEncoder.getRate() + " Right Encoder Rate:" + rightDrivesEncoder.getRate());
             }
             Thread.sleep(10);
         }
@@ -356,6 +383,22 @@ public class Drives extends GenericSubsystem {
         rightDrivesEncoder.reset();
     }
     
+    public void forceLowGear(boolean stayInLowGear){
+        forceLowGear = stayInLowGear;
+    }
+    
+    public void manualShiftUp(){
+        needsToManuallyShiftUp = true;
+        System.out.println("Manually shifting Up");
+    }
+    public void manualShiftDown(){
+        needsToManuallyShiftDown = true;
+        System.out.println("Manually shifting Down");
+    }
+    
+    public void setManualShifting(boolean manual){
+        manualShifting = manual;
+    }
     private class State{
         static final int LOW_GEAR           = 1;
         static final int SHIFT_LOW_GEAR     = 2;

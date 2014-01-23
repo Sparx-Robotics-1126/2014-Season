@@ -56,7 +56,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
-        Drives.getInstance().driveStraight(12);
+        Drives.getInstance().driveStraight(24);
     }
 
     /**
