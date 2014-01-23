@@ -15,6 +15,7 @@ public abstract class GenericSubsystem extends Thread {
      * This is the name of the subsystem, used for logs.
      */
     protected Logger log;
+    public DriverStation ds;
     
     /**
      * This creates a generic subsystem.
@@ -25,6 +26,7 @@ public abstract class GenericSubsystem extends Thread {
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
+        ds = DriverStation.getInstance();
         this.setPriority(threadPriority);
         if(!nameOfSubsystem.equals("LogWriter")){
             log = new Logger(nameOfSubsystem);   
@@ -38,7 +40,9 @@ public abstract class GenericSubsystem extends Thread {
     public void run(){
         while (true) {
             try {
-                execute();
+                if(!ds.isTest()){
+                    execute();   
+                }
                 Thread.sleep(10);
             } catch (Throwable e) {
                 log.logError("Uncaught Exception: " + e.getMessage());

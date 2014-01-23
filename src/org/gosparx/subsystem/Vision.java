@@ -66,7 +66,7 @@ public class Vision extends GenericSubsystem {
      * @throws Exception
      */
     public void execute() throws Exception {
-        while (true) {
+        while (!ds.isTest()) {
             getBestTarget();
             freeImage();
             sleep(20);

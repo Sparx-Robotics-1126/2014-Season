@@ -177,13 +177,6 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
-        
-       LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
-       LiveWindow.addActuator(subsystemName, "Right Rear", rightRearDrives);
-       LiveWindow.addSensor(subsystemName, "Right Encoder", rightDrivesEncoder);
-       LiveWindow.addActuator(subsystemName, "Left Front", leftFrontDrives);
-       LiveWindow.addActuator(subsystemName, "Left Rear", leftRearDrives);
-       LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
     }
 
     /**
@@ -196,7 +189,7 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         
-        while(true){
+        while(!ds.isTest()){
             leftCurrentSpeed = leftDrivesEncoder.getRate();
             rightCurrentSpeed = rightDrivesEncoder.getRate();
             

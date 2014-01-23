@@ -83,7 +83,7 @@ public class EntryPoint extends SimpleRobot {
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].liveWindow();
         }
-            while(true){
+            while(isTest() && isEnabled()){
                 LiveWindow.run();
                 Timer.delay(0.1);
             }

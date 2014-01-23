@@ -133,7 +133,7 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
