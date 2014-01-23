@@ -150,4 +150,8 @@ public class LogWriter extends GenericSubsystem{
             }
         }
     }
+
+    public void liveWindow() {
+        
+    }
 }

@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 
 /**
@@ -21,6 +22,11 @@ public class Drives extends GenericSubsystem {
      * The Drives Class reference
      */
     private static Drives drives;
+    
+    /**
+     * The name of the subsystem for liveWindow
+     */
+    private final String subsystemName = "Drives";
     
     /**
      * The distance the robot travels per tick of the encoder.
@@ -171,6 +177,13 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
+        
+       LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
+       LiveWindow.addActuator(subsystemName, "Right Rear", rightRearDrives);
+       LiveWindow.addSensor(subsystemName, "Right Encoder", rightDrivesEncoder);
+       LiveWindow.addActuator(subsystemName, "Left Front", leftFrontDrives);
+       LiveWindow.addActuator(subsystemName, "Left Rear", leftRearDrives);
+       LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
     }
 
     /**
@@ -271,5 +284,14 @@ public class Drives extends GenericSubsystem {
                 ex.printStackTrace();
             }
         }
+    }
+
+    public void liveWindow() {
+       LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
+       LiveWindow.addActuator(subsystemName, "Right Rear", rightRearDrives);
+       LiveWindow.addSensor(subsystemName, "Right Encoder", rightDrivesEncoder);
+       LiveWindow.addActuator(subsystemName, "Left Front", leftFrontDrives);
+       LiveWindow.addActuator(subsystemName, "Left Rear", leftRearDrives);
+       LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
     }
 }

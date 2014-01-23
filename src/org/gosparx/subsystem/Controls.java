@@ -178,4 +178,8 @@ public class Controls extends GenericSubsystem{
             }
         }
     }
+
+    public void liveWindow() {
+      
+    }
 }
