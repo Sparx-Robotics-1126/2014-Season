@@ -65,4 +65,8 @@ public abstract class GenericSubsystem extends Thread {
      */
     public abstract void execute() throws Exception;
     
+    public boolean isLastCommandDone(){
+        return true;
+    }
+    
 }

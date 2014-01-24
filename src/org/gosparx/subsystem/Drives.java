@@ -172,7 +172,7 @@ public class Drives extends GenericSubsystem {
     private boolean forceLowGear                                        = false;
     
     private boolean manualShifting                                      = false;
-    
+        
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -244,20 +244,22 @@ public class Drives extends GenericSubsystem {
             switch(drivesState){
                 case State.LOW_GEAR:
                     if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
+                        needsToManuallyShiftUp = false;
+                        needsToManuallyShiftDown = false;
                         log.logMessage("Up Shift!");
                         shifter.set(HIGH_GEAR);
                         drivesState = State.SHIFT_HIGH_GEAR;
                         shiftTime = Timer.getFPGATimestamp();
-                        needsToManuallyShiftUp = false;
                     }
                     break;
                 case State.HIGH_GEAR:
                     if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
+                        needsToManuallyShiftUp = false;
+                        needsToManuallyShiftDown = false;
                         log.logMessage("Down Shift!");
                         shifter.set(LOW_GEAR);
                         drivesState = State.SHIFT_LOW_GEAR;
                         shiftTime = Timer.getFPGATimestamp();
-                        needsToManuallyShiftDown = false;
                     }
                     break;
                 case State.SHIFT_LOW_GEAR:
@@ -309,6 +311,25 @@ public class Drives extends GenericSubsystem {
                     if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
                         drivesState = State.LOW_GEAR;
                     }
+                    break;
+                case State.HOLD_POS:
+                    if(gyro.getAngle() > TURNING_THRESHOLD){
+                        leftMotorOutput = -(.0048 * (gyro.getAngle())) + .15;
+                        rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
+                    } else if(gyro.getAngle() < -TURNING_THRESHOLD){
+                        leftMotorOutput = -(.0048 * (gyro.getAngle())) - .15;
+                        rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
+                    } else if(leftDrivesEncoder.getDistance() > DRIVING_THRESHOLD){
+                        leftMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
+                        rightMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
+                    } else if(leftDrivesEncoder.getDistance() < -DRIVING_THRESHOLD){
+                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
+                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
+                    } else{
+                        leftMotorOutput = 0;
+                        rightMotorOutput = 0;
+                    }
+                    log.logMessage("Gyro:" + gyro.getAngle());
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
@@ -398,6 +419,18 @@ public class Drives extends GenericSubsystem {
     public void setManualShifting(boolean manual){
         manualShifting = manual;
     }
+    public void startHoldPos(){
+        leftDrivesEncoder.reset();
+        rightDrivesEncoder.reset();
+        gyro.reset();
+        drivesState = State.HOLD_POS;
+    }
+    public void stopHoldPos(){
+        drivesState = State.LOW_GEAR;
+    }
+    public boolean isLastCommandDone() {
+        return drivesState == State.HOLD_POS;
+    }
     private class State{
         static final int LOW_GEAR           = 1;
         static final int SHIFT_LOW_GEAR     = 2;
@@ -405,5 +438,6 @@ public class Drives extends GenericSubsystem {
         static final int SHIFT_HIGH_GEAR    = 5;
         static final int TURNING            = 6;
         static final int DRIVE_STRAIGHT     = 7;
+        static final int HOLD_POS           = 8;
     }
 }

@@ -39,6 +39,10 @@ public class Controls extends GenericSubsystem{
     private boolean lastShiftUp                                         = false;
     
     private boolean lastShiftDown                                       = false;
+    
+    private boolean lastHoldInPlaceStart                                = false;
+    
+    private boolean lastHoldInPlaceStop                                 = false;
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -145,6 +149,8 @@ public class Controls extends GenericSubsystem{
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
+                lastHoldInPlaceStart = opStart;
+                lastHoldInPlaceStop = opSelect;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -194,6 +200,11 @@ public class Controls extends GenericSubsystem{
                     }else if(driverRightTrigger && !lastShiftUp){
                         drives.manualShiftUp();
                     }
+                }
+                if(!lastHoldInPlaceStart && opStart){
+                    drives.startHoldPos();
+                }else if(!lastHoldInPlaceStop && opSelect){
+                    drives.stopHoldPos();
                 }
                 drives.setManualShifting(shiftingOverride);
                 drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
