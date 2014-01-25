@@ -34,7 +34,7 @@ public class Drives extends GenericSubsystem {
      * The absolute value of the speed at which the motors must be going to 
      * shift.
      */
-    private static final double MOTOR_SHIFTING_SPEED    = .15;
+    private static final double MOTOR_SHIFTING_SPEED    = 40;
     
     /**
      * The position of the solenoid when in low gear.
@@ -53,13 +53,13 @@ public class Drives extends GenericSubsystem {
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
-    private static final double DOWN_SHIFT_THRESHOLD    = 25;
+    private static final double DOWN_SHIFT_THRESHOLD    = 15;
     
     /**
      * The time (seconds) we wait for the robot to shift before resuming driver 
      * control.
      */
-    private static final double SHIFT_TIME              = .05;
+    private static final double SHIFT_TIME              = .005;
     
     /**
      * The max speed (inches per second) that the robot can obtain.
@@ -313,12 +313,16 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.SHIFT_LOW_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME)
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
                         drivesState = State.LOW_GEAR;
+                    }
+                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
                     break;
                 case State.SHIFT_HIGH_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME)
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
                         drivesState = State.HIGH_GEAR;
+                    }
+                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
                     break;
                 case State.TURNING:
                     if(desiredAngle - currentAngle > 0){
@@ -392,7 +396,6 @@ public class Drives extends GenericSubsystem {
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
             }
-            
             leftFrontDrives.set(leftMotorOutput);
             leftRearDrives.set(leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
@@ -422,7 +425,7 @@ public class Drives extends GenericSubsystem {
         double speed = 0;
         if(wantedSpeed != 0) {
             // TODO: Make ramping awsomeness!
-            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED) + currentOutput;
+            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 2) + currentOutput;
         }
 
         return speed;
