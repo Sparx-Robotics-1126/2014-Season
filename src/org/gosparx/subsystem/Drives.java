@@ -27,7 +27,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The distance the robot travels per tick of the encoder.
      */
-    private static final double DIST_PER_TICK           = 0.0490;
+    private static final double DIST_PER_TICK           = 0.049087385212341;
     
     /**
      * The absolute value of the speed at which the motors must be going to 
@@ -85,6 +85,11 @@ public class Drives extends GenericSubsystem {
      * drives to achieve.
      */
     private double wantedLeftSpeed;
+    
+    /**
+     * Average Encoder distance for both the left and right encoder.
+     */
+    private double averageEncoderDiastance;
     
     /**
      * This is controlling the left front drives motor.
@@ -259,6 +264,7 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         drivesState = State.LOW_GEAR;
+        resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
             leftCurrentSpeed = leftDrivesEncoder.getRate();
@@ -269,6 +275,7 @@ public class Drives extends GenericSubsystem {
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
             
+            averageEncoderDiastance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
             switch(drivesState){
                 case State.LOW_GEAR:
                     if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
@@ -319,17 +326,20 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.DRIVE_STRAIGHT:
-                    if(leftDrivesEncoder.getDistance() - inchesToGo < 0){
-                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() -inchesToGo)) + .25;
-                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() - inchesToGo)) + .25;
+                    if(inchesToGo - leftDrivesEncoder.getDistance() > 0) {
+//                        leftMotorOutput = getMotorOutput(4*(inchesToGo-leftDrivesEncoder.getDistance()), leftDrivesEncoder.getRate(), leftMotorOutput);
+                        leftMotorOutput = 0.5;
                     }
-                    if(leftDrivesEncoder.getDistance() - inchesToGo > 0){
-                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() -inchesToGo)) - .25;
-                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance() - inchesToGo)) - .25;
+                    if(inchesToGo - rightDrivesEncoder.getDistance() > 0 ){
+//                        rightMotorOutput = getMotorOutput(4*(inchesToGo-rightDrivesEncoder.getDistance()), rightDrivesEncoder.getRate(), rightMotorOutput);
+                        rightMotorOutput = 0.5;
                     }
-                    if(inchesToGo < 0){
-                        leftMotorOutput *= -1;
-                        rightMotorOutput *= -1;
+                    if(leftDrivesEncoder.getDistance() - rightDrivesEncoder.getDistance() > 1){
+                        leftMotorOutput = leftMotorOutput * 0.75;
+                        log.logMessage("Slowing Down Left Motor");
+                    }else if(rightDrivesEncoder.getDistance() - leftDrivesEncoder.getDistance() > 1){
+                        rightMotorOutput = rightMotorOutput * 0.75;
+                        log.logMessage("Slowing Down Right Motor");
                     }
                     if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         leftMotorOutput = 0;
@@ -338,6 +348,7 @@ public class Drives extends GenericSubsystem {
                         rightMotorOutput = 0;
                     }
                     if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                        resetSensors();
                         drivesState = State.HOLD_POS;
                     }
                     if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
@@ -362,7 +373,6 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
                     }
-                    log.logMessage("Gyro:" + gyro.getAngle() + " Left Encoder Dist: " + leftDrivesEncoder.getDistance() + " Right Encoder Dist: " + rightDrivesEncoder.getDistance());
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
@@ -482,6 +492,20 @@ public class Drives extends GenericSubsystem {
      */
     public void stopHoldPos(){
         drivesState = State.LOW_GEAR;
+    }
+    
+    private void resetEncoders(){
+        rightDrivesEncoder.reset();
+        leftDrivesEncoder.reset();
+    }
+    
+    private void resetGyro(){
+        gyro.reset();
+    }
+    
+    private void resetSensors(){
+        resetEncoders();
+        resetGyro();
     }
     
     public boolean isLastCommandDone() {

@@ -112,6 +112,12 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
     
+    private static final int[][] moveFoward = {
+        {DRIVES_GO_FORWARD, 10*12},  
+        {DRIVES_DONE},
+        {END}
+    };
+    
     /**
      * 
      */
@@ -191,21 +197,26 @@ public class Autonomous extends GenericSubsystem{
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
+                            log.logMessage("Auto Drives Foward");
                             drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_GO_REVERSE:
+                            log.logMessage("Auto Drives Reverse");
                             drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_LEFT:
+                            log.logMessage("Auto Turn Left");
                             drives.turn(-currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_RIGHT:
+                            log.logMessage("Auto Turn Right");
                             drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_STOP:
                             
                             break;
                         case DRIVES_DONE:
+                            log.logMessage("Auto Waiting for Drives");
                             isDone();
                             break;
                         case INTAKE_AQUIRE_BALL:
@@ -302,7 +313,7 @@ public class Autonomous extends GenericSubsystem{
     }
     
     private void isDone(){
-        while(!drives.isLastCommandDone() && !vision.isLastCommandDone()){
+        while(!drives.isLastCommandDone() || !vision.isLastCommandDone()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {

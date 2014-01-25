@@ -132,7 +132,6 @@ public class LogWriter extends GenericSubsystem{
             dos.write(toWrite.getBytes());
             System.out.print(toWrite);
             Thread.sleep(20);
-            System.out.println(message);
             if(level == LEVEL_ERROR){
                 prevMessages[0] = prevMessages[1];
                 prevMessages[1] = prevMessages[2];
