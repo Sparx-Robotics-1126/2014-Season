@@ -210,14 +210,14 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case DRIVES_TURN_RIGHT:
                             log.logMessage("Auto Turn Right");
-                            drives.driveStraight(currentAutonomous[i][1]);
+                            drives.turn(currentAutonomous[i][1]);
                             break;
                         case DRIVES_STOP:
                             
                             break;
                         case DRIVES_DONE:
                             log.logMessage("Auto Waiting for Drives");
-                            isDone();
+                            isDoneDrives();
                             break;
                         case INTAKE_AQUIRE_BALL:
                             
@@ -241,7 +241,7 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case SHOOTER_DONE:
-                            isDone();
+                            isVisionDone();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -312,14 +312,23 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
-    private void isDone(){
-        while(!drives.isLastCommandDone() || !vision.isLastCommandDone()){
+    private void isDoneDrives(){
+        while(!drives.isLastCommandDone()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
-            System.out.println("WAITING");
+        }
+    }
+    
+    private void isVisionDone(){
+        while(!vision.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 }

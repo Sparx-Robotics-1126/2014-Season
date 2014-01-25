@@ -326,11 +326,11 @@ public class Drives extends GenericSubsystem {
                     break;
                 case State.TURNING:
                     if(desiredAngle - currentAngle > 0){
-                        leftMotorOutput = (.0048 * (desiredAngle - currentAngle)) + .15;
-                        rightMotorOutput = -((.0048 * (desiredAngle - currentAngle)) + .15);
+                        leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
+                        rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
                     } else if(desiredAngle - currentAngle < 0){
-                        leftMotorOutput = (.0048 * (desiredAngle - currentAngle)) - .15;
-                        rightMotorOutput = -((.0048 * (desiredAngle - currentAngle)) - .15);
+                        leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
+                        rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
                     }
                     log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
                     if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
@@ -338,7 +338,7 @@ public class Drives extends GenericSubsystem {
                         isTurning = false;
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
-                        drivesState = State.HOLD_POS;
+                        startHoldPos();
                     }
                     if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
                         drivesState = State.LOW_GEAR;
@@ -347,7 +347,7 @@ public class Drives extends GenericSubsystem {
                 case State.DRIVE_STRAIGHT:
                     if(inchesToGo - leftDrivesEncoder.getDistance() > 0) {
 //                        leftMotorOutput = getMotorOutput(4*(inchesToGo-leftDrivesEncoder.getDistance()), leftDrivesEncoder.getRate(), leftMotorOutput);
-                        setSpeed(40, 40);
+                        setSpeed(30, 30);
                     }
                     if(inchesToGo - rightDrivesEncoder.getDistance() > 0 ){
 //                        rightMotorOutput = getMotorOutput(4*(inchesToGo-rightDrivesEncoder.getDistance()), rightDrivesEncoder.getRate(), rightMotorOutput);
@@ -506,9 +506,7 @@ public class Drives extends GenericSubsystem {
      * stopHoldPos() is called
      */
     public void startHoldPos(){
-        leftDrivesEncoder.reset();
-        rightDrivesEncoder.reset();
-        gyro.reset();
+        resetSensors();
         drivesState = State.HOLD_POS;
     }
     /**
@@ -520,7 +518,9 @@ public class Drives extends GenericSubsystem {
     
     private void resetEncoders(){
         rightDrivesEncoder.reset();
+        rightEncoderData.reset();
         leftDrivesEncoder.reset();
+        leftEncoderData.reset();
     }
     
     private void resetGyro(){
