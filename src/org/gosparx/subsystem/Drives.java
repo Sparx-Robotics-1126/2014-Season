@@ -28,7 +28,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The distance the robot travels per tick of the encoder.
      */
-    private static final double DIST_PER_TICK           = 0.049087385212341;
+    private static final double DIST_PER_TICK           = 0.047;
     
     /**
      * The absolute value of the speed at which the motors must be going to 
@@ -347,18 +347,18 @@ public class Drives extends GenericSubsystem {
                 case State.DRIVE_STRAIGHT:
                     if(inchesToGo - leftDrivesEncoder.getDistance() > 0) {
 //                        leftMotorOutput = getMotorOutput(4*(inchesToGo-leftDrivesEncoder.getDistance()), leftDrivesEncoder.getRate(), leftMotorOutput);
-                        leftMotorOutput = 0.5;
+                        setSpeed(40, 40);
                     }
                     if(inchesToGo - rightDrivesEncoder.getDistance() > 0 ){
 //                        rightMotorOutput = getMotorOutput(4*(inchesToGo-rightDrivesEncoder.getDistance()), rightDrivesEncoder.getRate(), rightMotorOutput);
-                        rightMotorOutput = 0.5;
+//                        rightMotorOutput = 0.5;
                     }
                     if(leftDrivesEncoder.getDistance() - rightDrivesEncoder.getDistance() > 1){
-                        leftMotorOutput = leftMotorOutput * 0.75;
-                        log.logMessage("Slowing Down Left Motor");
+//                        leftMotorOutput = leftMotorOutput * 0.75;
+//                        log.logMessage("Slowing Down Left Motor");
                     }else if(rightDrivesEncoder.getDistance() - leftDrivesEncoder.getDistance() > 1){
-                        rightMotorOutput = rightMotorOutput * 0.75;
-                        log.logMessage("Slowing Down Right Motor");
+//                        rightMotorOutput = rightMotorOutput * 0.75;
+//                        log.logMessage("Slowing Down Right Motor");
                     }
                     if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         leftMotorOutput = 0;
@@ -367,6 +367,8 @@ public class Drives extends GenericSubsystem {
                         rightMotorOutput = 0;
                     }
                     if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                        log.logMessage("Done Driving Strait.");
+                        logDrivesInfo();
                         resetSensors();
                         drivesState = State.HOLD_POS;
                     }
@@ -401,15 +403,19 @@ public class Drives extends GenericSubsystem {
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
             
-            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
+            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
                 lastLogTime = Timer.getFPGATimestamp();
-                log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
-                log.logMessage("Left Encoder Distance: " + leftDrivesEncoder.getDistance() + " Right Encoder Distance: " + rightDrivesEncoder.getDistance());
-                log.logMessage("Left Encoder Rate: " + leftDrivesEncoder.getRate() + " Right Encoder Rate:" + rightDrivesEncoder.getRate());
-                log.logMessage("Drive State = " + State.getState(drivesState));
+                logDrivesInfo();
             }
             Thread.sleep(10);
         }
+    }
+    
+    private void logDrivesInfo(){
+        log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+        log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
+        log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
+        log.logMessage("Drive State = " + State.getState(drivesState));
     }
     
     /**

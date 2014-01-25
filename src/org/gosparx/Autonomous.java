@@ -113,7 +113,7 @@ public class Autonomous extends GenericSubsystem{
     };
     
     private static final int[][] moveFoward = {
-        {DRIVES_GO_FORWARD, 10*12},  
+        {DRIVES_GO_FORWARD, 20*12},  
         {DRIVES_DONE},
         {END}
     };
@@ -319,6 +319,7 @@ public class Autonomous extends GenericSubsystem{
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
             }
+            System.out.println("WAITING");
         }
     }
 }
