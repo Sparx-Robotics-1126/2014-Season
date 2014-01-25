@@ -278,7 +278,6 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        System.out.println("I HAVE STARTED");
         while(true){
             Thread.sleep(20);
             if(ds.isAutonomous() && ds.isEnabled()){
