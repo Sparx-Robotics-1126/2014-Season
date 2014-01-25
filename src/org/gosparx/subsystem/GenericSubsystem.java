@@ -10,7 +10,7 @@ import org.gosparx.util.Logger;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public abstract class GenericSubsystem extends Thread {
-
+    protected DriverStation ds;
     protected Logger log;
     
     /**
@@ -23,6 +23,7 @@ public abstract class GenericSubsystem extends Thread {
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
         this.setPriority(threadPriority);
+        ds = DriverStation.getInstance();
         if(!nameOfSubsystem.equals("LogWriter")){
             log = new Logger(nameOfSubsystem);   
         }
