@@ -10,24 +10,22 @@ import org.gosparx.util.Logger;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public abstract class GenericSubsystem extends Thread {
-    /**
-     * This is the name of the subsystem, used for logs.
-     */
-    protected Logger Logger;
-    protected DriverStation ds;
-    protected String nameOfSubsystem;
+
+    protected Logger log;
     
     /**
      * This creates a generic subsystem.
      *
-     * @param nameOfSubsystem A debugging name for the subsystem.
+     * @param nameOfSubsystem A debugging name for the subsystem. Use a constant
+     * from {@link Logger} constant, ie. {@link Logger#SUB_DRIVES}.
      * @param threadPriority The {@link java.lang.Thread}'s priority.
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
-        this.nameOfSubsystem = nameOfSubsystem;
         this.setPriority(threadPriority);
-        ds = DriverStation.getInstance();
+        if(!nameOfSubsystem.equals("LogWriter")){
+            log = new Logger(nameOfSubsystem);   
+        }
     }
     
     /**
@@ -40,7 +38,8 @@ public abstract class GenericSubsystem extends Thread {
                 execute();
                 Thread.sleep(10);
             } catch (Throwable e) {
-                // TODO: Log me!
+                log.logError("Uncaught Exception: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }

@@ -58,6 +58,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
+
     }
 
     /**

@@ -20,10 +20,10 @@ public class IO {
     public static final int DEFAULT_SLOT                = 1;
     
     // Drives PWM Slots
-    public static final int LEFT_FRONT_DRIVES_PWM       = 1;
-    public static final int LEFT_REAR_DRIVES_PWM        = 2;
-    public static final int RIGHT_FRONT_DRIVES_PWM      = 3;
-    public static final int RIGHT_REAR_DRIVES_PWM       = 4;
+    public static final int LEFT_FRONT_DRIVES_PWM       = 3;
+    public static final int LEFT_REAR_DRIVES_PWM        = 4;
+    public static final int RIGHT_FRONT_DRIVES_PWM      = 1;
+    public static final int RIGHT_REAR_DRIVES_PWM       = 2;
     
     // Drives Encoder Slots
     public static final int LEFT_DRIVES_ENCODER_CHAN_1  = 1;
