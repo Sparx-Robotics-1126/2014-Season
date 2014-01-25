@@ -346,6 +346,7 @@ public class Drives extends GenericSubsystem {
                 log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
                 log.logMessage("Left Encoder Distance: " + leftDrivesEncoder.getDistance() + " Right Encoder Distance: " + rightDrivesEncoder.getDistance());
                 log.logMessage("Left Encoder Rate: " + leftDrivesEncoder.getRate() + " Right Encoder Rate:" + rightDrivesEncoder.getRate());
+                log.logMessage("Drive State = " + State.getState(drivesState));
             }
             Thread.sleep(10);
         }
@@ -432,7 +433,8 @@ public class Drives extends GenericSubsystem {
     public boolean isLastCommandDone() {
         return drivesState == State.HOLD_POS;
     }
-    private class State{
+    
+    private static class State{
         static final int LOW_GEAR           = 1;
         static final int SHIFT_LOW_GEAR     = 2;
         static final int HIGH_GEAR          = 4;
@@ -440,5 +442,25 @@ public class Drives extends GenericSubsystem {
         static final int TURNING            = 6;
         static final int DRIVE_STRAIGHT     = 7;
         static final int HOLD_POS           = 8;
+        
+        public static String getState(int state){
+            switch(state){
+                case LOW_GEAR:
+                    return "Low Gear";
+                case SHIFT_LOW_GEAR:
+                    return "Shift Low Gear";
+                case HIGH_GEAR:
+                    return "High Gear";
+                case SHIFT_HIGH_GEAR:
+                    return "Shift High Gear";
+                case TURNING:
+                    return "Turning";
+                case DRIVE_STRAIGHT:
+                    return "Drive Straight";
+                case HOLD_POS:
+                    return "Holding current Position";
+        }
+            return "UNKOWN MODE";
+        }
     }
 }

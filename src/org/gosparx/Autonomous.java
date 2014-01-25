@@ -72,8 +72,8 @@ public class Autonomous extends GenericSubsystem{
     /* Drives */
     private static final int DRIVES_GO_FORWARD              = 1;//distance(inches), speed(double)
     private static final int DRIVES_GO_REVERSE              = 2;//distance(inches), speed(double)
-    private static final int DRIVES_TURN_RIGHT              = 3;
-    private static final int DRIVES_TURN_LEFT               = 4;
+    private static final int DRIVES_TURN_RIGHT              = 3;//Degrees(0 - infinity)
+    private static final int DRIVES_TURN_LEFT               = 4;//Degrees(0 - infinity)
     private static final int DRIVES_STOP                    = 5;
     private static final int DRIVES_DONE                    = 6;
     
@@ -108,14 +108,27 @@ public class Autonomous extends GenericSubsystem{
     /**
      * No auto will run
      */
-    public static final int[][] noAuto = { 
+    private static final int[][] noAuto = { 
+        {END}
+    };
+    
+    /**
+     * 
+     */
+    private static final int[][] autoSquare = {
+        {LOOP, 4*2},
+        {DRIVES_GO_FORWARD, 12*4},
+        {DRIVES_DONE},
+        {DRIVES_TURN_RIGHT, 90},
+        {DRIVES_DONE},
+        {NEXT, 4},
         {END}
     };
     
     /**
      * Camera will follow the target
      */
-    public static final int[][] cameraFollow = { 
+    private static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
         {VISION_ANGLE},
@@ -169,7 +182,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = cameraFollow;
+        currentAutonomous = autoSquare;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -178,22 +191,22 @@ public class Autonomous extends GenericSubsystem{
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
-                            
+                            drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_GO_REVERSE:
-                            
+                            drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_LEFT:
-                            
+                            drives.turn(-currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_RIGHT:
-                            
+                            drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_STOP:
                             
                             break;
                         case DRIVES_DONE:
-                            
+                            isDone();
                             break;
                         case INTAKE_AQUIRE_BALL:
                             
@@ -217,7 +230,7 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case SHOOTER_DONE:
-                            
+                            isDone();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -284,6 +297,16 @@ public class Autonomous extends GenericSubsystem{
                 auto.runAutonomous();
             }else{
                 auto.getAutoMode();
+            }
+        }
+    }
+    
+    private void isDone(){
+        while(!drives.isLastCommandDone() && !vision.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
             }
         }
     }
