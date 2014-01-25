@@ -94,7 +94,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int VISION_ANGLE                   = 31;
     private static final int VISION_HOT_TARGET              = 32;
     
-    private static final int CUSTOM_1                       = 40;
+    private static final int DRIVES_TRACK_TARGET                       = 40;
 
     /* Misc */
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
@@ -119,15 +119,21 @@ public class Autonomous extends GenericSubsystem{
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
         {VISION_ANGLE},
-        {CUSTOM_1},
+        {DRIVES_TRACK_TARGET},
         {NEXT, 3},
         {END}
     };
     
+    /**
+     * Autonomous Constructor
+     */
     private Autonomous(){
         super("Autonomous", GenericSubsystem.NORM_PRIORITY);       
     }
     
+    /**
+     * @return the Autonomous class 
+     */
     public static Autonomous getInstance(){
         if(auto == null){
             auto = new Autonomous();
@@ -222,7 +228,7 @@ public class Autonomous extends GenericSubsystem{
                         case VISION_HOT_TARGET:
                             visionHotGoal = vision.isHotGoal();
                             break;
-                        case CUSTOM_1:
+                        case DRIVES_TRACK_TARGET:
                             System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
                             if(visionAngle > 190){
                                 drives.setSpeed(5, -5);
