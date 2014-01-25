@@ -68,9 +68,12 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in degrees for turning 
      */
-    private static final double TURNING_THRESHOLD          =  1.5;
+    private static final double TURNING_THRESHOLD                        =  1.5;
     
-    private static final double DRIVING_THRESHOLD       = .75;
+    /**
+     * The accuracy in inches for turning
+     */
+    private static final double DRIVING_THRESHOLD                         = .75;
     
     /**
      * Time in seconds between logging the desired speed 
@@ -349,20 +352,17 @@ public class Drives extends GenericSubsystem {
                     } else if(gyro.getAngle() < -TURNING_THRESHOLD){
                         leftMotorOutput = -((.0048 * (gyro.getAngle())) - .15);
                         rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
-                    } else if(averageDistEncoder > DRIVING_THRESHOLD){
-                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
-                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
+                    } else if(averageDistEncoder > DRIVING_THRESHOLD) {
+                        leftMotorOutput = -(.002 * averageDistEncoder + .25);
+                        rightMotorOutput = -(.002 * averageDistEncoder + .25);
                     } else if(averageDistEncoder < -DRIVING_THRESHOLD){
-                        leftMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
-                        rightMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
+                        leftMotorOutput = -(.002 * averageDistEncoder - .25);
+                        rightMotorOutput = -(.002 * averageDistEncoder - .25);
                     } else{
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
                     }
-                    log.logMessage("Gyro:" + gyro.getAngle());
-                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
-                        drivesState = State.LOW_GEAR;
-                    }
+                    log.logMessage("Gyro:" + gyro.getAngle() + " Left Encoder Dist: " + leftDrivesEncoder.getDistance() + " Right Encoder Dist: " + rightDrivesEncoder.getDistance());
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
