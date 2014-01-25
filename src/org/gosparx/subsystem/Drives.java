@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
+import org.gosparx.sensors.EncoderData;
 
 /**
  * The purpose of this class is to implement the drives subsystem.  This class 
@@ -128,6 +129,16 @@ public class Drives extends GenericSubsystem {
     private Encoder rightDrivesEncoder;
     
     /**
+     * Used to Calculate Speed and Distance for right side
+     */
+    private EncoderData rightEncoderData;
+    
+    /**
+     * Used to Calculate Speed and Distance for left side
+     */
+    private EncoderData leftEncoderData;
+    
+    /**
      * The time from the {@link Timer#getFPGATimestamp() FPGA Timestamp} that we
      * shifted.
      */
@@ -236,12 +247,14 @@ public class Drives extends GenericSubsystem {
         leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
         leftDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.LEFT_DRIVES_ENCODER_CHAN_1,IO.DEFAULT_SLOT,IO.LEFT_DRIVES_ENCODER_CHAN_2, false, EncodingType.k4X);
         leftDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
+        leftEncoderData = new EncoderData(leftDrivesEncoder, DIST_PER_TICK);
         leftDrivesEncoder.start();
         
         rightFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_FRONT_DRIVES_PWM);
         rightRearDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_REAR_DRIVES_PWM);
         rightDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_2, true, EncodingType.k4X);
         rightDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
+        rightEncoderData = new EncoderData(rightDrivesEncoder, DIST_PER_TICK);
         rightDrivesEncoder.start();
         
         compressor = new Compressor(IO.DEFAULT_SLOT, IO.PRESSURE_SWITCH_CHAN, IO.DEFAULT_SLOT, IO.COMPRESSOR_RELAY_CHAN);
@@ -267,8 +280,10 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
-            leftCurrentSpeed = leftDrivesEncoder.getRate();
-            rightCurrentSpeed = rightDrivesEncoder.getRate();
+            leftEncoderData.calculateSpeed();
+            rightEncoderData.calculateSpeed();
+            leftCurrentSpeed = leftEncoderData.getSpeed();
+            rightCurrentSpeed = rightEncoderData.getSpeed();
             
             leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
             rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
