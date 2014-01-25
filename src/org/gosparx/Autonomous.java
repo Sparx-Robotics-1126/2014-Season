@@ -7,17 +7,51 @@ import org.gosparx.subsystem.Vision;
 
 
 public class Autonomous extends GenericSubsystem{
+    /**
+     * Auto instance
+     */
     private static Autonomous auto;
+    
+    /**
+     * Instance of drives
+     */
     private Drives drives;
+    
+    /**
+     * Instance of vision
+     */
     private Vision vision;
+    
+    /**
+     * The autonomous that runAuto uses
+     */
     private int[][] currentAutonomous;
     
+    /**
+     * Test to see if it is "ok" to run the runAuto method
+     */
     private boolean runAutonomous = true;
+    
+    /**
+     * Uses for the loop array option
+     */
     private int loopTime = 0;
+    
+    /**
+     * Distance from camera to target (closest one)
+     */
     private double visionDistance = 0;
+    
+    /**
+     * The angle from the camera to the target (closest one)
+     */
     private int visionAngle = 0;
+    
+    /**
+     * Test to see if the closest target is the hot goal
+     */
     private boolean visionHotGoal = false;
-    private boolean firstLoop = true;
+
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
@@ -71,10 +105,16 @@ public class Autonomous extends GenericSubsystem{
     /**************************** End of commands *****************************/
     /**************************************************************************/
     
+    /**
+     * No auto will run
+     */
     public static final int[][] noAuto = { 
         {END}
     };
     
+    /**
+     * Camera will follow the target
+     */
     public static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
@@ -95,6 +135,9 @@ public class Autonomous extends GenericSubsystem{
         return auto;
     }
     
+    /**
+     * Gets the current auto mode based off of the auto switch
+     */
     public void getAutoMode(){
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
@@ -116,6 +159,9 @@ public class Autonomous extends GenericSubsystem{
            }
     }
     
+    /**
+     * Gets the data from the array and tells each subsystem what actions to take.
+     */
     private void runAutonomous(){
         currentAutonomous = cameraFollow;
         int start = 0, current = start, finished = currentAutonomous.length;
@@ -213,11 +259,18 @@ public class Autonomous extends GenericSubsystem{
       }
     }
 
+    /**
+     * Gets an instance of all the subsystems
+     */
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
     }
 
+    /**
+     * Main run method. Called by GenericSubsystem
+     * @throws Exception 
+     */
     public void execute() throws Exception {
         System.out.println("I HAVE STARTED");
         while(true){
