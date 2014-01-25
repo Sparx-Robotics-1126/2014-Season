@@ -1,5 +1,6 @@
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.AnalogModule;
 import edu.wpi.first.wpilibj.DriverStation;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
@@ -51,20 +52,29 @@ public class Autonomous extends GenericSubsystem{
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
-
     
+    /**
+     * A DriverStation
+     */
+    private DriverStation ds = DriverStation.getInstance();
+    
+    /**
+     * The analog module for the click wheel for auto mode selection
+     */
+    private AnalogModule autoSwitch;
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
-    private static final double AUTO_SETTING_0 = 3.208;
-    private static final double AUTO_SETTING_1 = 3.126;
-    private static final double AUTO_SETTING_2 = 3.036;
-    private static final double AUTO_SETTING_3 = 2.935;
-    private static final double AUTO_SETTING_4 = 2.824;
-    private static final double AUTO_SETTING_5 = 2.701;
-    private static final double AUTO_SETTING_6 = 2.563;
-    private static final double AUTO_SETTING_7 = 2.405;
-    private static final double AUTO_SETTING_8 = 2.225;
+    private static final double AUTO_SETTING_0 = 0.000;
+    private static final double AUTO_SETTING_1 = 0.455;
+    private static final double AUTO_SETTING_2 = 1.013;
+    private static final double AUTO_SETTING_3 = 1.572;
+    private static final double AUTO_SETTING_4 = 2.130;
+    private static final double AUTO_SETTING_5 = 2.489;
+    private static final double AUTO_SETTING_6 = 3.242;
+    private static final double AUTO_SETTING_7 = 3.799;
+    private static final double AUTO_SETTING_8 = 4.350;
+    private static final double AUTO_SETTING_9 = 4.900;
     /**************************************************************************/
     /************************ Autonomous commands *****************************/
     /**************************************************************************/
@@ -145,21 +155,37 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
-           double voltage = 0; // need voltage reaading;
-           if (voltage >= AUTO_SETTING_0){
+           double voltage = autoSwitch.getVoltage(IO.AUTOSWITCH_CHANNEL); // need voltage reaading;
+           if (voltage >= AUTO_SETTING_9){
+               currentAutonomous = noAuto;
+               log.logMessage("Current Auto: " + 9);
+           }else if (voltage >= AUTO_SETTING_8){
                currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_1){
+               log.logMessage("Current Auto: " + 8);
+           }else if (voltage >= AUTO_SETTING_7){
                currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_2){
+               log.logMessage("Current Auto: " + 7);
+           }else if (voltage >= AUTO_SETTING_6){
                currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_3){
-               currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_4){
-               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 6);
            }else if (voltage >= AUTO_SETTING_5){
                currentAutonomous = null;
-           }else if (voltage >= AUTO_SETTING_6){
-               currentAutonomous = noAuto;
+               log.logMessage("Current Auto: " + 5);
+           }else if (voltage >= AUTO_SETTING_4){
+               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 4);
+           }else if (voltage >= AUTO_SETTING_3){
+               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 3);
+           }else if (voltage >= AUTO_SETTING_2){
+               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 2);
+           }else if (voltage >= AUTO_SETTING_1){
+               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 1);
+           }else if (voltage >= AUTO_SETTING_0){
+               currentAutonomous = null;
+               log.logMessage("Current Auto: " + 0);
            }else{
                currentAutonomous = noAuto;
            }
@@ -271,6 +297,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        autoSwitch = AnalogModule.getInstance(IO.DEFAULT_ANALOG_MODULE);
     }
 
     /**
