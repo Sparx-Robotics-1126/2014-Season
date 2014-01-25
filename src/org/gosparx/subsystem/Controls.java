@@ -16,33 +16,78 @@ import org.gosparx.util.Logger;
  */
 public class Controls extends GenericSubsystem{
     
+    /**
+     * The only Controls that will ever be created in the entire robot. It is 
+     * returned by getInstance()
+     */
     private static Controls controls;
     
+    /**
+     * The left driver joystick. Its port is stored in IO.java
+     */
     private Joystick leftJoy;
     
+    /**
+     * The right driver joystick. Its port is stored in IO.java
+     */
     private Joystick rightJoy;
     
+    /**
+     * The operator joystick. Its port is stored in IO.java
+     */
     private Joystick opJoy;
     
+    /**
+     * An instance of Drives
+     */ 
     private Drives drives;
     
-    private double JOYSTICK_DEADZONE = .04;   
+    /**
+     * The dead zone for the Driver joysticks. This is the zone in which the    
+     * drives will be set to 0.
+     */ 
+    private double JOYSTICK_DEADZONE = .04; 
     
+    /**
+     * The last time the desired speed was logged
+     */
     private double lastLogTime = 0;
     
+    /**
+     * Time in seconds between logging the desired speeds
+     */
     private double LOG_EVERY = 5.0;
     
+    /**
+     * Stores if we are overriding auto shifting
+     */
     private boolean shiftingOverride                                    = false;
     
+    /**
+     * The last state of the shifting override button
+     */
     private boolean lastShiftOverrideState                              = false;
     
+    /**
+     * The last state of the manual shift up button
+     */ 
     private boolean lastShiftUp                                         = false;
     
+    /**
+     * The last state of the manual shift down
+     */ 
     private boolean lastShiftDown                                       = false;
     
+    /**
+     * The last state of the hold in place start button
+     */ 
     private boolean lastHoldInPlaceStart                                = false;
     
+    /**
+     * The last state of the hold in place stop button
+     */    
     private boolean lastHoldInPlaceStop                                 = false;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************

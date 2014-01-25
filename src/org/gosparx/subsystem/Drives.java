@@ -161,17 +161,41 @@ public class Drives extends GenericSubsystem {
      */
     private Gyro gyro;
     
+    /**
+     * The current state of the drives
+     */
     private int drivesState;
     
+    /**
+     * The number of inches to go. Set by driveStraight
+     */
     private double inchesToGo;
     
+    /**
+     * Stores if the drives needs to manually shift to high gear
+     */
     private boolean needsToManuallyShiftUp                              = false;
     
+    /**
+     * Stores if the drives needs to manually shift to low gear 
+     */ 
     private boolean needsToManuallyShiftDown                            = false;
     
+    /**
+     * Stores if we are forcing low gear
+     */ 
     private boolean forceLowGear                                        = false;
     
+    /**
+     * Stores if the drives has disabled autoshifting. Will only shift manually
+     * if this is true
+     */
     private boolean manualShifting                                      = false;
+    
+    /**
+     * The average distance that the encoders has traveled since the last reset
+     */
+    private double averageDistEncoder                                   = 0.0;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -285,6 +309,7 @@ public class Drives extends GenericSubsystem {
                         isTurning = false;
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
+                        drivesState = State.HOLD_POS;
                     }
                     if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
                         drivesState = State.LOW_GEAR;
@@ -309,28 +334,35 @@ public class Drives extends GenericSubsystem {
                     if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         rightMotorOutput = 0;
                     }
+                    if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                        drivesState = State.HOLD_POS;
+                    }
                     if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
                         drivesState = State.LOW_GEAR;
                     }
                     break;
                 case State.HOLD_POS:
+                    averageDistEncoder = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
                     if(gyro.getAngle() > TURNING_THRESHOLD){
-                        leftMotorOutput = -(.0048 * (gyro.getAngle())) + .15;
+                        leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
                         rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
                     } else if(gyro.getAngle() < -TURNING_THRESHOLD){
-                        leftMotorOutput = -(.0048 * (gyro.getAngle())) - .15;
+                        leftMotorOutput = -((.0048 * (gyro.getAngle())) - .15);
                         rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
-                    } else if(leftDrivesEncoder.getDistance() > DRIVING_THRESHOLD){
-                        leftMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
-                        rightMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
-                    } else if(leftDrivesEncoder.getDistance() < -DRIVING_THRESHOLD){
-                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
-                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
+                    } else if(averageDistEncoder > DRIVING_THRESHOLD){
+                        leftMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
+                        rightMotorOutput = Math.abs(.002 * (leftDrivesEncoder.getDistance())) + .25;
+                    } else if(averageDistEncoder < -DRIVING_THRESHOLD){
+                        leftMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
+                        rightMotorOutput = -Math.abs(.002 * (leftDrivesEncoder.getDistance())) - .25;
                     } else{
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
                     }
                     log.logMessage("Gyro:" + gyro.getAngle());
+                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
+                        drivesState = State.LOW_GEAR;
+                    }
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
@@ -387,7 +419,6 @@ public class Drives extends GenericSubsystem {
      * @param degrees - the desired number of degrees to turn. Use negative 
      * values to turn left 
      */
-    //TODO: Test on carpet. Overshoot correction?
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
@@ -396,7 +427,9 @@ public class Drives extends GenericSubsystem {
     }
     
     /**
-     * 
+     * Drives straight for inches number of inches. Self correcting
+     * @param inches - the desired number of inches to drive. Use negatives to
+     *                 go backwards
      */
     public void driveStraight(double inches){
         drivesState = State.DRIVE_STRAIGHT;
@@ -404,32 +437,53 @@ public class Drives extends GenericSubsystem {
         leftDrivesEncoder.reset();
         rightDrivesEncoder.reset();
     }
-    
+    /**
+     * Forces drives to stay in low gear or to release it from low gear
+     * @param stayInLowGear - whether or not to force low gear
+     */
     public void forceLowGear(boolean stayInLowGear){
         forceLowGear = stayInLowGear;
     }
-    
+     /**
+     * Sets the drives to shift up if manualShifting is true
+     */
     public void manualShiftUp(){
         needsToManuallyShiftUp = true;
         System.out.println("Manually shifting Up");
     }
+    /**
+     * Sets the drives to shift down if manualShifting is true
+     */
     public void manualShiftDown(){
         needsToManuallyShiftDown = true;
         System.out.println("Manually shifting Down");
     }
-    
+    /**
+     * Sets manualShifting to manual. If manualShifting is true, it will disable
+     * autoshifting and rely only on manual shifting
+     * @param manual - whether or not manual shifting is enabled
+     */
     public void setManualShifting(boolean manual){
         manualShifting = manual;
     }
+    /**
+     * Resets the encoders and gyro and sets the state to HOLD_POS. It will
+     * prioritize turning over driving. It will maintain this position until
+     * stopHoldPos() is called
+     */
     public void startHoldPos(){
         leftDrivesEncoder.reset();
         rightDrivesEncoder.reset();
         gyro.reset();
         drivesState = State.HOLD_POS;
     }
+    /**
+     * Stops the holding of the position saved when startHoldPos() was called
+     */
     public void stopHoldPos(){
         drivesState = State.LOW_GEAR;
     }
+    
     public boolean isLastCommandDone() {
         return drivesState == State.HOLD_POS;
     }
