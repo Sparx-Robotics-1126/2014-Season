@@ -13,6 +13,7 @@ public abstract class GenericSubsystem extends Thread {
 
     protected Logger log;
     public DriverStation ds;
+    protected DriverStation ds;
     
     /**
      * This creates a generic subsystem.
