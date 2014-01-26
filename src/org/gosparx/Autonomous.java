@@ -62,7 +62,8 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Auto Mode
      */
-    private Integer autoMode;
+    private Integer autoModeObject;
+    private int autoMode;
     
     /**
      * If true than the auto mode is chosen through the SmartDashboard.
@@ -164,12 +165,35 @@ public class Autonomous extends GenericSubsystem{
      */
     public void getAutoMode(){
         if(AUTO_SMART_CHOOSE){
-            Integer autoMode = (Integer)autoSmart.getSelected();
-            System.out.println("AUTOMODE: " + autoMode.intValue() + " ****************888");
+            autoModeObject = (Integer)autoSmart.getSelected();
+            autoMode = autoModeObject.intValue();
+                switch(autoMode){
+                    case 0:
+                        currentAutonomous = noAuto;
+                        break;
+                    case 1:
+                        currentAutonomous = null;
+                        break;
+                    case 2:
+                        currentAutonomous = null;
+                        break;
+                    case 3:
+                        currentAutonomous = null;
+                        break;
+                    case 4:
+                        currentAutonomous = null;
+                        break;
+                    case 5:
+                        currentAutonomous = null;
+                        break;
+                    case 6:
+                        currentAutonomous = null;
+                        break;
+                }
         }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
-               currentAutonomous = null;
+               currentAutonomous = noAuto;
            }else if (voltage >= AUTO_SETTING_1){
                currentAutonomous = null;
            }else if (voltage >= AUTO_SETTING_2){
