@@ -23,8 +23,6 @@ public class Drives extends GenericSubsystem {
      */
     private static Drives drives;
     
-    
-    
     /**
      * The distance the robot travels per tick of the encoder.
      */
@@ -70,19 +68,19 @@ public class Drives extends GenericSubsystem {
     private static final int TURNING_THRESHOLD          = 1;
     
     //COLOR SENSOR//
-    private static final double LIGHT_ERROR                = 0.25; 
+    private static final double LIGHT_ERROR                = 0.9;//how accurate(1 is exact) 
     //BLUE
-    private static final double BLUE_READER_BLUE           = 0;
-    private static final double RED_READER_BLUE            = 0;
-    private static final double GREEN_READER_BLUE          = 0;
+    private static final double BLUE_READER_BLUE           = 9;
+    private static final double RED_READER_BLUE            = 10;
+    private static final double GREEN_READER_BLUE          = 11;
     //RED
-    private static final double BLUE_REAER_RED             = 0;
-    private static final double RED_READER_RED             = 0;
-    private static final double GREEN_READER_RED           = 0;
+    private static final double BLUE_REAER_RED             = 6;
+    private static final double RED_READER_RED             = 19;
+    private static final double GREEN_READER_RED           = 12;
     //GREEN
-    private static final double BLUE_READER_GREEN          = 0;
-    private static final double RED_READER_GREEN           = 0;
-    private static final double GREEN_READER_GREEN         = 0;
+    private static final double BLUE_READER_WHITE          = 18;
+    private static final double RED_READER_WHITE           = 22;
+    private static final double GREEN_READER_WHITE         = 28;
     
             
     /**
