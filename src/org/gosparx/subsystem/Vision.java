@@ -403,9 +403,13 @@ public class Vision extends GenericSubsystem {
         return imageLocation;
     }
     
+<<<<<<< Vision
     public double getDegrees(){
         int pixelsToFeet = 25;
         degrees = ((getLocation()- 180)/pixelsToFeet)/getDistance();
         return degrees;
     }
+=======
+        degrees = MathUtils.asin(((getLocation()- 180)/pixelsToFeet)/getDistance());
+>>>>>>> local
 }
