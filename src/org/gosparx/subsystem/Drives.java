@@ -4,10 +4,10 @@ import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import org.gosparx.IO;
-import org.gosparx.util.Logger;
 
 /**
  * The purpose of this class is to implement the drives subsystem.  This class 
@@ -75,12 +75,12 @@ public class Drives extends GenericSubsystem {
     /**
      * This is controlling the left front drives motor.
      */
-    private Victor leftFrontDrives;
+    private Talon leftFrontDrives;
     
     /**
      * This is controlling the left rear drives motor.
      */
-    private Victor leftRearDrives;
+    private Talon leftRearDrives;
     
     /**
      * This is the encoder on the left side of the robot.
@@ -96,12 +96,12 @@ public class Drives extends GenericSubsystem {
     /**
      * This is controlling the right front drives motor.
      */
-    private Victor rightFrontDrives;
+    private Talon rightFrontDrives;
     
     /**
      * This is controlling the right rear drives motor.
      */
-    private Victor rightRearDrives;
+    private Talon rightRearDrives;
     
     /**
      * This is the encoder on the right side of the robot.
@@ -114,11 +114,15 @@ public class Drives extends GenericSubsystem {
      */
     private double shiftTime;
     
-    private Logger logger = new Logger(Logger.SUB_DRIVES);
-    
+    /**
+     * The last time we logged a message to the logger.
+     */
     private double lastLogTime = 0;
     
-    private double LOG_EVERY = 5.0;
+    /**
+     * The time between logging messages.
+     */
+    private static final double LOG_EVERY = 5.0;
     
     /**
      * The solenoid that controls the pneumatics to shift the drives.
@@ -136,6 +140,7 @@ public class Drives extends GenericSubsystem {
         }
         return drives;
     }
+    
     /**
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
@@ -153,14 +158,14 @@ public class Drives extends GenericSubsystem {
      * {@link GenericSubsystem#init() here}.
      */
     public void init() {
-        leftFrontDrives = new Victor(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
-        leftRearDrives = new Victor(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
+        leftFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
+        leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
         leftDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.LEFT_DRIVES_ENCODER_CHAN_1,IO.DEFAULT_SLOT,IO.LEFT_DRIVES_ENCODER_CHAN_2, false, EncodingType.k4X);
         leftDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         leftDrivesEncoder.start();
         
-        rightFrontDrives = new Victor(IO.DEFAULT_SLOT, IO.RIGHT_FRONT_DRIVES_PWM);
-        rightRearDrives = new Victor(IO.DEFAULT_SLOT, IO.RIGHT_REAR_DRIVES_PWM);
+        rightFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_FRONT_DRIVES_PWM);
+        rightRearDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_REAR_DRIVES_PWM);
         rightDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_2, true, EncodingType.k4X);
         rightDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         rightDrivesEncoder.start();
@@ -208,13 +213,13 @@ public class Drives extends GenericSubsystem {
             }
             
             leftFrontDrives.set(leftMotorOutput);//WRONG!!!!
-            leftRearDrives.set(-leftMotorOutput);
+            leftRearDrives.set(leftMotorOutput);
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
             
             if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                 lastLogTime = Timer.getFPGATimestamp();
-                logger.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+                log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
             }
             Thread.sleep(10);
         }
