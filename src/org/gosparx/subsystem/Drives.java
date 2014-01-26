@@ -82,6 +82,16 @@ public class Drives extends GenericSubsystem {
     private final double LOG_EVERY = 5.0;
     
     /**
+     * The accuracy in inches for turning
+     */
+    private static final double DRIVING_THRESHOLD                         = .75;
+    
+    /**
+     * Time in seconds between logging the desired speed 
+     */
+    private final double LOG_EVERY = 5.0;
+    
+    /**
      * This is the speed in inches per second we want the left side of the 
      * drives to achieve.
      */
@@ -185,6 +195,37 @@ public class Drives extends GenericSubsystem {
      */
     private int drivesState;
     
+    /**
+     * The number of inches to go. Set by driveStraight
+     */
+    private double inchesToGo;
+    
+    /**
+     * Stores if the drives needs to manually shift to high gear
+     */
+    private boolean needsToManuallyShiftUp                              = false;
+    
+    /**
+     * Stores if the drives needs to manually shift to low gear 
+     */ 
+    private boolean needsToManuallyShiftDown                            = false;
+    
+    /**
+     * Stores if we are forcing low gear
+     */ 
+    private boolean forceLowGear                                        = false;
+    
+    /**
+     * Stores if the drives has disabled autoshifting. Will only shift manually
+     * if this is true
+     */
+    private boolean manualShifting                                      = false;
+    
+    /**
+     * The average distance that the encoders has traveled since the last reset
+     */
+    private double averageDistEncoder                                   = 0.0;
+        
     /**
      * The number of inches to go. Set by driveStraight
      */
@@ -523,6 +564,46 @@ public class Drives extends GenericSubsystem {
         leftEncoderData.reset();
     }
     
+    private void resetGyro(){
+        gyro.reset();
+    }
+    
+    private void resetSensors(){
+        resetEncoders();
+        resetGyro();
+    }
+    
+    public boolean isLastCommandDone() {
+        return drivesState == State.HOLD_POS;
+    }
+    
+    private static class State{
+        static final int LOW_GEAR           = 1;
+        static final int SHIFT_LOW_GEAR     = 2;
+        static final int HIGH_GEAR          = 4;
+        static final int SHIFT_HIGH_GEAR    = 5;
+        static final int TURNING            = 6;
+        static final int DRIVE_STRAIGHT     = 7;
+        static final int HOLD_POS           = 8;
+        
+        public static String getState(int state){
+            switch(state){
+                case LOW_GEAR:
+                    return "Low Gear";
+                case SHIFT_LOW_GEAR:
+                    return "Shift Low Gear";
+                case HIGH_GEAR:
+                    return "High Gear";
+                case SHIFT_HIGH_GEAR:
+                    return "Shift High Gear";
+                case TURNING:
+                    return "Turning";
+                case DRIVE_STRAIGHT:
+                    return "Drive Straight";
+                case HOLD_POS:
+                    return "Holding current Position";
+        }
+            return "UNKOWN MODE";
     private void resetGyro(){
         gyro.reset();
     }
