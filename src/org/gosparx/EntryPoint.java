@@ -39,15 +39,16 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[4];
+        subsystems = new GenericSubsystem[3];
         subsystems[0] = LogWriter.getInstance();
         subsystems[1] = Drives.getInstance();
         subsystems[2] = Controls.getInstance();
-        subsystems[3] = Vision.getInstance();
+//        subsystems[3] = Vision.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
+            subsystems[i].liveWindow();
             subsystems[i].start();
         }
     }
@@ -80,13 +81,24 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters test mode.
      */
     public void test() {
+<<<<<<< LiveWindow
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].liveWindow();
         }
+=======
+<<<<<<< SmartDashboard
+=======
+>>>>>>> local
             while(isTest() && isEnabled()){
                 LiveWindow.run();
                 Timer.delay(0.1);
             }
+<<<<<<< LiveWindow
+=======
+    }
+>>>>>>> local
+    
+>>>>>>> local
     }
     
 }
