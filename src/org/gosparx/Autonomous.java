@@ -104,7 +104,8 @@ public class Autonomous extends GenericSubsystem{
     private static final int VISION_ANGLE                   = 31;
     private static final int VISION_HOT_TARGET              = 32;
     
-    private static final int DRIVES_TRACK_TARGET                       = 40;
+    /*CUSTOM*/
+    private static final int DRIVES_TRACK_TARGET            = 40;
 
     /* Misc */
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
