@@ -1,6 +1,8 @@
 package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -21,6 +23,11 @@ public class Autonomous extends GenericSubsystem{
      * Instance of vision
      */
     private Vision vision;
+    
+    /**
+     * A list of choices for Smart autonomous mode
+     */
+    private SendableChooser autoSmart;
     
     /**
      * The autonomous that runAuto uses
@@ -51,6 +58,17 @@ public class Autonomous extends GenericSubsystem{
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
+    
+    /**
+     * Auto Mode
+     */
+    private Integer autoMode;
+    
+    /**
+     * If true than the auto mode is chosen through the SmartDashboard.
+     * Otherwise it is chosen through the on board switch
+     */
+    private static final boolean AUTO_SMART_CHOOSE = true;
 
     
     /**************************************************************************/
@@ -145,6 +163,10 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
+        if(AUTO_SMART_CHOOSE){
+            Integer autoMode = (Integer)autoSmart.getSelected();
+            System.out.println("AUTOMODE: " + autoMode.intValue() + " ****************888");
+        }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
                currentAutonomous = null;
@@ -163,6 +185,7 @@ public class Autonomous extends GenericSubsystem{
            }else{
                currentAutonomous = noAuto;
            }
+        }
     }
     
     /**
@@ -289,6 +312,14 @@ public class Autonomous extends GenericSubsystem{
     }
 
     public void liveWindow() {
-        
+        autoSmart = new SendableChooser();
+        autoSmart.addDefault("No Autonomous", new Integer(0));
+        autoSmart.addObject("Auto 2", new Integer(1));
+        autoSmart.addObject("Auto 3", new Integer(2));
+        autoSmart.addObject("Auto 4", new Integer(3));
+        autoSmart.addObject("Auto 5", new Integer(4));
+        autoSmart.addObject("Auto 6", new Integer(5));
+        autoSmart.addObject("Auto 7", new Integer(6));
+        SmartDashboard.putData("Auto Select", autoSmart);
     }
 }

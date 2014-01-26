@@ -12,7 +12,6 @@ import org.gosparx.util.Logger;
 public abstract class GenericSubsystem extends Thread {
 
     protected Logger log;
-    public DriverStation ds;
     protected DriverStation ds;
     
     /**
