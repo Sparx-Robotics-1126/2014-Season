@@ -26,15 +26,15 @@ public class Drives extends GenericSubsystem {
     private static Drives drives;
     
     /**
-     * The distance the robot travels per tick of the encoder.
+     * The distance the robot travels per tick of the encoder in inches.
      */
-    private static final double DIST_PER_TICK           = 0.047;
+    private static final double DIST_PER_TICK           = 0.047;//inches
     
     /**
      * The absolute value of the speed at which the motors must be going to 
-     * shift.
+     * shif in inches per second.
      */
-    private static final double MOTOR_SHIFTING_SPEED    = 40;
+    private static final double MOTOR_SHIFTING_SPEED    = 40;//ips
     
     /**
      * The position of the solenoid when in low gear.
@@ -50,16 +50,17 @@ public class Drives extends GenericSubsystem {
      * The speed (inches per second) that we shift up into high gear at.
      */
     private static final double UP_SHIFT_THRESHOLD      = 42;    
+    
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
-    private static final double DOWN_SHIFT_THRESHOLD    = 15;
+    private static final double DOWN_SHIFT_THRESHOLD    = 15;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
     
     /**
      * The time (seconds) we wait for the robot to shift before resuming driver 
      * control.
      */
-    private static final double SHIFT_TIME              = .005;
+    private static final double SHIFT_TIME              = .005;//MAY NOT BE OPTIMUM IN ALL SITUATION
     
     /**
      * The max speed (inches per second) that the robot can obtain.
@@ -90,7 +91,7 @@ public class Drives extends GenericSubsystem {
     /**
      * Average Encoder distance for both the left and right encoder.
      */
-    private double averageEncoderDiastance;
+    private double averageEncoderDistance;
     
     /**
      * This is controlling the left front drives motor.
@@ -105,7 +106,7 @@ public class Drives extends GenericSubsystem {
     /**
      * This is the encoder on the left side of the robot.
      */
-    public Encoder leftDrivesEncoder;
+    private Encoder leftDrivesEncoder;
     
     /**
      * This is the speed in inches per second we want the right side of the 
@@ -181,7 +182,7 @@ public class Drives extends GenericSubsystem {
     private Gyro gyro;
     
     /**
-     * The current state of the drives
+     * The current state of the drives. See State class for description and listing of the states.
      */
     private int drivesState;
     
@@ -264,6 +265,8 @@ public class Drives extends GenericSubsystem {
         gyro = new Gyro(IO.GYRO_ANALOG);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
+        
+        drivesState = State.LOW_GEAR;
     }
 
     /**
@@ -275,7 +278,6 @@ public class Drives extends GenericSubsystem {
         double leftCurrentSpeed, rightCurrentSpeed;
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
-        drivesState = State.LOW_GEAR;
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
@@ -289,7 +291,7 @@ public class Drives extends GenericSubsystem {
             
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
             
-            averageEncoderDiastance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
+            averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
             switch(drivesState){
                 case State.LOW_GEAR:
                     if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
