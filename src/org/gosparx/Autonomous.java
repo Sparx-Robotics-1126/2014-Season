@@ -312,6 +312,9 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Waits until the Drives class is done doing its last command
+     */
     private void isDoneDrives(){
         while(!drives.isLastCommandDone()){
             try {
@@ -322,6 +325,9 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Waits until the Vision class is done doing its last command
+     */
     private void isVisionDone(){
         while(!vision.isLastCommandDone()){
             try {
