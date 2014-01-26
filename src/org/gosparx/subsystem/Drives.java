@@ -333,7 +333,7 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
                         rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
                     }
-                    log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
+//                    log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
                     if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
                         log.logMessage("Done Turning");
                         isTurning = false;
@@ -368,7 +368,7 @@ public class Drives extends GenericSubsystem {
                         rightMotorOutput = 0;
                     }
                     if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
-                        log.logMessage("Done Driving Strait.");
+                        log.logMessage("Done Driving Straight.");
                         logDrivesInfo();
                         resetSensors();
                         drivesState = State.HOLD_POS;
