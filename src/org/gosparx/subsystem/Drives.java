@@ -2,7 +2,6 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -165,6 +164,7 @@ public class Drives extends GenericSubsystem {
      * Stores if the robot is currently turning.
      */ 
     private boolean isTurning;
+   
     
     /**
      * The relay that the compressor is on.
@@ -180,6 +180,16 @@ public class Drives extends GenericSubsystem {
      * The Gyro used for turning calculations
      */
     private Gyro gyro;
+    
+    /**
+     * Error to see if the encoder is acting weird;
+     */
+    private static final double GYRO_ERROR = 0.01;//got this by unplugging encoder and seeing what values it gave
+    
+    /**
+     * last gyroValue
+     */
+    private double lastGyroAngle;
     
     /**
      * The current state of the drives. See State class for description and listing of the states.
@@ -326,22 +336,28 @@ public class Drives extends GenericSubsystem {
                     setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
                     break;
                 case State.TURNING:
-                    if(desiredAngle - currentAngle > 0){
-                        leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
-                        rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
-                    } else if(desiredAngle - currentAngle < 0){
-                        leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
-                        rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
-                    }
-//                    log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
-                    if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
-                        log.logMessage("Done Turning");
-                        isTurning = false;
-                        leftMotorOutput = 0;
-                        rightMotorOutput = 0;
-                        startHoldPos();
-                    }
-                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
+                    if(gyroCheck(currentAngle)){
+                        if(desiredAngle - currentAngle > 0){
+                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
+                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
+                        }else if(desiredAngle - currentAngle < 0){
+                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
+                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
+                        }
+//                      log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
+                        if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
+                            log.logMessage("Done Turning");
+                            isTurning = false;
+                            leftMotorOutput = 0;
+                            rightMotorOutput = 0;
+                            startHoldPos();
+                        }else{
+                            startHoldPos();
+                        }
+                    }else{
+                        
+                    }    
+                    if(ds.isOperatorControl() || ds.isTest()){
                         drivesState = State.LOW_GEAR;
                     }
                     break;
@@ -373,7 +389,7 @@ public class Drives extends GenericSubsystem {
                         resetSensors();
                         drivesState = State.HOLD_POS;
                     }
-                    if(DriverStation.getInstance().isOperatorControl() || DriverStation.getInstance().isTest()){
+                    if(ds.isOperatorControl() || ds.isTest()){
                         drivesState = State.LOW_GEAR;
                     }
                     break;
@@ -531,6 +547,17 @@ public class Drives extends GenericSubsystem {
     private void resetSensors(){
         resetEncoders();
         resetGyro();
+    }
+    
+    private boolean gyroCheck(double givenAngle){
+        if(Math.abs(givenAngle - lastGyroAngle) <= GYRO_ERROR){
+            lastGyroAngle = givenAngle;
+            log.logMessage("GYRO IS NOT RESPONDING");
+            return false;
+        }else{
+            lastGyroAngle = givenAngle;
+            return true;
+        }
     }
     
     public boolean isLastCommandDone() {
