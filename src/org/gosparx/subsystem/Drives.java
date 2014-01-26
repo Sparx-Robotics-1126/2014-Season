@@ -41,11 +41,6 @@ public class Drives extends GenericSubsystem {
     private static final boolean LOW_GEAR               = false;
     
     /**
-     * The position of the solenoid when in high gear.
-     */
-    private static final boolean HIGH_GEAR              = !LOW_GEAR;
-    
-    /**
      * The speed (inches per second) that we shift up into high gear at.
      */
     private static final double UP_SHIFT_THRESHOLD      = 42;    
@@ -308,7 +303,7 @@ public class Drives extends GenericSubsystem {
                         needsToManuallyShiftUp = false;
                         needsToManuallyShiftDown = false;
                         log.logMessage("Up Shift!");
-                        shifter.set(HIGH_GEAR);
+                        shifter.set(!LOW_GEAR);
                         drivesState = State.SHIFT_HIGH_GEAR;
                         shiftTime = Timer.getFPGATimestamp();
                     }
