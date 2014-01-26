@@ -14,6 +14,7 @@ public abstract class GenericSubsystem extends Thread {
      * This is the name of the subsystem, used for logs.
      */
     protected String nameOfSubsystem;
+    protected DriverStation ds;
     
     /**
      * This creates a generic subsystem.
@@ -23,6 +24,7 @@ public abstract class GenericSubsystem extends Thread {
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
+        ds = DriverStation.getInstance();
         this.nameOfSubsystem = nameOfSubsystem;
         this.setPriority(threadPriority);
     }
