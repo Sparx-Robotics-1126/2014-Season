@@ -31,7 +31,7 @@ public class Drives extends GenericSubsystem {
     
     /**
      * The absolute value of the speed at which the motors must be going to 
-     * shif in inches per second.
+     * shift in inches per second.
      */
     private static final double MOTOR_SHIFTING_SPEED    = 40;//ips
     
