@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import org.gosparx.IO;
+import org.gosparx.sensors.LightSensor;
 import org.gosparx.util.Logger;
 
 /**
@@ -21,6 +22,8 @@ public class Drives extends GenericSubsystem {
      * The Drives Class reference
      */
     private static Drives drives;
+    
+    
     
     /**
      * The distance the robot travels per tick of the encoder.
@@ -66,6 +69,22 @@ public class Drives extends GenericSubsystem {
     
     private static final int TURNING_THRESHOLD          = 1;
     
+    //COLOR SENSOR//
+    private static final double LIGHT_ERROR                = 0.25; 
+    //BLUE
+    private static final double BLUE_READER_BLUE           = 0;
+    private static final double RED_READER_BLUE            = 0;
+    private static final double GREEN_READER_BLUE          = 0;
+    //RED
+    private static final double BLUE_REAER_RED             = 0;
+    private static final double RED_READER_RED             = 0;
+    private static final double GREEN_READER_RED           = 0;
+    //GREEN
+    private static final double BLUE_READER_GREEN          = 0;
+    private static final double RED_READER_GREEN           = 0;
+    private static final double GREEN_READER_GREEN         = 0;
+    
+            
     /**
      * This is the speed in inches per second we want the left side of the 
      * drives to achieve.
@@ -125,7 +144,16 @@ public class Drives extends GenericSubsystem {
      */
     private Solenoid shifter;
     
+    /**
+     * Reads the current heading of the robot
+     */
     private Gyro gyro;
+
+    /**
+     *Light sensor for detecting colors 
+     */
+    private LightSensor light;
+    
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -136,22 +164,12 @@ public class Drives extends GenericSubsystem {
         }
         return drives;
     }
-    /**
-     * Look to see if there is a drive class, if not it creates one
-     * @return the Drives Class 
-     */
-    public static Drives getInstance(){
-        if(drives == null){
-            drives = new Drives();
-        }
-        return drives;
-    }
+
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
         super("Drives", Thread.MAX_PRIORITY);
-        
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
@@ -177,6 +195,8 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
+        
+        light = new LightSensor(IO.DEFAULT_SLOT, IO.LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LIGHT_READER_GREEN, IO.DEFAULT_SLOT, IO.LIGHT_READER_RED);
     }
 
     /**

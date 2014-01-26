@@ -18,6 +18,7 @@ public class IO {
     
     // Digital Side Card Slots
     public static final int DEFAULT_SLOT                = 1;
+    public static final int ALTERNATE_SLOT              = 2;
     
     // Drives PWM Slots
     public static final int LEFT_FRONT_DRIVES_PWM       = 1;
@@ -30,6 +31,12 @@ public class IO {
     public static final int LEFT_DRIVES_ENCODER_CHAN_2  = 2;
     public static final int RIGHT_DRIVES_ENCODER_CHAN_1 = 3;
     public static final int RIGHT_DRIVES_ENCODER_CHAN_2 = 4;
+    
+    //Light Sensor Channels
+    public static final int LIGHT_READER_RED            = 2;
+    public static final int LIGHT_READER_GREEN          = 3;
+    public static final int LIGHT_READER_BLUE           = 4;
+    public static final int LIGHT_READER_LIGHT          = 5;
     
     // Drives Pnumatic Slots
     public static final int SHIFT_CHAN                  = 1;
