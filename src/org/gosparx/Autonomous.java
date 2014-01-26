@@ -287,4 +287,8 @@ public class Autonomous extends GenericSubsystem{
             }
         }
     }
+
+    public void liveWindow() {
+        
+    }
 }

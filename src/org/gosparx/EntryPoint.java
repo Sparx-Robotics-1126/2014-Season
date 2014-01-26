@@ -84,24 +84,10 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters test mode.
      */
     public void test() {
-<<<<<<< LiveWindow
-        for (int i = 0; i < subsystems.length; i++) {
-            subsystems[i].liveWindow();
-        }
-=======
-<<<<<<< SmartDashboard
-=======
->>>>>>> local
             while(isTest() && isEnabled()){
                 LiveWindow.run();
                 Timer.delay(0.1);
             }
-<<<<<<< LiveWindow
-=======
-    }
->>>>>>> local
-    
->>>>>>> local
     }
     
 }
