@@ -143,6 +143,12 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
     
+    private static final int[][] turn90 = {
+        {DRIVES_TURN_LEFT, 90},
+        {DRIVES_DONE},
+        {END}
+    };
+   
     /**
      * Autonomous Constructor
      */
@@ -188,7 +194,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = autoSquare;
+        currentAutonomous = turn90;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){

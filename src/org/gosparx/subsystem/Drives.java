@@ -69,7 +69,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in inches for turning
      */
-    private static final double DRIVING_THRESHOLD                         = .75;
+    private static final double DRIVING_THRESHOLD                         = 1;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -169,7 +169,7 @@ public class Drives extends GenericSubsystem {
     /**
      * Error to see if the gyro is responding. Used in gyroCheck();
      */
-    private static final double GYRO_ERROR = 0.01;//got this by unplugging encoder and seeing what values it gave
+    private static final double GYRO_ERROR = 0.1;//got this by unplugging encoder and seeing what values it gave
     
     /**
      * last gyroValue
@@ -335,11 +335,9 @@ public class Drives extends GenericSubsystem {
                             leftMotorOutput = 0;
                             rightMotorOutput = 0;
                             startHoldPos();
-                        }else{
-                            startHoldPos();
                         }
                     }else{
-                        
+                        startHoldPos();
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
                         drivesState = State.LOW_GEAR;
@@ -404,6 +402,8 @@ public class Drives extends GenericSubsystem {
      * Logs info about the drives subsystem
      */
     private void logDrivesInfo(){
+        log.logMessage("Gyro: " + gyro.getAngle());
+        log.logMessage("Gyro Voltage: " + IO.GYRO_ANALOG.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
@@ -542,13 +542,11 @@ public class Drives extends GenericSubsystem {
      *         false if the gyro is not moving
      */
     private boolean gyroCheck(double givenAngle){
-        if(Math.abs(givenAngle - lastGyroAngle) <= GYRO_ERROR){
-            lastGyroAngle = givenAngle;
-            log.logMessage("GYRO IS NOT RESPONDING");
-            return false;
+        if(IO.GYRO_ANALOG.getVoltage() > GYRO_ERROR){
+           return true;
         }else{
-            lastGyroAngle = givenAngle;
-            return true;
+           log.logMessage("Gyro is not attached!");
+           return false;
         }
     }
     
