@@ -191,7 +191,7 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+            if(ds.getInstance().isEnabled() && ds.getInstance().isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
