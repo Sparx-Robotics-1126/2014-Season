@@ -46,9 +46,11 @@ public class Vision extends GenericSubsystem {
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     private double degrees = 0.0;
+    private static final int ACTUAL_AREA = 144;//inches^2
+    private double currentArea = 0;
 
     private Vision() {
-        super("Vision", Thread.MIN_PRIORITY);
+        super("Vision", Thread.MAX_PRIORITY);
     }
 
     /**
@@ -72,6 +74,7 @@ public class Vision extends GenericSubsystem {
         while (true) {
             getBestTarget();
             freeImage();
+            System.out.println("Degrees: " + getDegrees());
             sleep(20);
         }
     }
@@ -155,6 +158,7 @@ public class Vision extends GenericSubsystem {
                 scores[i].aspectRatioVertical = scoreAspectRatio(filteredImage, report, i, true);
                 scores[i].aspectRatioHorizontal = scoreAspectRatio(filteredImage, report, i, false);
                 imageLocation = report.center_mass_x;
+                currentArea = report.particleArea;
                 //Check if the particle is a horizontal target, if not, check if it's a vertical target
                 if (scoreCompare(scores[i], false)) {
                     horizontalTargets[horizontalTargetCount++] = i; //Add particle to target array and increment count
@@ -403,13 +407,9 @@ public class Vision extends GenericSubsystem {
         return imageLocation;
     }
     
-<<<<<<< Vision
     public double getDegrees(){
-        int pixelsToFeet = 25;
-        degrees = ((getLocation()- 180)/pixelsToFeet)/getDistance();
+        double ratio = ACTUAL_AREA/currentArea;
+        degrees = Math.toDegrees(MathUtils.asin(((180 - getLocation())/ratio)/getDistance()));
         return degrees;
     }
-=======
-        degrees = MathUtils.asin(((getLocation()- 180)/pixelsToFeet)/getDistance());
->>>>>>> local
 }
