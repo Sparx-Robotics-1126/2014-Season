@@ -75,7 +75,7 @@ public class EncoderData {
     }
 
     /**
-     * TODO: Comment EncoderData reset()
+     * Resets the encoder data
      */
     public void reset(){
         if (USE_COUNTER){

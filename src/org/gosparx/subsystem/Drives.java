@@ -69,13 +69,8 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in inches for turning
      */
-    private static final double DRIVING_THRESHOLD                         = .75;
-    
-    /**
-     * Time in seconds between logging the desired speed 
-     */
-    private final double LOG_EVERY = 5.0;
-    
+    private static final double DRIVING_THRESHOLD                         = 1;
+        
     /**
      * This is the speed in inches per second we want the left side of the 
      * drives to achieve.
@@ -138,12 +133,7 @@ public class Drives extends GenericSubsystem {
      * shifted.
      */
     private double shiftTime;
-    
-    /**
-     * The last time we logged a message to the logger.
-     */
-    private double lastLogTime = 0;
-    
+        
     /**
      * The current angle that the robot is facing. Resets every time turn() is 
      * called
@@ -177,7 +167,7 @@ public class Drives extends GenericSubsystem {
     private Gyro gyro;
     
     /**
-     * Error to see if the encoder is acting weird;
+     * Error to see if the gyro is responding. Used in gyroCheck();
      */
     private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
 
@@ -339,7 +329,6 @@ public class Drives extends GenericSubsystem {
                             leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
                             rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
                         }
-//                      log.logMessage("Left Speed: " + leftMotorOutput + " Right Speed: " + rightMotorOutput);
                         if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
                             log.logMessage("Done Turning");
                             isTurning = false;
@@ -355,20 +344,8 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.DRIVE_STRAIGHT:
-                    if(inchesToGo - leftDrivesEncoder.getDistance() > 0) {
-//                        leftMotorOutput = getMotorOutput(4*(inchesToGo-leftDrivesEncoder.getDistance()), leftDrivesEncoder.getRate(), leftMotorOutput);
+                    if(inchesToGo - averageDistEncoder > 0) {
                         setSpeed(30, 30);
-                    }
-                    if(inchesToGo - rightDrivesEncoder.getDistance() > 0 ){
-//                        rightMotorOutput = getMotorOutput(4*(inchesToGo-rightDrivesEncoder.getDistance()), rightDrivesEncoder.getRate(), rightMotorOutput);
-//                        rightMotorOutput = 0.5;
-                    }
-                    if(leftDrivesEncoder.getDistance() - rightDrivesEncoder.getDistance() > 1){
-//                        leftMotorOutput = leftMotorOutput * 0.75;
-//                        log.logMessage("Slowing Down Left Motor");
-                    }else if(rightDrivesEncoder.getDistance() - leftDrivesEncoder.getDistance() > 1){
-//                        rightMotorOutput = rightMotorOutput * 0.75;
-//                        log.logMessage("Slowing Down Right Motor");
                     }
                     if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                         leftMotorOutput = 0;
@@ -421,7 +398,12 @@ public class Drives extends GenericSubsystem {
         }
     }
     
+    /**
+     * Logs info about the drives subsystem
+     */
     private void logDrivesInfo(){
+        log.logMessage("Gyro: " + gyro.getAngle());
+        log.logMessage("Gyro Voltage: " + IO.GYRO_ANALOG.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
@@ -526,6 +508,9 @@ public class Drives extends GenericSubsystem {
         drivesState = State.LOW_GEAR;
     }
     
+    /**
+     * Resets all the the encoders
+     */
     private void resetEncoders(){
         rightDrivesEncoder.reset();
         rightEncoderData.reset();
@@ -533,10 +518,16 @@ public class Drives extends GenericSubsystem {
         leftEncoderData.reset();
     }
     
+    /**
+     * Resets the gyro
+     */
     private void resetGyro(){
         gyro.reset();
     }
     
+    /**
+     * Resets the gyro and encoders
+     */
     private void resetSensors(){
         resetEncoders();
         resetGyro();
@@ -544,12 +535,15 @@ public class Drives extends GenericSubsystem {
     
     private boolean gyroCheck(){
         if(IO.GYRO_ANALOG.getVoltage() > GYRO_ERROR){
-            return true;
+           return true;
         }else{
             return false;
         }
     }
     
+    /**
+     * Returns if the last command is done
+     */
     public boolean isLastCommandDone() {
         return drivesState == State.HOLD_POS;
     }

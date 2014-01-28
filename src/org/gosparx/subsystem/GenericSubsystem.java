@@ -10,8 +10,26 @@ import org.gosparx.util.Logger;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public abstract class GenericSubsystem extends Thread {
+    
+    /**
+     * An Instance of DriverStation
+     */
     protected DriverStation ds;
+    
+    /**
+     * A logger. This is used for logging purposes
+     */
     protected Logger log;
+    
+    /**
+     * The time in seconds between logging
+     */
+    protected final double LOG_EVERY = 5.0;
+    
+    /**
+     * The last time data was logged
+     */
+    protected double lastLogTime;
     
     /**
      * This creates a generic subsystem.

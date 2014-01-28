@@ -4,7 +4,7 @@
  */
 package org.gosparx.subsystem;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
@@ -47,17 +47,7 @@ public class Controls extends GenericSubsystem{
      * drives will be set to 0.
      */ 
     private double JOYSTICK_DEADZONE = .04; 
-    
-    /**
-     * The last time the desired speed was logged
-     */
-    private double lastLogTime = 0;
-    
-    /**
-     * Time in seconds between logging the desired speeds
-     */
-    private double LOG_EVERY = 5.0;
-    
+        
     /**
      * Stores if we are overriding auto shifting
      */
@@ -190,7 +180,7 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+            if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
@@ -230,6 +220,7 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
+
                 if(driverLeftTopButton && !lastShiftOverrideState){
                     shiftingOverride = !shiftingOverride;
                     log.logMessage("Toggled manual shifting");
@@ -252,7 +243,9 @@ public class Controls extends GenericSubsystem{
                     drives.stopHoldPos();
                 }
                 drives.setManualShifting(shiftingOverride);
-                drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                
+                drives.setSpeed(Drives.MAX_ROBOT_SPEED * ((driverLeftYAxis > 0) ? MathUtils.pow(driverLeftYAxis,2): -MathUtils.pow(driverLeftYAxis,2)) * -1, Drives.MAX_ROBOT_SPEED * ((driverRightYAxis > 0) ? MathUtils.pow(driverRightYAxis,2): -MathUtils.pow(driverRightYAxis,2)) * -1);
+                
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1 + " Right: " + Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
