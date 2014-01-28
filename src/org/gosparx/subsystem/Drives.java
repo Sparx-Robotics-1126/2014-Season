@@ -179,12 +179,12 @@ public class Drives extends GenericSubsystem {
     /**
      * Error to see if the encoder is acting weird;
      */
-    private static final double GYRO_ERROR = 0.01;//got this by unplugging encoder and seeing what values it gave
-    
+    private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
+
     /**
-     * last gyroValue
+     * Makes sure that the gyro is functioning
      */
-    private double lastGyroAngle;
+    private boolean isGyroWorking;
     
     /**
      * The current state of the drives. See State class for description and listing of the states.
@@ -270,7 +270,7 @@ public class Drives extends GenericSubsystem {
         gyro = new Gyro(IO.GYRO_ANALOG);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
-        
+        isGyroWorking = gyroCheck();
         drivesState = State.LOW_GEAR;
     }
 
@@ -331,7 +331,7 @@ public class Drives extends GenericSubsystem {
                     setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
                     break;
                 case State.TURNING:
-                    if(gyroCheck(currentAngle)){
+                    if(isGyroWorking){
                         if(desiredAngle - currentAngle > 0){
                             leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
                             rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
@@ -346,11 +346,9 @@ public class Drives extends GenericSubsystem {
                             leftMotorOutput = 0;
                             rightMotorOutput = 0;
                             startHoldPos();
-                        }else{
-                            startHoldPos();
                         }
                     }else{
-                        
+                        startHoldPos();
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
                         drivesState = State.LOW_GEAR;
@@ -544,14 +542,11 @@ public class Drives extends GenericSubsystem {
         resetGyro();
     }
     
-    private boolean gyroCheck(double givenAngle){
-        if(Math.abs(givenAngle - lastGyroAngle) <= GYRO_ERROR){
-            lastGyroAngle = givenAngle;
-            log.logMessage("GYRO IS NOT RESPONDING");
-            return false;
-        }else{
-            lastGyroAngle = givenAngle;
+    private boolean gyroCheck(){
+        if(IO.GYRO_ANALOG.getVoltage() > GYRO_ERROR){
             return true;
+        }else{
+            return false;
         }
     }
     

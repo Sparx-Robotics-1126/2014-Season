@@ -59,6 +59,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
+        auto.runAuto(true);
     }
 
     /**
@@ -66,6 +67,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
+        auto.runAuto(false);
     }
     
     /**

@@ -30,7 +30,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Test to see if it is "ok" to run the runAuto method
      */
-    private boolean runAutonomous = true;
+    private boolean runAutonomous = false;
     
     /**
      * Uses for the loop array option
@@ -94,7 +94,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int VISION_ANGLE                   = 31;
     private static final int VISION_HOT_TARGET              = 32;
     
-    private static final int DRIVES_TRACK_TARGET                       = 40;
+    private static final int DRIVES_TRACK_TARGET            = 40;
 
     /* Misc */
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
@@ -336,5 +336,9 @@ public class Autonomous extends GenericSubsystem{
                 ex.printStackTrace();
             }
         }
+    }
+    
+    public void runAuto(boolean allowedToRun){
+        runAutonomous = allowedToRun;
     }
 }
