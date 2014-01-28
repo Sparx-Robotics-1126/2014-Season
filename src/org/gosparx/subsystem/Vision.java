@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
@@ -264,8 +265,10 @@ public class Vision extends GenericSubsystem {
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
         targetHeight = 17;//32
-        log.logMessage("Report: " + report.boundingRectHeight);
-        log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
+        if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
+                lastLogTime = Timer.getFPGATimestamp();
+                log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
+        }
         return (-0.0181818 * (report.boundingRectHeight) + 25.090909); 
     }
 
