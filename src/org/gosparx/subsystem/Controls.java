@@ -5,7 +5,6 @@
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
@@ -191,7 +190,7 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            if(ds.getInstance().isEnabled() && ds.getInstance().isOperatorControl()){
+            if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
