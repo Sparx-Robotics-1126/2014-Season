@@ -30,7 +30,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Test to see if it is "ok" to run the runAuto method
      */
-    private boolean runAutonomous = true;
+    private boolean runAutonomous = false;
     
     /**
      * Uses for the loop array option
@@ -72,8 +72,8 @@ public class Autonomous extends GenericSubsystem{
     /* Drives */
     private static final int DRIVES_GO_FORWARD              = 1;//distance(inches), speed(double)
     private static final int DRIVES_GO_REVERSE              = 2;//distance(inches), speed(double)
-    private static final int DRIVES_TURN_RIGHT              = 3;
-    private static final int DRIVES_TURN_LEFT               = 4;
+    private static final int DRIVES_TURN_RIGHT              = 3;//Degrees(0 - infinity)
+    private static final int DRIVES_TURN_LEFT               = 4;//Degrees(0 - infinity)
     private static final int DRIVES_STOP                    = 5;
     private static final int DRIVES_DONE                    = 6;
     
@@ -94,7 +94,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int VISION_ANGLE                   = 31;
     private static final int VISION_HOT_TARGET              = 32;
     
-    private static final int DRIVES_TRACK_TARGET                       = 40;
+    private static final int DRIVES_TRACK_TARGET            = 40;
 
     /* Misc */
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
@@ -108,14 +108,36 @@ public class Autonomous extends GenericSubsystem{
     /**
      * No auto will run
      */
-    public static final int[][] noAuto = { 
+    private static final int[][] noAuto = { 
+        {END}
+    };
+    
+    /**
+     * Drives forward 20 feet
+     */
+    private static final int[][] moveFoward = {
+        {DRIVES_GO_FORWARD, 20*12},  
+        {DRIVES_DONE},
+        {END}
+    };
+    
+    /**
+     * Drives in a 4x4 foot square, turning to the right
+     */
+    private static final int[][] autoSquare = {
+        {LOOP, 4*2},
+        {DRIVES_GO_FORWARD, 12*4},
+        {DRIVES_DONE},
+        {DRIVES_TURN_RIGHT, 90},
+        {DRIVES_DONE},
+        {NEXT, 4},
         {END}
     };
     
     /**
      * Camera will follow the target
      */
-    public static final int[][] cameraFollow = { 
+    private static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
         {VISION_ANGLE},
@@ -124,6 +146,15 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
     
+    /**
+     * Turns 90 degrees to the left. Used for debugging
+     */
+    private static final int[][] turn90 = {
+        {DRIVES_TURN_LEFT, 90},
+        {DRIVES_DONE},
+        {END}
+    };
+   
     /**
      * Autonomous Constructor
      */
@@ -169,7 +200,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = cameraFollow;
+        currentAutonomous = turn90;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -178,22 +209,27 @@ public class Autonomous extends GenericSubsystem{
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
-                            
+                            log.logMessage("Auto Drives Foward");
+                            drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_GO_REVERSE:
-                            
+                            log.logMessage("Auto Drives Reverse");
+                            drives.driveStraight(currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_LEFT:
-                            
+                            log.logMessage("Auto Turn Left");
+                            drives.turn(-currentAutonomous[i][1]);
                             break;
                         case DRIVES_TURN_RIGHT:
-                            
+                            log.logMessage("Auto Turn Right");
+                            drives.turn(currentAutonomous[i][1]);
                             break;
                         case DRIVES_STOP:
                             
                             break;
                         case DRIVES_DONE:
-                            
+                            log.logMessage("Auto Waiting for Drives");
+                            isDoneDrives();
                             break;
                         case INTAKE_AQUIRE_BALL:
                             
@@ -217,7 +253,7 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case SHOOTER_DONE:
-                            
+                            isVisionDone();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -286,5 +322,35 @@ public class Autonomous extends GenericSubsystem{
                 auto.getAutoMode();
             }
         }
+    }
+    
+    /**
+     * Waits until the Drives class is done doing its last command
+     */
+    private void isDoneDrives(){
+        while(!drives.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Waits until the Vision class is done doing its last command
+     */
+    private void isVisionDone(){
+        while(!vision.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    public void runAuto(boolean allowedToRun){
+        runAutonomous = allowedToRun;
     }
 }

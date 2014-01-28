@@ -7,6 +7,7 @@
 
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
 import org.gosparx.subsystem.Controls;
 import org.gosparx.subsystem.Drives;
@@ -58,7 +59,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
-
+        auto.runAuto(true);
     }
 
     /**
@@ -66,6 +67,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
+        auto.runAuto(false);
     }
     
     /**
