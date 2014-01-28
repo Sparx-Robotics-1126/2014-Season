@@ -47,17 +47,7 @@ public class Controls extends GenericSubsystem{
      * drives will be set to 0.
      */ 
     private double JOYSTICK_DEADZONE = .04; 
-    
-    /**
-     * The last time the desired speed was logged
-     */
-    private double lastLogTime = 0;
-    
-    /**
-     * Time in seconds between logging the desired speeds
-     */
-    private double LOG_EVERY = 5.0;
-    
+        
     /**
      * Stores if we are overriding auto shifting
      */
