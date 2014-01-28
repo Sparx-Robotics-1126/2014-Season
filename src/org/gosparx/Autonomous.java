@@ -112,6 +112,9 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
     
+    /**
+     * Drives forward 20 feet
+     */
     private static final int[][] moveFoward = {
         {DRIVES_GO_FORWARD, 20*12},  
         {DRIVES_DONE},
@@ -119,7 +122,7 @@ public class Autonomous extends GenericSubsystem{
     };
     
     /**
-     * 
+     * Drives in a 4x4 foot square, turning to the right
      */
     private static final int[][] autoSquare = {
         {LOOP, 4*2},
@@ -143,6 +146,9 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
     
+    /**
+     * Turns 90 degrees to the left. Used for debugging
+     */
     private static final int[][] turn90 = {
         {DRIVES_TURN_LEFT, 90},
         {DRIVES_DONE},
