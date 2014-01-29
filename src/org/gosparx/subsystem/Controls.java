@@ -4,10 +4,15 @@
  */
 package org.gosparx.subsystem;
 
+<<<<<<< LiveWindow
 import com.sun.squawk.util.MathUtils;
+=======
+import edu.wpi.first.wpilibj.Dashboard;
+>>>>>>> local
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.util.Logger;
 
@@ -134,7 +139,12 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
+<<<<<<< LiveWindow
         while(!ds.isTest()){
+=======
+        //Coach DriverStation Counter
+        smartDashboardTimer();
+>>>>>>> local
             if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
@@ -179,8 +189,16 @@ public class Controls extends GenericSubsystem{
             }
         }
     }
+<<<<<<< LiveWindow
 
     public void liveWindow() {
       
     }
+=======
+        SmartDashboard.putNumber("Timer", 0.0);
+    }
+    
+    private void smartDashboardTimer(){
+        SmartDashboard.putNumber("Timer", ds.getMatchTime());
+>>>>>>> local
 }
