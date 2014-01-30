@@ -278,6 +278,7 @@ public class Vision extends GenericSubsystem {
                 lastLogTime = Timer.getFPGATimestamp();
                 log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
         }
+        return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
     }
    
     /**
