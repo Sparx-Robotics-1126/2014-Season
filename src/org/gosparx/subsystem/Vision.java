@@ -48,7 +48,7 @@ public class Vision extends GenericSubsystem {
     
     private double degrees = 0.0;
     private static final int TARGET_HEIGHT_INCHES = 32;
-    private int cameraVerticalCount = 0;
+    public int cameraVerticalCount = 0;
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
 
@@ -198,7 +198,7 @@ public class Vision extends GenericSubsystem {
                 //Determine if the horizontal target is in the expected location to the left of the vertical target
                 leftScore = ratioToScore(1.2 * (verticalReport.boundingRectLeft - horizontalReport.center_mass_x) / horizWidth);
                 imageLocation = verticalReport.center_mass_x;
-                cameraVerticalCount = verticalReport.imageHeight;
+                cameraVerticalCount = verticalReport.boundingRectHeight;
                 //Determine if the horizontal target is in the expected location to the right of the  vertical target
                 rightScore = ratioToScore(1.2 * (horizontalReport.center_mass_x - verticalReport.boundingRectLeft - verticalReport.boundingRectWidth) / horizWidth);
                 //Determine if the width of the tape on the two targets appears to be the same
@@ -417,7 +417,7 @@ public class Vision extends GenericSubsystem {
      */
     public double getDegrees(){
         pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
-        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/getDistance()));
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance()*12)));
         return degrees;
     }
 }
