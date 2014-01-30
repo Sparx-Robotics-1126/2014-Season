@@ -51,4 +51,30 @@ public class IO {
     public static final int RIGHT_DRIVER_JOY_PORT       = 2;
     
     public static final int OPER_JOY_PORT               = 3;
+    
+    //Shooter IO
+    
+    public static final int CAN_ADRESS_PIVOT            = 2;
+    
+    public static final int CAN_ADRESS_WINCH            = 3;
+    
+    public static final int CAN_ADRESS_ACQ              = 4;
+    
+    public static final int PIVOT_ENCODER_CHAN_1         = 0;
+    
+    public static final int PIVOT_ENCODER_CHAN_2        = 0;
+    
+    public static final int ACQ_TOGGLE_CHAN             = 2;
+    
+    public static final int ACQ_SWITCH_CHAN             = 11;
+    
+    public static final int LATCH_SWITCH_CHAN           = 12;
+    
+    public static final int SHOOTER_ACQ_MODE_CHAN       = 13;
+    
+    public static final int SHOOTER_SAFE_MODE_CHAN      = 14;
+    
+    public static final int LATCH_CHAN                  = 3;
+    
+    public static final int KEEP_IN_FRAME_CHAN          = 4;
 }
