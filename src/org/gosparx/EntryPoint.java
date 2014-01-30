@@ -40,12 +40,12 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[5];
+        subsystems = new GenericSubsystem[2];
         subsystems[0] = LogWriter.getInstance();
 //        subsystems[1] = Drives.getInstance();
 //        subsystems[2] = Controls.getInstance();
-        subsystems[3] = Autonomous.getInstance();
-        subsystems[4] = Vision.getInstance();
+//        subsystems[3] = Autonomous.getInstance();
+        subsystems[1] = Vision.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
@@ -67,7 +67,10 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
-        auto.runAuto(false);
+//        auto.runAuto(false);
+        while(true){
+            System.out.println("DISTANCE: " + Vision.getInstance().getDistance() + " LOCATION: " + Vision.getInstance().getLocation() + " DEGREES: " + Vision.getInstance().getDegrees());
+        }
     }
     
     /**

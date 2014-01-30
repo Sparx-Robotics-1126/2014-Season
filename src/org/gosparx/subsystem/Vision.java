@@ -47,11 +47,12 @@ public class Vision extends GenericSubsystem {
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     private double degrees = 0.0;
-    private static final double PIXELS_TO_FEET = 3.1;//TODO: CHECK
+    private static final double PIXELS_TO_INCHES_RATIO = 3.548;//TODO: CHECK
+    private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
 
     private Vision() {
-        super("Vision", Thread.MIN_PRIORITY);
+        super("Vision", Thread.MAX_PRIORITY);
     }
 
     /**
@@ -408,8 +409,13 @@ public class Vision extends GenericSubsystem {
         return imageLocation;
     }
     
+    /**
+     * 
+     * @return the angle from camera to target in degrees 
+     */
     public double getDegrees(){
-        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/PIXELS_TO_FEET)/getDistance()));
+        pixelsToInches = getDistance()/PIXELS_TO_INCHES_RATIO;
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/getDistance()));
         return degrees;
     }
 }
