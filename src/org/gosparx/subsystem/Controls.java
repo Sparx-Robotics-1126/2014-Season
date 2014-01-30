@@ -4,7 +4,7 @@
  */
 package org.gosparx.subsystem;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
@@ -16,22 +16,68 @@ import org.gosparx.util.Logger;
  */
 public class Controls extends GenericSubsystem{
     
+    /**
+     * The only Controls that will ever be created in the entire robot. It is 
+     * returned by getInstance()
+     */
     private static Controls controls;
     
+    /**
+     * The left driver joystick. Its port is stored in IO.java
+     */
     private Joystick leftJoy;
     
+    /**
+     * The right driver joystick. Its port is stored in IO.java
+     */
     private Joystick rightJoy;
     
+    /**
+     * The operator joystick. Its port is stored in IO.java
+     */
     private Joystick opJoy;
     
+    /**
+     * An instance of Drives
+     */ 
     private Drives drives;
     
-    private double JOYSTICK_DEADZONE = .04;   
+    /**
+     * The dead zone for the Driver joysticks. This is the zone in which the    
+     * drives will be set to 0.
+     */ 
+    private double JOYSTICK_DEADZONE = .04; 
+        
+    /**
+     * Stores if we are overriding auto shifting
+     */
+    private boolean shiftingOverride                                    = false;
     
-    private double lastLogTime = 0;
+    /**
+     * The last state of the shifting override button
+     */
+    private boolean lastShiftOverrideState                              = false;
     
-    private double LOG_EVERY = 5.0;
-
+    /**
+     * The last state of the manual shift up button
+     */ 
+    private boolean lastShiftUp                                         = false;
+    
+    /**
+     * The last state of the manual shift down
+     */ 
+    private boolean lastShiftDown                                       = false;
+    
+    /**
+     * The last state of the hold in place start button
+     */ 
+    private boolean lastHoldInPlaceStart                                = false;
+    
+    /**
+     * The last state of the hold in place stop button
+     */    
+    private boolean lastHoldInPlaceStop                                 = false;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -134,7 +180,12 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(true){
-            if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+            if(ds.isEnabled() && ds.isOperatorControl()){
+                lastShiftDown = driverLeftTrigger;
+                lastShiftUp = driverRightTrigger;
+                lastShiftOverrideState = driverLeftTopButton;
+                lastHoldInPlaceStart = opStart;
+                lastHoldInPlaceStop = opSelect;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -169,7 +220,32 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-                drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+
+                if(driverLeftTopButton && !lastShiftOverrideState){
+                    shiftingOverride = !shiftingOverride;
+                    log.logMessage("Toggled manual shifting");
+                }
+                if(driverLeftTrigger && !shiftingOverride){
+                    drives.forceLowGear(true);
+                }else{
+                    drives.forceLowGear(false);
+                }
+                if(shiftingOverride){
+                    if(driverLeftTrigger && !lastShiftDown){
+                        drives.manualShiftDown();
+                    }else if(driverRightTrigger && !lastShiftUp){
+                        drives.manualShiftUp();
+                    }
+                }
+                if(!lastHoldInPlaceStart && opStart){
+                    drives.startHoldPos();
+                }else if(!lastHoldInPlaceStop && opSelect){
+                    drives.stopHoldPos();
+                }
+                drives.setManualShifting(shiftingOverride);
+                
+                drives.setSpeed(Drives.MAX_ROBOT_SPEED * ((driverLeftYAxis > 0) ? MathUtils.pow(driverLeftYAxis,2): -MathUtils.pow(driverLeftYAxis,2)) * -1, Drives.MAX_ROBOT_SPEED * ((driverRightYAxis > 0) ? MathUtils.pow(driverRightYAxis,2): -MathUtils.pow(driverRightYAxis,2)) * -1);
+                
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1 + " Right: " + Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);

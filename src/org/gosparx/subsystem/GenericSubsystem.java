@@ -1,5 +1,4 @@
 package org.gosparx.subsystem;
-
 import edu.wpi.first.wpilibj.DriverStation;
 import org.gosparx.util.Logger;
 
@@ -11,10 +10,26 @@ import org.gosparx.util.Logger;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public abstract class GenericSubsystem extends Thread {
+    
     /**
-     * This is the name of the subsystem, used for logs.
+     * An Instance of DriverStation
+     */
+    protected DriverStation ds;
+    
+    /**
+     * A logger. This is used for logging purposes
      */
     protected Logger log;
+    
+    /**
+     * The time in seconds between logging
+     */
+    protected final double LOG_EVERY = 5.0;
+    
+    /**
+     * The last time data was logged
+     */
+    protected double lastLogTime;
     
     /**
      * This creates a generic subsystem.
@@ -26,6 +41,7 @@ public abstract class GenericSubsystem extends Thread {
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
         this.setPriority(threadPriority);
+        ds = DriverStation.getInstance();
         if(!nameOfSubsystem.equals("LogWriter")){
             log = new Logger(nameOfSubsystem);   
         }
@@ -64,5 +80,13 @@ public abstract class GenericSubsystem extends Thread {
      * @throws Exception
      */
     public abstract void execute() throws Exception;
+    /**
+     * Determines if the last autonomous command is finished
+     * @return true - the last issued command to the subsystem is done
+     *         false - the last issued commands to the subsystem is not done
+     */
+    public boolean isLastCommandDone(){
+        return true;
+    }
     
 }

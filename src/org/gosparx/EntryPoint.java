@@ -29,6 +29,8 @@ public class EntryPoint extends SimpleRobot {
      */
     private GenericSubsystem[] subsystems;
     private Logger logger;
+    private Autonomous auto;
+    private Vision vision;
     
     /**
      * Robot-wide initialization code should go here. Users should override this 
@@ -38,11 +40,12 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         //TODO: Log init starting
-        subsystems = new GenericSubsystem[2];
+        subsystems = new GenericSubsystem[5];
         subsystems[0] = LogWriter.getInstance();
 //        subsystems[1] = Drives.getInstance();
 //        subsystems[2] = Controls.getInstance();
-        subsystems[1] = Vision.getInstance();
+        subsystems[3] = Autonomous.getInstance();
+        subsystems[4] = Vision.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
@@ -56,6 +59,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void autonomous() {
         logger.logMessage("Switched to Autonomous");
+        auto.runAuto(true);
     }
 
     /**
@@ -63,7 +67,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
-        while(DriverStation.getInstance().isOperatorControl() && DriverStation.getInstance().isEnabled()){
+        auto.runAuto(false);
             System.out.println("Degrees to target: " + Vision.getInstance().getDegrees() + " Location: " + Vision.getInstance().getLocation() + " Distance: " + Vision.getInstance().getDistance());
             try {
                 Thread.sleep(500);
