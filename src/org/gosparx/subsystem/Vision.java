@@ -53,7 +53,7 @@ public class Vision extends GenericSubsystem {
     private static final int CENTER_OF_CAMERA = 160;
 
     private Vision() {
-        super("Vision", Thread.MAX_PRIORITY);
+        super("Vision", Thread.MIN_PRIORITY);
     }
 
     /**
