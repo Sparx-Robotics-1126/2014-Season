@@ -67,10 +67,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
-//        auto.runAuto(false);
-        while(true){
-            System.out.println("DISTANCE: " + Vision.getInstance().getDistance() + " LOCATION: " + Vision.getInstance().getLocation() + " DEGREES: " + Vision.getInstance().getDegrees());
-        }
+        auto.runAuto(false);
     }
     
     /**

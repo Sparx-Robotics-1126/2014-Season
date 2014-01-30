@@ -47,7 +47,8 @@ public class Vision extends GenericSubsystem {
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     private double degrees = 0.0;
-    private static final double PIXELS_TO_INCHES_RATIO = 3.548;//TODO: CHECK
+    private static final int TARGET_HEIGHT_INCHES = 32;
+    private int cameraVerticalCount = 0;
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
 
@@ -197,6 +198,7 @@ public class Vision extends GenericSubsystem {
                 //Determine if the horizontal target is in the expected location to the left of the vertical target
                 leftScore = ratioToScore(1.2 * (verticalReport.boundingRectLeft - horizontalReport.center_mass_x) / horizWidth);
                 imageLocation = verticalReport.center_mass_x;
+                cameraVerticalCount = verticalReport.imageHeight;
                 //Determine if the horizontal target is in the expected location to the right of the  vertical target
                 rightScore = ratioToScore(1.2 * (horizontalReport.center_mass_x - verticalReport.boundingRectLeft - verticalReport.boundingRectWidth) / horizWidth);
                 //Determine if the width of the tape on the two targets appears to be the same
@@ -414,7 +416,7 @@ public class Vision extends GenericSubsystem {
      * @return the angle from camera to target in degrees 
      */
     public double getDegrees(){
-        pixelsToInches = getDistance()/PIXELS_TO_INCHES_RATIO;
+        pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
         degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/getDistance()));
         return degrees;
     }
