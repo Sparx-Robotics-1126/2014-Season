@@ -46,7 +46,7 @@ public class Vision extends GenericSubsystem {
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     private double degrees = 0.0;
-    private static final int PIXELS_TO_FEET = 24;//TODO: CHECK
+    private static final double PIXELS_TO_FEET = 3.1;//TODO: CHECK
     private static final int CENTER_OF_CAMERA = 160;
 
     private Vision() {
@@ -74,7 +74,6 @@ public class Vision extends GenericSubsystem {
         while (true) {
             getBestTarget();
             freeImage();
-            System.out.println("Degrees: " + getDegrees());
             sleep(20);
         }
     }
@@ -274,8 +273,8 @@ public class Vision extends GenericSubsystem {
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
         targetHeight = 17;//32
-        log.logMessage("Report: " + report.boundingRectHeight);
-        log.logMessage("Dist: " + ((-0.181818 * (report.boundingRectHeight) + 25.090909) * 12) + " Report: " + report.boundingRectHeight);
+//        log.logMessage("Report: " + report.boundingRectHeight);
+//        log.logMessage("Dist: " + ((-0.181818 * (report.boundingRectHeight) + 25.090909) * 12) + " Report: " + report.boundingRectHeight);
         return ((-0.181818 * (report.boundingRectHeight) + 25.090909) * 12); 
     }
    
