@@ -407,7 +407,7 @@ public class Vision extends GenericSubsystem {
      * @return location - the location of the best target. 180 is middle 0 is
      * right 360 is left
      */
-    public int getLocation() {
+    private int getLocation() {
         return imageLocation;
     }
     
