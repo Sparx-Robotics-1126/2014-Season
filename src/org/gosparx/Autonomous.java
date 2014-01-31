@@ -51,6 +51,11 @@ public class Autonomous extends GenericSubsystem{
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
+    
+    /**
+     * This is the number of the command that is running
+     */
+    private int i = 0;
 
     
     /**************************************************************************/
@@ -143,7 +148,7 @@ public class Autonomous extends GenericSubsystem{
         {VISION_ANGLE},
         {DRIVES_TRACK_TARGET},
         {NEXT, 3},
-        {END}
+//        {END}
     };
     
     /**
@@ -160,8 +165,6 @@ public class Autonomous extends GenericSubsystem{
      */
     private Autonomous(){
         super("Autonomous", GenericSubsystem.NORM_PRIORITY);   
-        vision = Vision.getInstance();
-        drives = Drives.getInstance();
     }
     
     /**
@@ -207,7 +210,7 @@ public class Autonomous extends GenericSubsystem{
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
-                for (int i = start; i <= finished; i++){
+                for (i = start; i <= finished; i++){
                     log.logMessage("Current Position: " + i + " *******************");
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
@@ -272,22 +275,22 @@ public class Autonomous extends GenericSubsystem{
                         case DRIVES_TRACK_TARGET:
                             log.logMessage("Drives Tracking Target");
                             log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
-                            if(Math.abs(visionAngle) > 5){
+                            if(Math.abs(visionAngle) > 1){
                                 drives.turn(visionAngle);
                             }
                             isDoneDrives();
-                            if(visionDistance > 12*12){
-                                log.logMessage("TOO FAR AWAY!!!");
-                                drives.driveStraight(5);
-                            }else if(visionDistance < 10*12){
-                                log.logMessage("TOO CLOSE!!!");
-                                drives.driveStraight(-5);
-                            }
-                            isDoneDrives();
+//                            if(visionDistance > 12*12){
+//                                log.logMessage("TOO FAR AWAY!!!");
+//                                drives.driveStraight(5);
+//                            }else if(visionDistance < 10*12){
+//                                log.logMessage("TOO CLOSE!!!");
+//                                drives.driveStraight(-5);
+//                            }
+//                            isDoneDrives();
                             break;
                         case NEXT:
                             if(loopTime > 0){
-                                i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
+                                i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
                             log.logMessage("Next Loop");
