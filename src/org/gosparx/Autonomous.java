@@ -45,7 +45,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * The angle from the camera to the target (closest one)
      */
-    private int visionAngle = 0;
+    private double visionAngle = 0.0;
     
     /**
      * Test to see if the closest target is the hot goal
@@ -159,7 +159,9 @@ public class Autonomous extends GenericSubsystem{
      * Autonomous Constructor
      */
     private Autonomous(){
-        super("Autonomous", GenericSubsystem.NORM_PRIORITY);       
+        super("Autonomous", GenericSubsystem.NORM_PRIORITY);   
+        vision = Vision.getInstance();
+        drives = Drives.getInstance();
     }
     
     /**
@@ -200,12 +202,13 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = turn90;
+        currentAutonomous = cameraFollow;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
                 for (int i = start; i <= finished; i++){
+                    log.logMessage("Current Position: " + i + " *******************");
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -257,43 +260,52 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
+                            log.logMessage("Vision getting Distance");
                             break;
                         case VISION_ANGLE:
-                            visionAngle = vision.getLocation();
+                            visionAngle = vision.getDegrees();
+                            log.logMessage("Vision getting Degrees");
                             break;
                         case VISION_HOT_TARGET:
                             visionHotGoal = vision.isHotGoal();
                             break;
                         case DRIVES_TRACK_TARGET:
-                            System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
-                            if(visionAngle > 190){
-                                drives.setSpeed(5, -5);
-                            }else if(visionAngle < 170){
-                                drives.setSpeed(-5, 5);
-                            }else if(visionDistance > 20){
-                                drives.setSpeed(5, 5);
-                            }else if(visionDistance < 15){
-                                drives.setSpeed(-5, -5);
-                            }else{
-                                drives.setSpeed(0, 0);
+                            log.logMessage("Drives Tracking Target");
+                            log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
+                            if(Math.abs(visionAngle) > 5){
+                                drives.turn(visionAngle);
                             }
+                            isDoneDrives();
+                            if(visionDistance > 12*12){
+                                log.logMessage("TOO FAR AWAY!!!");
+                                drives.driveStraight(5);
+                            }else if(visionDistance < 10*12){
+                                log.logMessage("TOO CLOSE!!!");
+                                drives.driveStraight(-5);
+                            }
+                            isDoneDrives();
                             break;
                         case NEXT:
                             if(loopTime > 0){
                                 i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
+                            log.logMessage("Next Loop");
                             break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
+                            log.logMessage("Setting Loop");
                             break;
                         case WAIT:
                             
                             break;
                         case END:
                             runAutonomous = false;
+                            log.logMessage("Auto has stopped ****************");
+                            break;
                         default:
-//                            print("No case statement: " + currentAutonomous[i]);
+                            log.logMessage("AND ERROR HAS OCCURED");
+                            break;
                     }
                 }   
             }

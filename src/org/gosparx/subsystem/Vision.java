@@ -53,7 +53,7 @@ public class Vision extends GenericSubsystem {
     private static final int CENTER_OF_CAMERA = 160;
 
     private Vision() {
-        super("Vision", Thread.MIN_PRIORITY);
+        super("Vision", Thread.NORM_PRIORITY);
     }
 
     /**
@@ -78,6 +78,7 @@ public class Vision extends GenericSubsystem {
             getBestTarget();
             freeImage();
             sleep(20);
+//            System.out.println("Degrees: " + getDegrees() + " Location: " + getLocation() + " Distance: " + getDistance());
         }
     }
 
@@ -233,7 +234,7 @@ public class Vision extends GenericSubsystem {
             //horizontal or vertical index to get the particle report as shown below
             ParticleAnalysisReport distanceReport  = filteredImage.getParticleAnalysisReport(target.verticalIndex);
             double distance = computeDistance(filteredImage, distanceReport, target.verticalIndex);
-            imageDistance = distance;
+            imageDistance = distance * 12;
             if (target.Hot) {
                 imageHotGoal = true;
             } else {
@@ -267,6 +268,9 @@ public class Vision extends GenericSubsystem {
      * @param outer True if the particle should be treated as an outer target,
      * false to treat it as a center target
      * @return The estimated distance to the target in Inches.
+     * The equation takes the total amount of pixels of the image (240) and then multiplies if by the height
+     * of the projected image. This is then divided by the actual height of the target. (multiplied by 12 for the feet to become inches, 
+     * then it is multiplied by the field of view of the camera). This creates an imaginary triangle from which it is possible to determine distance. 
      */
     private double computeDistance(BinaryImage image, ParticleAnalysisReport report, int particleNumber) throws NIVisionException {
         double rectLong, height;
@@ -412,12 +416,13 @@ public class Vision extends GenericSubsystem {
     }
     
     /**
-     * 
+     * The degrees are found by making an imaginary triangle. We already know the distance and the location of the center of the target.
+     * First, the inverse sin is 
      * @return the angle from camera to target in degrees 
      */
     public double getDegrees(){
         pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
-        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance()*12)));
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance())));
         return degrees;
     }
 }
