@@ -211,7 +211,6 @@ public class Autonomous extends GenericSubsystem{
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
                 for (i = start; i <= finished; i++){
-                    log.logMessage("CURRENT AUTO: " + i + " *****************");
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -274,7 +273,7 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case DRIVES_TRACK_TARGET:
                             log.logMessage("Drives Tracking Target");
-                            if(Math.abs(visionAngle) > 1 && vision.getLastImageTime() <= 0.2){
+                            if(Math.abs(visionAngle) > 1 && vision.getLastImageTime() <= 0.9){
                                 log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
                                 drives.turn(visionAngle);
                             }

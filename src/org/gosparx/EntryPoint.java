@@ -50,7 +50,6 @@ public class EntryPoint extends SimpleRobot {
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
-            subsystems[i].init();
             subsystems[i].start();
         }
     }

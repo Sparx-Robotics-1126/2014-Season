@@ -323,11 +323,11 @@ public class Drives extends GenericSubsystem {
                 case State.TURNING:
                     if(isGyroWorking){
                         if(desiredAngle - currentAngle > 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
+                            leftMotorOutput = (desiredAngle - currentAngle > 20) ? 1 : (.004 * (desiredAngle - currentAngle) + .2);
+                            rightMotorOutput = -((desiredAngle - currentAngle > 20) ? 1 : (.004 * (desiredAngle - currentAngle) + .2));
                         }else if(desiredAngle - currentAngle < 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
+                            leftMotorOutput = (desiredAngle - currentAngle < -20) ? -1 : (-.004 * (desiredAngle - currentAngle) - .2);
+                            rightMotorOutput = -((desiredAngle - currentAngle < -20) ? -1 : (-.004 * (desiredAngle - currentAngle) - .2));
                         }
                         if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
                             log.logMessage("Done Turning");

@@ -52,6 +52,7 @@ public abstract class GenericSubsystem extends Thread {
      * It must recall the correct method if it crashes.
      */
     public void run(){
+        init();
         while (true) {
             try {
                 execute();
