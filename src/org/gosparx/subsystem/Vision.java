@@ -54,6 +54,7 @@ public class Vision extends GenericSubsystem {
     public int cameraVerticalCount = 0;
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
+    private double startImageTime;
 
     private Vision() {
         super("Vision", Thread.NORM_PRIORITY);
@@ -133,9 +134,10 @@ public class Vision extends GenericSubsystem {
      * @throws NIVisionException
      */
     private void getImage() throws NIVisionException {
+        startImageTime = Timer.getFPGATimestamp();
         image = null;
         try {
-            image = camera.getImage(); // comment if using stored images
+            image = camera.getImage();
         } catch (Exception e){
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
@@ -257,6 +259,7 @@ public class Vision extends GenericSubsystem {
         } catch (NIVisionException ex) {
             log.logError("Issue freeing the images from the camera: " + ex.getMessage());
         }
+        log.logMessage("VISION TIME: " + (Timer.getFPGATimestamp() - startImageTime));
     }
 
     /**
@@ -443,12 +446,19 @@ public class Vision extends GenericSubsystem {
         }
     }
      
+    /**
+     * Allows for the getDegrees and getDistance methods to return there updated value
+     */
     private void gotNewImage(){
         log.logMessage("New Image has been calculated");
         returnedLastDegrees = false;
         returnedLastDirection = false;
     }
     
+    /**
+     * Class for if you are calling the getDegrees or getDistance method from a
+     * local or remote class
+     */
     public static class ClassLocation{
         public static boolean LOCAL = true;
         public static boolean REMOTE = false;
