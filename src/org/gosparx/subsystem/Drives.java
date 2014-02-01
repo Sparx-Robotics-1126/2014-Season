@@ -261,7 +261,7 @@ public class Drives extends GenericSubsystem {
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
-        drivesState = State.LOW_GEAR;
+        drivesState = State.HOLD_POS;
     }
 
     /**

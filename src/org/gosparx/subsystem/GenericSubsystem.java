@@ -80,6 +80,7 @@ public abstract class GenericSubsystem extends Thread {
      * @throws Exception
      */
     public abstract void execute() throws Exception;
+    
     /**
      * Determines if the last autonomous command is finished
      * @return true - the last issued command to the subsystem is done

@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
-import org.gosparx.subsystem.Vision.ClassLocation;
 
 
 public class Autonomous extends GenericSubsystem{
@@ -41,7 +40,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Distance from camera to target (closest one)
      */
-    private double visionDistance = 0;
+    private double visionDistance = 0.0;
     
     /**
      * The angle from the camera to the target (closest one)
@@ -212,7 +211,7 @@ public class Autonomous extends GenericSubsystem{
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
                 for (i = start; i <= finished; i++){
-                    log.logMessage("Current Position: " + i + " *******************");
+                    log.logMessage("CURRENT AUTO: " + i + " *****************");
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -263,11 +262,11 @@ public class Autonomous extends GenericSubsystem{
                             isVisionDone();
                             break;
                         case VISION_DISTANCE:
-                            visionDistance = vision.getDistance(ClassLocation.REMOTE);
+                            visionDistance = vision.getDistance();
                             log.logMessage("Vision getting Distance");
                             break;
                         case VISION_ANGLE:
-                            visionAngle = vision.getDegrees(ClassLocation.REMOTE);
+                            visionAngle = vision.getDegrees();
                             log.logMessage("Vision getting Degrees");
                             break;
                         case VISION_HOT_TARGET:
@@ -275,8 +274,8 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case DRIVES_TRACK_TARGET:
                             log.logMessage("Drives Tracking Target");
-                            log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
-                            if(Math.abs(visionAngle) > 1){
+                            if(Math.abs(visionAngle) > 1 && vision.getLastImageTime() <= 0.2){
+                                log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
                                 drives.turn(visionAngle);
                             }
                             isDoneDrives();
@@ -298,7 +297,7 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
-                            log.logMessage("Setting Loop");
+                            log.logMessage("Setting Loop to " + currentAutonomous[i][1] + " loops");
                             break;
                         case WAIT:
                             

@@ -46,6 +46,7 @@ public class EntryPoint extends SimpleRobot {
         subsystems[2] = Controls.getInstance();
         subsystems[3] = Autonomous.getInstance();
         subsystems[4] = Vision.getInstance();
+        auto = Autonomous.getInstance();
         logger = new Logger("Robot State");
         
         for (int i = 0; i < subsystems.length; i++) {
@@ -77,6 +78,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void disabled(){
         logger.logMessage("Switched to Disabled");
+        auto.runAuto(false);
     }
     
     /**
