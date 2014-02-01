@@ -143,12 +143,12 @@ public class Autonomous extends GenericSubsystem{
      * Camera will follow the target
      */
     private static final int[][] cameraFollow = { 
-        {LOOP, (int)Integer.MAX_VALUE},
+        {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
         {VISION_ANGLE},
         {DRIVES_TRACK_TARGET},
         {NEXT, 3},
-//        {END}
+        {END}
     };
     
     /**

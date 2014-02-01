@@ -69,7 +69,7 @@ public class EntryPoint extends SimpleRobot {
     public void operatorControl() {
         logger.logMessage("Switched to Teleop");
         auto.runAuto(false);
-        }
+    }
     
     /**
      * Disabled should go here. Users should overload this method to run code 
