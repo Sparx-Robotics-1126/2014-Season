@@ -70,6 +70,16 @@ public class Drives extends GenericSubsystem {
      * The accuracy in inches for turning
      */
     private static final double DRIVING_THRESHOLD                         = 1;
+    
+    /**
+     * Max degrees that we need to turn, but we still scale.
+     */
+    private static final double TURNING_MAX = 20;
+    
+    /**
+     * The Y Intercept for the scaling formula.
+     */ 
+    private static final double Y_INTERCEPT = .2;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -211,6 +221,11 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
+    
+    /**
+     * The degrees we still need to go.
+     */ 
+    private double degToGo;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -321,13 +336,14 @@ public class Drives extends GenericSubsystem {
                     setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
                     break;
                 case State.TURNING:
+                    degToGo = desiredAngle - currentAngle;
                     if(isGyroWorking){
-                        if(desiredAngle - currentAngle > 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
-                        }else if(desiredAngle - currentAngle < 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
+                        if(degToGo > 0){
+                            leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
+                            rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                        }else if(degToGo < 0){
+                            leftMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo-Y_INTERCEPT);
+                            rightMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo-Y_INTERCEPT));
                         }
                         if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
                             log.logMessage("Done Turning");
