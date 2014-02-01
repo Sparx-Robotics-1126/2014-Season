@@ -404,7 +404,7 @@ public class Vision extends GenericSubsystem {
      * @return distance - how far away the target is from the camera in feet
      */
     public double getDistance(boolean location) {
-        if(!returnedLastDirection){
+        if(!returnedLastDirection && location == ClassLocation.REMOTE){
             returnedLastDirection = true;
             return imageDistance;
         }else if(location == ClassLocation.LOCAL){
@@ -433,7 +433,7 @@ public class Vision extends GenericSubsystem {
     public double getDegrees(boolean location){
         pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
         degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance(ClassLocation.LOCAL))));
-        if(!returnedLastDegrees){
+        if(!returnedLastDegrees && location == ClassLocation.REMOTE){
             returnedLastDegrees = true;
             return degrees;
         }else if(location = ClassLocation.LOCAL){
@@ -442,8 +442,7 @@ public class Vision extends GenericSubsystem {
             return 0.0;
         }
     }
-    
-    
+     
     private void gotNewImage(){
         log.logMessage("New Image has been calculated");
         returnedLastDegrees = false;
