@@ -179,7 +179,7 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(true){
+        while(ds.isTest()){
             if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
@@ -260,5 +260,9 @@ public class Controls extends GenericSubsystem{
      */
     private double getSpeed(double joystickValue){
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
+    }
+
+    public void liveWindow() {
+        
     }
 }

@@ -89,4 +89,6 @@ public abstract class GenericSubsystem extends Thread {
         return true;
     }
     
+    public  abstract void liveWindow();
+    
 }

@@ -274,7 +274,7 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
-        while(true){
+        while(!ds.isTest()){
             currentAngle = gyro.getAngle();
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
@@ -546,6 +546,10 @@ public class Drives extends GenericSubsystem {
      */
     public boolean isLastCommandDone() {
         return drivesState == State.HOLD_POS;
+    }
+
+    public void liveWindow() {
+      
     }
     
     private static class State{
