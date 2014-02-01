@@ -42,6 +42,9 @@ public class Vision extends GenericSubsystem {
 
     //Maximum number of particles to process
     private static final int MAX_PARTICLES = 8;
+    
+    private boolean returnedLastDegrees = false;
+    private boolean returnedLastDirection = false;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
@@ -77,8 +80,8 @@ public class Vision extends GenericSubsystem {
         while (true) {
             getBestTarget();
             freeImage();
-            sleep(20);
-//            System.out.println("Degrees: " + getDegrees() + " Location: " + getLocation() + " Distance: " + getDistance());
+            gotNewImage();
+//            System.out.println("Degrees: " + getDegrees() + " ClassLocation: " + getLocation() + " Distance: " + getDistance());
         }
     }
 
@@ -400,8 +403,15 @@ public class Vision extends GenericSubsystem {
      *
      * @return distance - how far away the target is from the camera in feet
      */
-    public double getDistance() {
-        return imageDistance;
+    public double getDistance(boolean location) {
+        if(!returnedLastDirection){
+            returnedLastDirection = true;
+            return imageDistance;
+        }else if(location == ClassLocation.LOCAL){
+            return imageDistance;
+        }else{
+            return 0.0;
+        }
     }
 
     /**
@@ -420,9 +430,29 @@ public class Vision extends GenericSubsystem {
      * First, the inverse sin is 
      * @return the angle from camera to target in degrees 
      */
-    public double getDegrees(){
+    public double getDegrees(boolean location){
         pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
-        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance())));
-        return degrees;
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(getDistance(ClassLocation.LOCAL))));
+        if(!returnedLastDegrees){
+            returnedLastDegrees = true;
+            return degrees;
+        }else if(location = ClassLocation.LOCAL){
+            return degrees;
+        }else{
+            return 0.0;
+        }
     }
+    
+    
+    private void gotNewImage(){
+        log.logMessage("New Image has been calculated");
+        returnedLastDegrees = false;
+        returnedLastDirection = false;
+    }
+    
+    public static class ClassLocation{
+        public static boolean LOCAL = true;
+        public static boolean REMOTE = false;
+    }
+    
 }

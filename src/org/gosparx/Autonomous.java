@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
+import org.gosparx.subsystem.Vision.ClassLocation;
 
 
 public class Autonomous extends GenericSubsystem{
@@ -143,7 +144,7 @@ public class Autonomous extends GenericSubsystem{
      * Camera will follow the target
      */
     private static final int[][] cameraFollow = { 
-        {LOOP, Integer.MAX_VALUE},
+        {LOOP, (int)Integer.MAX_VALUE},
         {VISION_DISTANCE},
         {VISION_ANGLE},
         {DRIVES_TRACK_TARGET},
@@ -262,11 +263,11 @@ public class Autonomous extends GenericSubsystem{
                             isVisionDone();
                             break;
                         case VISION_DISTANCE:
-                            visionDistance = vision.getDistance();
+                            visionDistance = vision.getDistance(ClassLocation.REMOTE);
                             log.logMessage("Vision getting Distance");
                             break;
                         case VISION_ANGLE:
-                            visionAngle = vision.getDegrees();
+                            visionAngle = vision.getDegrees(ClassLocation.REMOTE);
                             log.logMessage("Vision getting Degrees");
                             break;
                         case VISION_HOT_TARGET:
