@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 
@@ -211,6 +212,11 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
+    
+    /**
+     * Name of the subsystem
+     */
+    private String systemName = "Drives";
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -549,7 +555,14 @@ public class Drives extends GenericSubsystem {
     }
 
     public void liveWindow() {
-      
+        LiveWindow.addActuator(systemName, "Right Front", rightFrontDrives);
+        LiveWindow.addActuator(systemName, "Right Back", rightFrontDrives);
+        LiveWindow.addSensor(systemName, "Right Encoder", rightDrivesEncoder);
+        LiveWindow.addActuator(systemName, "Left Front", rightFrontDrives);
+        LiveWindow.addActuator(systemName, "Left Back", rightFrontDrives);
+        LiveWindow.addSensor(systemName, "Left Encoder", leftDrivesEncoder);
+        LiveWindow.addActuator(systemName, "Shifting", shifter);
+        LiveWindow.addSensor(systemName, "GYRO", gyro);
     }
     
     private static class State{

@@ -1,6 +1,9 @@
 package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -21,6 +24,11 @@ public class Autonomous extends GenericSubsystem{
      * Instance of vision
      */
     private Vision vision;
+    
+    /**
+     * Smart Chooser 
+     */
+    private SendableChooser smartChoose;
     
     /**
      * The autonomous that runAuto uses
@@ -352,5 +360,12 @@ public class Autonomous extends GenericSubsystem{
     
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
+    }
+
+    public void liveWindow() {
+        smartChoose = new SendableChooser();
+        smartChoose.addDefault("No Auto", new Integer(1));
+        smartChoose.addObject("Auto 1", new Integer(2));
+        SmartDashboard.putData("Auto Mode", null);
     }
 }

@@ -50,6 +50,7 @@ public class EntryPoint extends SimpleRobot {
         
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
+            subsystems[i].liveWindow();
             subsystems[i].start();
         }
     }
