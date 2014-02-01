@@ -54,27 +54,29 @@ public class IO {
     
     //Shooter IO
     
+    public static final int WINCH_POT_CHAN              = 3;
+    
     public static final int CAN_ADRESS_PIVOT            = 2;
     
-    public static final int CAN_ADRESS_WINCH            = 3;
+    public static final int CAN_ADRESS_WINCH            = 4;
     
-    public static final int CAN_ADRESS_ACQ              = 4;
+    public static final int CAN_ADRESS_ACQ              = 3;
     
-    public static final int PIVOT_ENCODER_CHAN_1         = 0;
+    public static final int PIVOT_ENCODER_CHAN_1         = 5;
     
-    public static final int PIVOT_ENCODER_CHAN_2        = 0;
+    public static final int PIVOT_ENCODER_CHAN_2        = 6;
     
-    public static final int ACQ_TOGGLE_CHAN             = 2;
+    public static final int ACQ_TOGGLE_CHAN             = 3;
     
-    public static final int ACQ_SWITCH_CHAN             = 11;
+    public static final int ACQ_SWITCH_CHAN             = 12;
     
-    public static final int LATCH_SWITCH_CHAN           = 12;
+    public static final int LATCH_SWITCH_CHAN           = 11;
     
-    public static final int SHOOTER_ACQ_MODE_CHAN       = 13;
+    public static final int SHOOTER_ACQ_MODE_CHAN       = 9;
     
-    public static final int SHOOTER_SAFE_MODE_CHAN      = 14;
+    public static final int SHOOTER_SAFE_MODE_CHAN      = 10;
     
-    public static final int LATCH_CHAN                  = 3;
+    public static final int LATCH_CHAN                  = 4;
     
-    public static final int KEEP_IN_FRAME_CHAN          = 4;
+    public static final int KEEP_IN_FRAME_CHAN          = 2;
 }

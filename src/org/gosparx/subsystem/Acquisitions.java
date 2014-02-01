@@ -17,7 +17,7 @@ import org.gosparx.util.Logger;
 /**
  * @author Alex
  */
-public class Acqusitions extends GenericSubsystem{
+public class Acquisitions extends GenericSubsystem{
     
     /**
      * The degrees that the shooter rotates per tick of the encoder
@@ -166,10 +166,30 @@ public class Acqusitions extends GenericSubsystem{
      */ 
     private double startTimeSetHome = -1;
     
-    private Acqusitions(){
+    /**
+     * A private Acquisitions used for the singleton model.
+     */
+    private static Acquisitions acq;
+    
+    /**
+     * Returns the singleton Acquisitions.
+     */
+    public static Acquisitions getInstance(){
+        if(acq == null){
+            acq = new Acquisitions();
+        }
+        return acq;
+    }
+    /**
+     * Creates a new Acquisitions.
+     */
+    private Acquisitions(){
         super(Logger.SUB_ACQUISITIONS, Thread.NORM_PRIORITY);
     }
     
+    /**
+     * Initializes everything.
+     */ 
     public void init() {
         try {
             pivotMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
@@ -190,12 +210,17 @@ public class Acqusitions extends GenericSubsystem{
         acquisitionsState = State.SETTING_HOME;
     }
 
+    /**
+     * Loops.
+     */ 
     public void execute() throws Exception {
         while(true){
             wantedSpeedAcq = 0;
             wantedSpeedPivot = 0;
             switch(acquisitionsState){
                 case State.STANDBY:
+                    wantedSpeedAcq = 0;
+                    wantedSpeedPivot = 0;
                     break;
                 case State.ACQUIRING:
                     if(!shooterAcqModeSwitch.get()  && !(Timer.getFPGATimestamp() - startTimeAquire > PIVOT_TIMEOUT)){
@@ -216,6 +241,7 @@ public class Acqusitions extends GenericSubsystem{
                         acquisitionsState = State.STANDBY;
                     }
                     break;
+                //TODO: Implement
                 case State.PIVOTING:
                     break;
                 case State.ASSISTING:
@@ -261,16 +287,25 @@ public class Acqusitions extends GenericSubsystem{
         }
     }
     
+    /**
+     * Sets the start acquire time and sets the state to State.ACQUIRING.
+     */ 
     public void acquire(){
         startTimeAquire = Timer.getFPGATimestamp();
         acquisitionsState = State.ACQUIRING;
     }
     
+    /**
+     * Sets the start release time and sets State.ASSISTING.
+     */ 
     public void release(){
         startTimeRelease = Timer.getFPGATimestamp();
         acquisitionsState = State.ASSISTING;
     }
     
+    /**
+     * A class for storing the state of acquisitions.
+     */ 
     public static class State{
         public static final int STANDBY = 1;
         public static final int ACQUIRING = 2;
@@ -278,6 +313,9 @@ public class Acqusitions extends GenericSubsystem{
         public static final int ASSISTING = 4;
         public static final int SETTING_HOME = 5;
         
+        /**
+         * Returns a string version of the state.
+         */
         public static String getState(int state){
             switch(state){
                 case STANDBY:
@@ -291,8 +329,7 @@ public class Acqusitions extends GenericSubsystem{
                 case SETTING_HOME:
                     return "Setting home";
             }
-            return "UNKOWN MODE";
+            return "UNKOWN MODE: " + state;
         }
     }
-    
 }
