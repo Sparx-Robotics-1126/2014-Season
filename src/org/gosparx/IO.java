@@ -22,8 +22,10 @@ public class IO {
     // Drives PWM Slots
     public static final int LEFT_FRONT_DRIVES_PWM       = 4;
     public static final int LEFT_REAR_DRIVES_PWM        = 5;
+    public static final int LEFT_CENTER_DRIVES_PWM      = 6;
     public static final int RIGHT_FRONT_DRIVES_PWM      = 7;
     public static final int RIGHT_REAR_DRIVES_PWM       = 8;
+    public static final int RIGHT_CENTER_DRIVES_PWM     = 9;
     
     // Drives Encoder Slots
     public static final int LEFT_DRIVES_ENCODER_CHAN_1  = 1;
