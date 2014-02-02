@@ -202,29 +202,6 @@ public class Autonomous extends GenericSubsystem{
             smartAutoNumber = (Integer) smartChoose.getSelected();
             wantedAutoMode = smartAutoNumber.intValue();
         }else{
-                    case 0:
-                        currentAutonomous = noAuto;
-                        break;
-                    case 1:
-                        currentAutonomous = null;
-                        break;
-                    case 2:
-                        currentAutonomous = null;
-                        break;
-                    case 3:
-                        currentAutonomous = null;
-                        break;
-                    case 4:
-                        currentAutonomous = null;
-                        break;
-                    case 5:
-                        currentAutonomous = null;
-                        break;
-                    case 6:
-                        currentAutonomous = null;
-                        break;
-                }
-        }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
@@ -276,8 +253,8 @@ public class Autonomous extends GenericSubsystem{
                 
                 break;
         }
-        }
     }
+    
     
     /**
      * Gets the data from the array and tells each subsystem what actions to take.

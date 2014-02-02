@@ -4,11 +4,7 @@
  */
 package org.gosparx.subsystem;
 
-<<<<<<< LiveWindow
 import com.sun.squawk.util.MathUtils;
-=======
-import edu.wpi.first.wpilibj.Dashboard;
->>>>>>> local
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -270,16 +266,8 @@ public class Controls extends GenericSubsystem{
     public void liveWindow() {
         
     }
-<<<<<<< LiveWindow
-
-    public void liveWindow() {
-      
-    }
-=======
-        SmartDashboard.putNumber("Timer", 0.0);
-    }
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", ds.getMatchTime());
->>>>>>> local
+    }
 }

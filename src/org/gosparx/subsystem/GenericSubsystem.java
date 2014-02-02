@@ -20,7 +20,6 @@ public abstract class GenericSubsystem extends Thread {
      * A logger. This is used for logging purposes
      */
     protected Logger log;
-    protected DriverStation ds;
     
     /**
      * The time in seconds between logging
@@ -94,7 +93,5 @@ public abstract class GenericSubsystem extends Thread {
     }
     
     public  abstract void liveWindow();
-    
-    public abstract void liveWindow();
     
 }

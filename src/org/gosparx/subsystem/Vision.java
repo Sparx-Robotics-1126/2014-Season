@@ -78,10 +78,6 @@ public class Vision extends GenericSubsystem {
         
     }
 
-    public void liveWindow() {
-      
-    }
-
     /**
      * scoring criteria
      */
