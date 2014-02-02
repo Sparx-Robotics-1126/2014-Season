@@ -61,8 +61,10 @@ public class Autonomous extends GenericSubsystem{
      * The analog module for the click wheel for auto mode selection
      */
     private AnalogModule autoSwitch;
-     * The name of the selected auto
-     */
+    
+    /**
+    * The name of the selected auto
+    */
     private String selectedAutoName = "UNKNOWN";
     
     /**
@@ -223,32 +225,17 @@ public class Autonomous extends GenericSubsystem{
                currentAutonomous = null;
                log.logMessage("Current Auto: " + 0);
            }else{
-               currentAutonomous = noAuto;
-                selectedAutoName = "NO AUTO";
-                currentAutonomous = moveFoward;
-                selectedAutoName = "Move Foward";
-                currentAutonomous = autoSquare;
-                selectedAutoName = "Auto Square";
-                currentAutonomous = cameraFollow;
-                selectedAutoName = "Camera Follow";
-                currentAutonomous = turn90;
-                selectedAutoName = "Turn 90";
-            default:
-                currentAutonomous = noAuto;
-                selectedAutoName = "ERROR";        
+       
            }
-        sendSmartAuto(selectedAutoName);
     }
     
     /**
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-//        currentAutonomous = turn90;
-        int start = 0, current = start, finished = currentAutonomous.length;
+        int start = 0, finished = currentAutonomous.length;
             while(ds.isAutonomous() &&  ds.isEnabled()){
-                    current++;
-                for (int i = start; i <= finished; i++){
+                for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -371,7 +358,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Drives class is done doing its last command
      */
     private void isDoneDrives(){
-        while(!drives.isLastCommandDone()){
+        while(!drives.isLastCommandDone() && ds.isEnabled()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -384,7 +371,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Vision class is done doing its last command
      */
     private void isVisionDone(){
-        while(!vision.isLastCommandDone()){
+        while(!vision.isLastCommandDone() && ds.isDisabled()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -397,16 +384,4 @@ public class Autonomous extends GenericSubsystem{
         runAutonomous = allowedToRun;
     }
 
-    private void sendSmartAuto(String currentAutoName){
-        SmartDashboard.putString("CURRENT AUTO: ", currentAutoName);
-    }
-
-        smartChoose.addObject("Auto 2", new Integer(2));
-        smartChoose.addObject("Auto 3", new Integer(3));
-        smartChoose.addObject("Auto 4", new Integer(4));
-        smartChoose.addObject("Auto 5", new Integer(5));
-        smartChoose.addObject("Auto 6", new Integer(6));
-        smartChoose.addObject("Auto 7", new Integer(7));
-        smartChoose.addObject("Auto 8", new Integer(8));
-        SmartDashboard.putString("CURRENT AUTO: ", "UNKNOWN AUTO");
 }
