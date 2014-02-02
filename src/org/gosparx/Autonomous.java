@@ -1,8 +1,8 @@
 package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
@@ -26,7 +26,7 @@ public class Autonomous extends GenericSubsystem{
     private Vision vision;
     
     /**
-     * Smart Chooser 
+     * A list of choices for Smart autonomous mode
      */
     private SendableChooser smartChoose;
     
@@ -202,6 +202,29 @@ public class Autonomous extends GenericSubsystem{
             smartAutoNumber = (Integer) smartChoose.getSelected();
             wantedAutoMode = smartAutoNumber.intValue();
         }else{
+                    case 0:
+                        currentAutonomous = noAuto;
+                        break;
+                    case 1:
+                        currentAutonomous = null;
+                        break;
+                    case 2:
+                        currentAutonomous = null;
+                        break;
+                    case 3:
+                        currentAutonomous = null;
+                        break;
+                    case 4:
+                        currentAutonomous = null;
+                        break;
+                    case 5:
+                        currentAutonomous = null;
+                        break;
+                    case 6:
+                        currentAutonomous = null;
+                        break;
+                }
+        }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
@@ -252,6 +275,7 @@ public class Autonomous extends GenericSubsystem{
             case 9:
                 
                 break;
+        }
         }
     }
     

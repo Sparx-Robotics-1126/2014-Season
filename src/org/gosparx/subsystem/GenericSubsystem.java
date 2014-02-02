@@ -20,6 +20,7 @@ public abstract class GenericSubsystem extends Thread {
      * A logger. This is used for logging purposes
      */
     protected Logger log;
+    protected DriverStation ds;
     
     /**
      * The time in seconds between logging
@@ -40,6 +41,7 @@ public abstract class GenericSubsystem extends Thread {
      */
     public GenericSubsystem(String nameOfSubsystem, int threadPriority){
         super(nameOfSubsystem);
+        ds = DriverStation.getInstance();
         this.setPriority(threadPriority);
         ds = DriverStation.getInstance();
         if(!nameOfSubsystem.equals("LogWriter")){
@@ -54,7 +56,9 @@ public abstract class GenericSubsystem extends Thread {
     public void run(){
         while (true) {
             try {
-                execute();
+                if(!ds.isTest()){
+                    execute();   
+                }
                 Thread.sleep(10);
             } catch (Throwable e) {
                 log.logError("Uncaught Exception: " + e.getMessage());
@@ -90,5 +94,7 @@ public abstract class GenericSubsystem extends Thread {
     }
     
     public  abstract void liveWindow();
+    
+    public abstract void liveWindow();
     
 }
