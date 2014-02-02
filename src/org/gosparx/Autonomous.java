@@ -309,7 +309,7 @@ public class Autonomous extends GenericSubsystem{
                             }
                             break;
                         case NEXT:
-                            if(loopTime > 0){
+                            if(loopTime > 1){
                                 i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
