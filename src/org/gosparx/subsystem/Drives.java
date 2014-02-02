@@ -174,6 +174,12 @@ public class Drives extends GenericSubsystem {
     private LightSensor leftLightSensor;
     
     /**
+     * The current color being seen by the sensors.
+     * Colors can be seen in LightSensor.java
+     */
+    private int currentLineColor = 0;
+    
+    /**
      *  Error to see if the gyro is responding. Used in gyroCheck();
      */
     private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
@@ -393,7 +399,25 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.FINDING_LINE:
-                    
+                    //HAVE TO DRIVE FOWARD
+                    if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR) && rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//STOP
+                        log.logMessage("BOTH sensors see the line");
+                        rightMotorOutput = 0;
+                        leftMotorOutput = 0;
+                        startHoldPos();
+                    }else if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//TURN LEFT
+                        rightMotorOutput = 0.2;//Starting Speed
+                        leftMotorOutput = 0;
+                        log.logMessage("LEFT has seen the line");
+                    }else if(rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//TURN RIGHT
+                        rightMotorOutput = 0;
+                        leftMotorOutput = 0.2;//starting speed
+                        log.logMessage("RIGHT has seen the line");
+                    }else{//MOVE FOWARD
+                        //Striaght line
+                        rightMotorOutput = 0.3;//Starting speed
+                        leftMotorOutput = 0.3;//Starting speed
+                    }
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);

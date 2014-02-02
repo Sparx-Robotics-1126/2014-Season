@@ -16,11 +16,11 @@ public class LightSensor {
     private AnalogChannel blueReader;
     private AnalogChannel redReader;
 //    private AnalogChannel greenReader;//green is not used
-    public final int UNKOWN_COLOR = 0;
-    public final int BLUE_COLOR = 1;//TODO:find value
-    public final int RED_COLOR = 2;//TODO:find value
-    public final int WHITE_COLOR = 3;//TODO:find value
-    public final int CARPET_COLOR = 4;
+    public static final int UNKOWN_COLOR = 0;
+    public static final int BLUE_COLOR = 1;//TODO:find value
+    public static final int RED_COLOR = 2;//TODO:find value
+    public static final int WHITE_COLOR = 3;//TODO:find value
+    public static final int CARPET_COLOR = 4;
     private static final int WHITE_THRESHOLD = 60;//TODO: FIND VALUE
     private static final int CARPET_THRESHOLD = 20;
     private int blueValue = 0;
