@@ -205,7 +205,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = cameraFollow;
+        currentAutonomous = moveFoward;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -366,5 +366,6 @@ public class Autonomous extends GenericSubsystem{
     
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
+        i = 0;
     }
 }
