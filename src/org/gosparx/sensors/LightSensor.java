@@ -73,6 +73,6 @@ public class LightSensor {
      * @return true if the color given is the same color seen by the sensor
      */
     public boolean isLineColor(int color){
-        return(getColor() == color);
+        return(color == getColor());
     }
 }
