@@ -67,33 +67,6 @@ public class Drives extends GenericSubsystem {
     
     private static final int TURNING_THRESHOLD          = 1;
     
-<<<<<<< ColorSensor
-    //COLOR SENSOR//
-    private static final double LIGHT_ERROR                = 0.9;//how accurate(1 is exact) 
-    //BLUE
-    private static final double BLUE_READER_BLUE           = 9;
-    private static final double RED_READER_BLUE            = 10;
-    private static final double GREEN_READER_BLUE          = 11;
-    //RED
-    private static final double BLUE_REAER_RED             = 6;
-    private static final double RED_READER_RED             = 19;
-    private static final double GREEN_READER_RED           = 12;
-    //GREEN
-    private static final double BLUE_READER_WHITE          = 18;
-    private static final double RED_READER_WHITE           = 22;
-    private static final double GREEN_READER_WHITE         = 28;
-    
-            
-=======
-    
-    private static final int BLUE_LIGHT                 = 15;//less than
-    private static final int WHITE_LIGHT                = 16;//greater
-    
-    private static final int TOTAL_RED                  = 35;//greater than
-    private static final int TOTAL_WHITE                = 60;//greater than
-    private static final int TOTAL_BLUE                 = 26;//greater than
-    
->>>>>>> local
     /**
      * This is the speed in inches per second we want the left side of the 
      * drives to achieve.
