@@ -16,7 +16,7 @@ public class LightSensor {
     private AnalogChannel blueReader;
     private AnalogChannel redReader;
 //    private AnalogChannel greenReader;//green is not used
-    public static final int UNKOWN_COLOR = 0;
+    public static final int UNKNOWN_COLOR = 0;
     public static final int BLUE_COLOR = 1;//TODO:find value
     public static final int RED_COLOR = 2;//TODO:find value
     public static final int WHITE_COLOR = 3;//TODO:find value
@@ -34,17 +34,27 @@ public class LightSensor {
         blueReader = new AnalogChannel(blueSlot, blueChannel);
         redReader = new AnalogChannel(redSlot, redChannel);
     }
-
     
+    /**
+     * Returns a direct value from the color sensor
+     */
+    public int getRedValue(){
+        return redReader.getValue();
+    }
+    
+    public int getBlueValue(){
+        return blueReader.getValue();
+    }
+
     /**
      * Sees if the current light value is the same as a predetermined constant
      * @return the color the sensor sees 
      */
     private int getColor(){
-        blueValue = blueReader.getValue();
-        redValue = redReader.getValue();
+        blueValue = getBlueValue();
+        redValue = getRedValue();
         totalValue = blueValue + redValue;
-        System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON"T HAVE A LOGGER
+        System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON'T HAVE A LOGGER
         if(blueValue > redValue){
             return BLUE_COLOR;
         }else if(blueValue < redValue){
@@ -54,7 +64,7 @@ public class LightSensor {
         }else if(totalValue < CARPET_THRESHOLD){
             return CARPET_COLOR;
         }else{
-            return UNKOWN_COLOR;
+            return UNKNOWN_COLOR;
         }
     }
     

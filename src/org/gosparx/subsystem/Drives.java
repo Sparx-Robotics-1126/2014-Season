@@ -2,6 +2,7 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -224,6 +225,12 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
+    
+    /**
+     * True is you are on the red Alliance, False if on blue.
+     * Used for line tracking
+     */
+    private boolean onRedAlliance;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -399,24 +406,40 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.FINDING_LINE:
+                    double topSpeed = 0.2;//make private after testing
+                    //MAY BE USEFULL
+                    if(DriverStation.Alliance.kRed == ds.getAlliance()){
+                        onRedAlliance = true;
+                    }else{
+                        onRedAlliance = false;
+                    }
                     //HAVE TO DRIVE FOWARD
+                    //RIGHT
+                    if(rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){
+                        rightMotorOutput = 0;
+                        log.logMessage("Right has made it");
+                    }else if(rightLightSensor.isLineColor(LightSensor.RED_COLOR) && onRedAlliance || 
+                            rightLightSensor.isLineColor(LightSensor.BLUE_COLOR) && !onRedAlliance){
+                        rightMotorOutput = -topSpeed;
+                    }else if(rightLightSensor.isLineColor(LightSensor.CARPET_COLOR)){
+                        rightMotorOutput = topSpeed;
+                    }
+                    //LEFT
+                    if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR)){
+                        rightMotorOutput = 0;
+                        log.logMessage("Left has made it");
+                    }else if(leftLightSensor.isLineColor(LightSensor.RED_COLOR) && onRedAlliance || 
+                            rightLightSensor.isLineColor(LightSensor.BLUE_COLOR) && !onRedAlliance){
+                        leftMotorOutput = -topSpeed;
+                    }else if(leftLightSensor.isLineColor(LightSensor.CARPET_COLOR)){
+                        leftMotorOutput = topSpeed;
+                    }
+                    //DONE
                     if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR) && rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//STOP
-                        log.logMessage("BOTH sensors see the line");
+                        log.logMessage("BOTH sensors are on the line");
                         rightMotorOutput = 0;
                         leftMotorOutput = 0;
                         startHoldPos();
-                    }else if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//TURN LEFT
-                        rightMotorOutput = 0.2;//Starting Speed
-                        leftMotorOutput = 0;
-                        log.logMessage("LEFT has seen the line");
-                    }else if(rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//TURN RIGHT
-                        rightMotorOutput = 0;
-                        leftMotorOutput = 0.2;//starting speed
-                        log.logMessage("RIGHT has seen the line");
-                    }else{//MOVE FOWARD
-                        //Striaght line
-                        rightMotorOutput = 0.3;//Starting speed
-                        leftMotorOutput = 0.3;//Starting speed
                     }
                     break;
                 default:
