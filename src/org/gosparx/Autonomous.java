@@ -63,12 +63,17 @@ public class Autonomous extends GenericSubsystem{
     /**
      * If true than smartDashboard decides the auto mode
      */
-    private boolean smartAutoMode = false;
+    private final boolean smartAutoMode = true;
     
     /**
      * The Integer of the wanted auto mode
      */
     private Integer smartAutoNumber;
+    
+    /**
+     * The name of the currently selected auto mode
+     */
+    private String selectedAutoName = "UNKNOWN";
     
     /**
      * Wanted auto mode for autonomous
@@ -130,6 +135,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * No auto will run
      */
+    private static final String NO_AUTO_NAME = "No Auto";
     private static final int[][] noAuto = { 
         {END}
     };
@@ -137,6 +143,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Drives forward 20 feet
      */
+    private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
         {DRIVES_GO_FORWARD, 20*12},  
         {DRIVES_DONE},
@@ -146,6 +153,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Drives in a 4x4 foot square, turning to the right
      */
+    private static final String AUTO_SQUARE_NAME = "Auto Square";
     private static final int[][] autoSquare = {
         {LOOP, 4*2},
         {DRIVES_GO_FORWARD, 12*4},
@@ -159,6 +167,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Camera will follow the target
      */
+    private static final String CAMERA_FOLLOW_NAME = "Camera Follow";
     private static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
@@ -171,6 +180,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Turns 90 degrees to the left. Used for debugging
      */
+    private static final String TURN_90_NAME = "Turn 90";
     private static final int[][] turn90 = {
         {DRIVES_TURN_LEFT, 90},
         {DRIVES_DONE},
@@ -224,18 +234,23 @@ public class Autonomous extends GenericSubsystem{
         switch(wantedAutoMode){
             case 0:
                 currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
                 break;
             case 1:
-                
+                currentAutonomous = autoSquare;
+                selectedAutoName = AUTO_SQUARE_NAME;
                 break;
             case 2:
-                
+                currentAutonomous = cameraFollow;
+                selectedAutoName = CAMERA_FOLLOW_NAME;
                 break;
             case 3:
-                
+                currentAutonomous = moveFoward;
+                selectedAutoName = MOVE_FOWARD_NAME;
                 break;
             case 4:
-                
+                currentAutonomous = turn90;
+                selectedAutoName = TURN_90_NAME;
                 break;
             case 5:
                 
@@ -252,7 +267,11 @@ public class Autonomous extends GenericSubsystem{
             case 9:
                 
                 break;
+            default:
+                currentAutonomous = noAuto;
+                selectedAutoName = "ERROR";
         }
+        sendSmartAuto(selectedAutoName);
     }
     
     
@@ -260,7 +279,6 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = turn90;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -412,6 +430,10 @@ public class Autonomous extends GenericSubsystem{
     
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
+    }
+    
+    private void sendSmartAuto(String autoName){
+        SmartDashboard.putString("Current Auto:", autoName);
     }
 
     public void liveWindow() {
