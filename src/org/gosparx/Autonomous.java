@@ -418,6 +418,13 @@ public class Autonomous extends GenericSubsystem{
         smartChoose = new SendableChooser();
         smartChoose.addDefault("No Auto", new Integer(0));
         smartChoose.addObject("Auto 1", new Integer(1));
+        smartChoose.addObject("Auto 2", new Integer(2));
+        smartChoose.addObject("Auto 3", new Integer(3));
+        smartChoose.addObject("Auto 4", new Integer(4));
+        smartChoose.addObject("Auto 5", new Integer(5));
+        smartChoose.addObject("Auto 6", new Integer(6));
+        smartChoose.addObject("Auto 7", new Integer(7));
+        smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
     }
 }
