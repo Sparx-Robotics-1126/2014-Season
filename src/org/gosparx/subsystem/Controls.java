@@ -4,7 +4,7 @@
  */
 package org.gosparx.subsystem;
 
-import edu.wpi.first.wpilibj.DriverStation;
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
@@ -16,55 +16,100 @@ import org.gosparx.util.Logger;
  */
 public class Controls extends GenericSubsystem{
     
+    /**
+     * The only Controls that will ever be created in the entire robot. It is 
+     * returned by getInstance()
+     */
     private static Controls controls;
     
+    /**
+     * The left driver joystick. Its port is stored in IO.java
+     */
     private Joystick leftJoy;
     
+    /**
+     * The right driver joystick. Its port is stored in IO.java
+     */
     private Joystick rightJoy;
     
+    /**
+     * The operator joystick. Its port is stored in IO.java
+     */
     private Joystick opJoy;
     
+    /**
+     * An instance of Drives
+     */ 
     private Drives drives;
     
-    private double JOYSTICK_DEADZONE = .04;   
+    /**
+     * The dead zone for the Driver joysticks. This is the zone in which the    
+     * drives will be set to 0.
+     */ 
+    private double JOYSTICK_DEADZONE = .04; 
+        
+    /**
+     * Stores if we are overriding auto shifting
+     */
+    private boolean shiftingOverride                                    = false;
     
-    private double lastLogTime = 0;
+    /**
+     * The last state of the shifting override button
+     */
+    private boolean lastShiftOverrideState                              = false;
     
-    private double LOG_EVERY = 5.0;
+    /**
+     * The last state of the manual shift up button
+     */ 
+    private boolean lastShiftUp                                         = false;
     
-    private Logger logger = new Logger("Contr");
+    /**
+     * The last state of the manual shift down
+     */ 
+    private boolean lastShiftDown                                       = false;
+    
+    /**
+     * The last state of the hold in place start button
+     */ 
+    private boolean lastHoldInPlaceStart                                = false;
+    
+    /**
+     * The last state of the hold in place stop button
+     */    
+    private boolean lastHoldInPlaceStop                                 = false;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
-    private final int LEFT_X_AXIS = 1;
-    private final int LEFT_Y_AXIS = 2;
-    private final int RIGHT_X_AXIS = 4;
-    private final int RIGHT_Y_AXIS = 3;
+    private static final int LEFT_X_AXIS = 1;
+    private static final int LEFT_Y_AXIS = 2;
+    private static final int RIGHT_X_AXIS = 4;
+    private static final int RIGHT_Y_AXIS = 3;
     /** right == 1, left == -1 */
-    private final int DPAD_X_AXIS = 5;
+    private static final int DPAD_X_AXIS = 5;
     /** down == 1, up == -1 */
-    private final int DPAD_Y_AXIS = 6;
-    private final int TRIANGLE = 1;
-    private final int CIRCLE = 2;
-    private final int CROSS = 3;
-    private final int SQUARE = 4;
-    private final int LTWO = 5;
-    private final int RTWO = 6;
-    private final int LONE = 7;
-    private final int RONE = 8;
-    private final int SELECT = 9;
-    private final int START = 10;
-    private final int L3 = 11;
-    private final int R3 = 12;
+    private static final int DPAD_Y_AXIS = 6;
+    private static final int TRIANGLE = 1;
+    private static final int CIRCLE = 2;
+    private static final int CROSS = 3;
+    private static final int SQUARE = 4;
+    private static final int LTWO = 5;
+    private static final int RTWO = 6;
+    private static final int LONE = 7;
+    private static final int RONE = 8;
+    private static final int SELECT = 9;
+    private static final int START = 10;
+    private static final int L3 = 11;
+    private static final int R3 = 12;
     
     //********************************************************************
     //*******************Driver Controller Mapping**********************
     //********************************************************************
-    private final int ATTACK3_Y_AXIS = 2;
-    private final int ATTACK3_X_AXIS = 2;
-    private final int ATTACK3_Z_AXIS = 3;
-    private final int ATTACK3_TRIGGER = 1;    
-    private final int ATTACK3_TOP_BUTTON = 2;
+    private static final int ATTACK3_Y_AXIS = 2;
+    private static final int ATTACK3_X_AXIS = 2;
+    private static final int ATTACK3_Z_AXIS = 3;
+    private static final int ATTACK3_TRIGGER = 1;    
+    private static final int ATTACK3_TOP_BUTTON = 2;
     
     //********************************************************************
     //**********************Operator Joy Vars*****************************
@@ -104,10 +149,12 @@ public class Controls extends GenericSubsystem{
      * Creates a new Controls
      */
     private Controls(){
-        super("Controls", Thread.NORM_PRIORITY);
+        super(Logger.SUB_CONTROLER, Thread.NORM_PRIORITY);
     }
     /**
      * Returns a pointer to the Controls 
+     * 
+     * @return the instance to the controls.
      */
     public static Controls getInstance(){
         if(controls == null){
@@ -128,10 +175,17 @@ public class Controls extends GenericSubsystem{
     /**
      * Reassigns all of the variables and sets drives speed to the Y variables 
      * of the driver joysticks
+     * 
+     * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
         while(true){
-            if(DriverStation.getInstance().isEnabled() && DriverStation.getInstance().isOperatorControl()){
+            if(ds.isEnabled() && ds.isOperatorControl()){
+                lastShiftDown = driverLeftTrigger;
+                lastShiftUp = driverRightTrigger;
+                lastShiftOverrideState = driverLeftTopButton;
+                lastHoldInPlaceStart = opStart;
+                lastHoldInPlaceStop = opSelect;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -166,13 +220,45 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-                drives.setSpeed(Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1, Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
+                if(driverLeftTopButton && !lastShiftOverrideState){
+                    shiftingOverride = !shiftingOverride;
+                    log.logMessage("Toggled manual shifting");
+                }
+                if(driverLeftTrigger && !shiftingOverride){
+                    drives.forceLowGear(true);
+                }else{
+                    drives.forceLowGear(false);
+                }
+                if(shiftingOverride){
+                    if(driverLeftTrigger && !lastShiftDown){
+                        drives.manualShiftDown();
+                    }else if(driverRightTrigger && !lastShiftUp){
+                        drives.manualShiftUp();
+                    }
+                }
+                if(!lastHoldInPlaceStart && opStart){
+                    drives.startHoldPos();
+                }else if(!lastHoldInPlaceStop && opSelect){
+                    drives.stopHoldPos();
+                }
+                drives.setManualShifting(shiftingOverride);
+                
+                
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
-                    logger.logMessage("Left: " + Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1 + " Right: " + Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                    log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
                 }
                 Thread.sleep(20);
             }
         }
+    }
+    /**
+     * Edit this method to change how the joystick values translate into speed
+     * @param joystickValue - the joystick value to convert to speed
+     * @return the speed desired after the joystickValue is applied to the formula
+     */
+    private double getSpeed(double joystickValue){
+        return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
     }
 }
