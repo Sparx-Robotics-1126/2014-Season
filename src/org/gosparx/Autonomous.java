@@ -59,7 +59,21 @@ public class Autonomous extends GenericSubsystem{
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
-
+    
+    /**
+     * If true than smartDashboard decides the auto mode
+     */
+    private boolean smartAutoMode = false;
+    
+    /**
+     * The Integer of the wanted auto mode
+     */
+    private Integer smartAutoNumber;
+    
+    /**
+     * Wanted auto mode for autonomous
+     */
+    private int wantedAutoMode;
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
@@ -184,24 +198,61 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
+        if(smartAutoMode){
+            smartAutoNumber = (Integer) smartChoose.getSelected();
+            wantedAutoMode = smartAutoNumber.intValue();
+        }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
-               currentAutonomous = null;
+               wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
-               currentAutonomous = null;
+               wantedAutoMode = 1;
            }else if (voltage >= AUTO_SETTING_2){
-               currentAutonomous = null;
+               wantedAutoMode = 2;
            }else if (voltage >= AUTO_SETTING_3){
-               currentAutonomous = null;
+               wantedAutoMode = 3;
            }else if (voltage >= AUTO_SETTING_4){
-               currentAutonomous = null;
+               wantedAutoMode = 4;
            }else if (voltage >= AUTO_SETTING_5){
-               currentAutonomous = null;
+               wantedAutoMode = 5;
            }else if (voltage >= AUTO_SETTING_6){
-               currentAutonomous = noAuto;
+               wantedAutoMode = 6;
            }else{
-               currentAutonomous = noAuto;
+               wantedAutoMode = 100;
            }
+        }
+        switch(wantedAutoMode){
+            case 0:
+                currentAutonomous = noAuto;
+                break;
+            case 1:
+                
+                break;
+            case 2:
+                
+                break;
+            case 3:
+                
+                break;
+            case 4:
+                
+                break;
+            case 5:
+                
+                break;
+            case 6:
+                
+                break;
+            case 7:
+                
+                break;
+            case 8:
+                
+                break;
+            case 9:
+                
+                break;
+        }
     }
     
     /**
@@ -364,8 +415,8 @@ public class Autonomous extends GenericSubsystem{
 
     public void liveWindow() {
         smartChoose = new SendableChooser();
-        smartChoose.addDefault("No Auto", new Integer(1));
-        smartChoose.addObject("Auto 1", new Integer(2));
-        SmartDashboard.putData("Auto Mode", null);
+        smartChoose.addDefault("No Auto", new Integer(0));
+        smartChoose.addObject("Auto 1", new Integer(1));
+        SmartDashboard.putData("Auto Mode", smartChoose);
     }
 }
