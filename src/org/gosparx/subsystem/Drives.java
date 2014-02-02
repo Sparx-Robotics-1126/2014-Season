@@ -54,7 +54,7 @@ public class Drives extends GenericSubsystem {
      * The time (seconds) we wait for the robot to shift before resuming driver 
      * control.
      */
-    private static final double SHIFT_TIME              = .005;//MAY NOT BE OPTIMUM IN ALL SITUATION
+    private static final double SHIFT_TIME              = .1;//MAY NOT BE OPTIMUM IN ALL SITUATION
     
     /**
      * The max speed (inches per second) that the robot can obtain.
@@ -64,7 +64,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in degrees for turning 
      */
-    private static final double TURNING_THRESHOLD                        =  1.5;
+    private static final double TURNING_THRESHOLD                        =  1;
     
     /**
      * The accuracy in inches for turning
@@ -74,7 +74,7 @@ public class Drives extends GenericSubsystem {
     /**
      * Max degrees that we need to turn, but we still scale.
      */
-    private static final double TURNING_MAX = 20;
+    private static final double TURNING_MAX = 45;
     
     /**
      * The Y Intercept for the scaling formula.
@@ -156,12 +156,6 @@ public class Drives extends GenericSubsystem {
     private double desiredAngle;
     
     /**
-     * Stores if the robot is currently turning.
-     */ 
-    private boolean isTurning;
-   
-    
-    /**
      * The relay that the compressor is on.
      */
     private Compressor compressor;
@@ -226,6 +220,16 @@ public class Drives extends GenericSubsystem {
      * The degrees we still need to go.
      */ 
     private double degToGo;
+    
+    /**
+     * Number of loops turning must go through to determine acuaracy
+     */
+    private static int turnCompleteCounter = 3;
+    
+    /**
+     * Number of loop that turning has successfully done in threshold
+     */
+    private int turnLoopCounter = 0;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -276,7 +280,7 @@ public class Drives extends GenericSubsystem {
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
-        drivesState = State.LOW_GEAR;
+        drivesState = State.HOLD_POS;
     }
 
     /**
@@ -291,6 +295,7 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
+            System.out.println("GYRO: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
@@ -342,18 +347,22 @@ public class Drives extends GenericSubsystem {
                             leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                             rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
                         }else if(degToGo < 0){
-                            leftMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo-Y_INTERCEPT);
-                            rightMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo-Y_INTERCEPT));
+                            leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                            rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                         }
-                        if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
+                        if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == turnCompleteCounter) {
                             log.logMessage("Done Turning");
-                            isTurning = false;
                             leftMotorOutput = 0;
                             rightMotorOutput = 0;
                             startHoldPos();
+                        }else if(Math.abs(degToGo) < TURNING_THRESHOLD){
+                            turnLoopCounter++;
+                        }else{
+                            turnLoopCounter = 0;
                         }
+                        log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
                     }else{
-                        startHoldPos();
+                        drivesState = State.LOW_GEAR;
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
                         drivesState = State.LOW_GEAR;
@@ -464,7 +473,6 @@ public class Drives extends GenericSubsystem {
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
-        isTurning = true;
         drivesState = State.TURNING;
     }
     

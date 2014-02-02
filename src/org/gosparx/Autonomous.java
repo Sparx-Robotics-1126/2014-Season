@@ -125,7 +125,8 @@ public class Autonomous extends GenericSubsystem{
      * Drives in a 4x4 foot square, turning to the right
      */
     private static final int[][] autoSquare = {
-        {LOOP, 4*2},
+        {DRIVES_DONE},
+        {LOOP, 4},
         {DRIVES_GO_FORWARD, 12*4},
         {DRIVES_DONE},
         {DRIVES_TURN_RIGHT, 90},
@@ -150,6 +151,7 @@ public class Autonomous extends GenericSubsystem{
      * Turns 90 degrees to the left. Used for debugging
      */
     private static final int[][] turn90 = {
+        {DRIVES_DONE},
         {DRIVES_TURN_LEFT, 90},
         {DRIVES_DONE},
         {END}
@@ -200,12 +202,13 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = turn90;
+        currentAutonomous = autoSquare;
         int start = 0, current = start, finished = currentAutonomous.length;
+        System.out.println("************* " + finished + " *************************");
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
-                for (int i = start; i <= finished; i++){
+                for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -279,7 +282,7 @@ public class Autonomous extends GenericSubsystem{
                             }
                             break;
                         case NEXT:
-                            if(loopTime > 0){
+                            if(loopTime > 1){
                                 i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
@@ -292,8 +295,10 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case END:
                             runAutonomous = false;
+                            break;
                         default:
 //                            print("No case statement: " + currentAutonomous[i]);
+                            break;
                     }
                 }   
             }
