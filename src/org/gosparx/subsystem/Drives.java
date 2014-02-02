@@ -169,10 +169,13 @@ public class Drives extends GenericSubsystem {
 
     /**
      *Light sensor for detecting colors 
-     * Error to see if the gyro is responding. Used in gyroCheck();
      */
-    private LightSensor light;
+    private LightSensor rightLightSensor;
+    private LightSensor leftLightSensor;
     
+    /**
+     *  Error to see if the gyro is responding. Used in gyroCheck();
+     */
     private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
 
     /**
@@ -263,7 +266,8 @@ public class Drives extends GenericSubsystem {
  
         gyro = new Gyro(IO.GYRO_ANALOG);
         
-        light = new LightSensor(IO.DEFAULT_SLOT, IO.LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LIGHT_READER_GREEN, IO.DEFAULT_SLOT, IO.LIGHT_READER_RED);
+        rightLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_RED);
+        leftLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_RED);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
@@ -387,6 +391,9 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
                     }
+                    break;
+                case State.FINDING_LINE:
+                    
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
@@ -562,6 +569,7 @@ public class Drives extends GenericSubsystem {
         static final int TURNING            = 6;
         static final int DRIVE_STRAIGHT     = 7;
         static final int HOLD_POS           = 8;
+        static final int FINDING_LINE       = 9;
         
         public static String getState(int state){
             switch(state){

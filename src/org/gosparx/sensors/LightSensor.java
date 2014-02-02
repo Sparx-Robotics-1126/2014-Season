@@ -15,21 +15,24 @@ public class LightSensor {
     private DigitalOutput led;
     private AnalogChannel blueReader;
     private AnalogChannel redReader;
-    private AnalogChannel greenReader;
-    public final int BLUE_VALUE = 0;//TODO:find value
-    public final int RED_VALUE = 0;//TODO:find value
-    public final int WHITE_VALUE = 0;//TODO:find value
-    int blueValue = 0;
-    int redValue = 0;
-    int greenValue = 0;
+//    private AnalogChannel greenReader;//green is not used
+    public final int UNKOWN_COLOR = 0;
+    public final int BLUE_COLOR = 1;//TODO:find value
+    public final int RED_COLOR = 2;//TODO:find value
+    public final int WHITE_COLOR = 3;//TODO:find value
+    public final int CARPET_COLOR = 4;
+    private static final int WHITE_THRESHOLD = 60;//TODO: FIND VALUE
+    private static final int CARPET_THRESHOLD = 20;
+    private int blueValue = 0;
+    private int redValue = 0;
+    private int totalValue = 0;
     
     
-    public LightSensor(int lightSlot, int lightChannel, int blueSlot, int blueChannel, int greenSlot, int greenChannel, int redSlot, int redChannel){
+    public LightSensor(int lightSlot, int lightChannel, int blueSlot, int blueChannel, int redSlot, int redChannel){
         led = new DigitalOutput(lightSlot, lightChannel);
-        led.set(true);//turns light on
+        led.set(true);//turns lights on
         blueReader = new AnalogChannel(blueSlot, blueChannel);
-        redReader = new AnalogChannel(redChannel, redChannel);
-        greenReader = new AnalogChannel(greenSlot, greenChannel);
+        redReader = new AnalogChannel(redSlot, redChannel);
     }
 
     
@@ -37,28 +40,29 @@ public class LightSensor {
      * Sees if the current light value is the same as a predetermined constant
      * @return the color the sensor sees 
      */
-    public int getColor(){
+    private int getColor(){
         blueValue = blueReader.getValue();
         redValue = redReader.getValue();
-        greenValue = greenReader.getValue();
-        System.out.println("BLUE: " + blueValue + " RED: " + redValue + " GREEN: " + greenValue);
-        return 1;
-//        if(colorValue > WHITE_VALUE){
-//            return WHITE_VALUE;
-//        }else if(colorValue > RED_VALUE){
-//            return RED_VALUE;
-//        }else if(colorValue > BLUE_VALUE){
-//            return BLUE_VALUE;
-//        }else{
-//            return 0;
-//        }
+        totalValue = blueValue + redValue;
+        System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON"T HAVE A LOGGER
+        if(blueValue > redValue){
+            return BLUE_COLOR;
+        }else if(blueValue < redValue){
+            return RED_COLOR;
+        }else if(totalValue > WHITE_THRESHOLD){
+            return WHITE_COLOR;
+        }else if(totalValue < CARPET_THRESHOLD){
+            return CARPET_COLOR;
+        }else{
+            return UNKOWN_COLOR;
+        }
     }
     
     /**
      * @param color - a constant
      * @return true if the color given is the same color seen by the sensor
      */
-    public boolean isColor(int color){
+    public boolean isLineColor(int color){
         return(getColor() == color);
     }
 }
