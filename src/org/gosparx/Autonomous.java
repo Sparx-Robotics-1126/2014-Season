@@ -189,6 +189,28 @@ public class Autonomous extends GenericSubsystem{
         return auto;
     }
     
+   /**
+    * Gets an instance of all the subsystems
+    */
+    public void init() {
+        drives = Drives.getInstance();
+        vision = Vision.getInstance();
+    }
+
+    /**
+     * Main run method. Called by GenericSubsystem
+     * @throws Exception 
+     */
+    public void execute() throws Exception {
+        while(!ds.isTest()){
+            Thread.sleep(20);
+            if(ds.isAutonomous() && ds.isEnabled()){
+                auto.runAutonomous();
+            }else{
+                auto.getAutoMode();
+            }
+        }
+    }
     /**
      * Gets the current auto mode based off of the auto switch
      */
@@ -329,29 +351,8 @@ public class Autonomous extends GenericSubsystem{
             }
       }
     }
-
-    /**
-     * Gets an instance of all the subsystems
-     */
-    public void init() {
-        drives = Drives.getInstance();
-        vision = Vision.getInstance();
         autoSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
-    }
-
-    /**
-     * Main run method. Called by GenericSubsystem
-     * @throws Exception 
-     */
-    public void execute() throws Exception {
-        while(true){
-            Thread.sleep(20);
-            if(ds.isAutonomous() && ds.isEnabled()){
-                auto.runAutonomous();
-            }else{
-                auto.getAutoMode();
-            }
-        }
+        while(!ds.isTest()){
     }
     
     /**
