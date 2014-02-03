@@ -61,9 +61,10 @@ public class Autonomous extends GenericSubsystem{
     private boolean visionHotGoal = false;
     
     /**
-     * If true than smartDashboard decides the auto mode
+     * If true than smartDashboard decides the auto mode.
+     * Is set by the smart dashboard
      */
-    private final boolean smartAutoMode = true;
+    private boolean smartAutoMode = false;
     
     /**
      * The Integer of the wanted auto mode
@@ -392,7 +393,7 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             Thread.sleep(20);
             if(ds.isAutonomous() && ds.isEnabled()){
                 auto.runAutonomous();
@@ -432,8 +433,10 @@ public class Autonomous extends GenericSubsystem{
         runAutonomous = allowedToRun;
     }
     
+    private String smartChooseName = "Current Auto";
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString("Current Auto:", autoName);
+        SmartDashboard.putString(smartChooseName, autoName);
+        smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
     }
 
     public void liveWindow() {
@@ -448,5 +451,6 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 7", new Integer(7));
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
+        SmartDashboard.getBoolean("USE SMART AUTO", false);
     }
 }

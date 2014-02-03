@@ -555,14 +555,14 @@ public class Drives extends GenericSubsystem {
     }
 
     public void liveWindow() {
-        LiveWindow.addActuator(systemName, "Right Front", rightFrontDrives);
-        LiveWindow.addActuator(systemName, "Right Back", rightFrontDrives);
-        LiveWindow.addSensor(systemName, "Right Encoder", rightDrivesEncoder);
-        LiveWindow.addActuator(systemName, "Left Front", rightFrontDrives);
-        LiveWindow.addActuator(systemName, "Left Back", rightFrontDrives);
-        LiveWindow.addSensor(systemName, "Left Encoder", leftDrivesEncoder);
-        LiveWindow.addActuator(systemName, "Shifting", shifter);
-        LiveWindow.addSensor(systemName, "GYRO", gyro);
+        LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
+        LiveWindow.addActuator(subsystemName, "Right Back", rightFrontDrives);
+        LiveWindow.addSensor(subsystemName, "Right Encoder", rightDrivesEncoder);
+        LiveWindow.addActuator(subsystemName, "Left Front", rightFrontDrives);
+        LiveWindow.addActuator(subsystemName, "Left Back", rightFrontDrives);
+        LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
+        LiveWindow.addActuator(subsystemName, "Shifting", shifter);
+        LiveWindow.addSensor(subsystemName, "GYRO", gyro);
     }
     
     private static class State{
