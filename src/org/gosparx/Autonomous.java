@@ -1,6 +1,6 @@
 package org.gosparx;
 
-import edu.wpi.first.wpilibj.AnalogModule;
+import edu.wpi.first.wpilibj.AnalogChannel;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -60,7 +60,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * The analog module for the click wheel for auto mode selection
      */
-    private AnalogModule autoSwitch;
+    private AnalogChannel autoSwitch;
     
     /**
     * The name of the selected auto
@@ -193,7 +193,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
-           double voltage = autoSwitch.getVoltage(IO.AUTOSWITCH_CHANNEL); // need voltage reaading;
+           double voltage = autoSwitch.getVoltage();
            if (voltage >= AUTO_SETTING_9){
                currentAutonomous = noAuto;
                log.logMessage("Current Auto: " + 9);
@@ -336,7 +336,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
-        autoSwitch = AnalogModule.getInstance(IO.DEFAULT_ANALOG_MODULE);
+        autoSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
     }
 
     /**
