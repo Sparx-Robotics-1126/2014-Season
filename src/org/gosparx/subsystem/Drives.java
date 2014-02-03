@@ -227,7 +227,7 @@ public class Drives extends GenericSubsystem {
     private double averageDistEncoder                                   = 0.0;
     
     /**
-     * True is you are on the red Alliance, False if on blue.
+     * True if you are on the red Alliance, False if on blue.
      * Used for line tracking
      */
     private boolean onRedAlliance;
