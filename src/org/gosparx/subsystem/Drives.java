@@ -217,11 +217,6 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
-    
-    /**
-     * Name of the subsystem
-     */
-    private String systemName = "Drives";
         
     /**
      * Look to see if there is a drive class, if not it creates one
