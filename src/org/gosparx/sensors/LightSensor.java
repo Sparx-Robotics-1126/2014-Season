@@ -22,7 +22,8 @@ public class LightSensor {
     private int blueValue = 0;
     private int redValue = 0;
     private int totalValue = 0;
-    
+    private static final int RED_THRESHOLD = 50;
+    private static final int BLUE_THRESHOLD = 50;
     
     public LightSensor(int lightSlot, int lightChannel, int blueSlot, int blueChannel, int redSlot, int redChannel){
         led = new DigitalOutput(lightSlot, lightChannel);
@@ -51,9 +52,9 @@ public class LightSensor {
         redValue = getRedValue();
         totalValue = blueValue + redValue;
         System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON'T HAVE A LOGGER
-        if(blueValue > redValue){
+        if(blueValue > redValue && totalValue < RED_THRESHOLD){
             return BLUE_COLOR;
-        }else if(blueValue < redValue){
+        }else if(blueValue < redValue && totalValue < BLUE_THRESHOLD){
             return RED_COLOR;
         }else if(totalValue > WHITE_THRESHOLD){
             return WHITE_COLOR;
