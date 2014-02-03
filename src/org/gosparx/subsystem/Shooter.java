@@ -21,6 +21,58 @@ import org.gosparx.util.Logger;
  */
 public class Shooter extends GenericSubsystem{
     
+     /**
+     * The timeout for winding the cable onto the winch, in seconds.
+     */ 
+    private final double WIND_TIMEOUT = 2;
+    
+    /**
+     * The Diameter of the cylinder we are wrapping the cable around.
+     */ 
+    private final double DIAMETER_CYLINDER = 2;
+    
+    /**
+     * The number of turns in the potentiometer.
+     */ 
+    private final double POT_TURNS = 10;
+    
+    /**
+     * The inches the pot travels per volt change.
+     */
+    private final double INCHES_PER_VOLT = (DIAMETER_CYLINDER * Math.PI) / (5 / POT_TURNS);
+    
+    /**
+     * The # of inches to wind and unwind the cable when shooting.
+     */
+    //TODO: Confirm value
+    private final double INCHES_TO_WIND = 15;
+    
+    /**
+     * The timeout in seconds for unwinding the cable on the winch
+     */ 
+    private final double UNWIND_TIMEOUT = 2;
+    
+     /**
+     * The motor speed to pull back the winch at.
+     */
+    private final double WINCH_SPEED = 1.0;
+    
+    /**
+     * The boolean constant if the latch is engaged.
+     */
+    private final boolean LATCH_ENGAGED = true;
+    
+    /**
+     * The boolean constant if the latch is disengaged.
+     */
+    private final boolean LATCH_DISENGAGED = !LATCH_ENGAGED;
+    
+    /**
+     * How long in seconds between shooting the ball and starting to pull the
+     * winch back again.
+     */ 
+    private final double TIME_BETWEEN_SHOTS = .5;
+    
     /**
      * The Potentiometer for the winch. 
      */
@@ -47,21 +99,6 @@ public class Shooter extends GenericSubsystem{
     private Solenoid latch;
     
     /**
-     * The motor speed to pull back the winch at.
-     */
-    private final double WINCH_SPEED = 1.0;
-    
-    /**
-     * The boolean constant if the latch is engaged.
-     */
-    private final boolean LATCH_ENGAGED = true;
-    
-    /**
-     * The boolean constant if the latch is disengaged.
-     */
-    private final boolean LATCH_DISENGAGED = !LATCH_ENGAGED;
-    
-    /**
      * The speed that the winch is set at the end of the execute() loop.
      */
     private double wantedWinchSpeed;
@@ -73,37 +110,10 @@ public class Shooter extends GenericSubsystem{
     private double lastShotTime;
     
     /**
-     * How long in seconds between shooting the ball and starting to pull the
-     * winch back again.
-     */ 
-    private final double TIME_BETWEEN_SHOTS = .5;
-    
-    /**
      * The shooter used for the singleton model.
      */
     private static Shooter shooter;
-    
-    /**
-     * The Diameter of the cylinder we are wrapping the cable around.
-     */ 
-    private final double DIAMETER_CYLINDER = 2;
-    
-    /**
-     * The number of turns in the potentiometer.
-     */ 
-    private final double POT_TURNS = 10;
-    
-    /**
-     * The inches the pot travels per volt change.
-     */
-    private final double INCHES_PER_VOLT = (DIAMETER_CYLINDER * Math.PI) / (5 / POT_TURNS);
-    
-    /**
-     * The # of inches to wind and unwind the cable when shooting.
-     */
-    //TODO: Confirm value
-    private final double INCHES_TO_WIND = 15;
-    
+        
     /**
      * The PotentiometerData for the pot that is on the winch.
      */
@@ -115,19 +125,9 @@ public class Shooter extends GenericSubsystem{
     private double lastWindTime;
     
     /**
-     * The timeout for winding the cable onto the winch, in seconds.
-     */ 
-    private final double WIND_TIMEOUT = 2;
-    
-    /**
      * The last FPGA time we started unwinding the winch.
      */
     private double lastUnwindTime;
-    
-    /**
-     * The timeout in seconds for unwinding the cable on the winch
-     */ 
-    private final double UNWIND_TIMEOUT = 2;
     
     /**
      * Returns an instance of a shooter. Used in the singleton model.
@@ -226,6 +226,12 @@ public class Shooter extends GenericSubsystem{
                 break;
         }
         winchMotor.setX(wantedWinchSpeed);
+        if(Timer.getFPGATimestamp() - lastLogTime > LOG_EVERY){
+            log.logMessage("Current State: " + State.getState(shooterState));
+            log.logMessage("Pot Dist: " + potData.getInches());
+            log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
+            lastLogTime = Timer.getFPGATimestamp();
+        }
     }
     
     /**
@@ -233,10 +239,12 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY){
+       if(shooterState == State.STANDBY && Acquisitions.getInstance().isReadyToShoot()){
            shooterState = State.SHOOT;
+           log.logMessage("Shooting");
            return true;
        }
+       log.logMessage("Attempted to shoot, but could not");
        return false;
     }
     

@@ -20,17 +20,37 @@ import org.gosparx.util.Logger;
 public class Acquisitions extends GenericSubsystem{
     
     /**
-     * The degrees that the shooter rotates per tick of the encoder
-     */
-    private final double DEGREES_PER_TICK                               = 0.0;
-    
-    /**
-     * The solenoid that toggles if the acquisitions rollers are able to hit the 
-     * ball.
+     * The timeout in seconds for pivoting to acquiring position.
      */ 
-    private Solenoid acqToggle;
+    private final double PIVOT_TIMEOUT = 15;
     
     /**
+     * The timeout in seconds for setting the home position.
+     */ 
+    private final double SET_HOME_TIMEOUT = 10;
+    
+     /**
+     * The time in seconds to continue running the acquisitions motors after the 
+     * limit switch has been triggered.
+     */ 
+    private final double AQUIRE_TIME                                       = .5;
+    
+    /**
+     * The time in seconds to continue running the acquisitions motors in
+     * reverse the exiting ball has triggered the limit switch.
+     */ 
+    private final double RELEASE_TIME                                     = .75;
+    
+     /**
+     * The % max speed to run the motors when pivoting.
+     */
+    private final double PIVOT_TURN_SPEED                                 = .25;
+    
+    /**
+     * The % max speed to run the motors when acquiring a ball.
+     */ 
+    private final double ROLLER_SPEED                                       = 1;
+     /**
      * The solenoid value if the acquisitions system is down.
      */    
     private static final boolean ACQ_DOWN                               = true;
@@ -39,7 +59,41 @@ public class Acquisitions extends GenericSubsystem{
      * The solenoid value if the acquisitions system is up.
      */
     private static final boolean ACQ_UP                                 = false;
+        
+    /**
+     * The amount of degrees plus or minus we see as good when pivoting.
+     */ 
+    private final double PIVOT_TOLERANCE = 2.5;
     
+    /**
+     * The angle of shooter when it is in truss passing position
+     * TODO: Get proper angle
+     */
+    public static final double MODE_TRUSS = 0.0;
+    
+    /**
+     * The angle of the shooter when it is in shooter mode.
+     * TODO: Get proper angle
+     */
+    public static final double MODE_SHOOT = 0.0;
+    
+    /**
+     * The angle of the shooter when the robot is in aquire mode.
+     * TODO: Get proper angle
+     */ 
+    public static final double MODE_ACQUIRE = 0.0;
+    
+    /**
+     * The degrees that the shooter rotates per tick of the encoder
+     */
+    private static final double DEGREES_PER_TICK                               = 0.0;
+    
+    /**
+     * The solenoid that toggles if the acquisitions rollers are able to hit the 
+     * ball.
+     */ 
+    private Solenoid acqToggle;
+     
     /**
      * The limit switch on the acquisitions system. It detects if a ball has 
      * been sucked in.
@@ -61,16 +115,6 @@ public class Acquisitions extends GenericSubsystem{
      * the way up.
      */
     private DigitalInput shooterSafeModeSwitch;
-    
-    /**
-     * The % max speed to run the motors when pivoting.
-     */
-    private final double PIVOT_TURN_SPEED                                 = .25;
-    
-    /**
-     * The % max speed to run the motors when acquiring a ball.
-     */ 
-    private final double ROLLER_SPEED                                       = 1;
     
     /**
      * The encoder that tracks the pivoting motion.
@@ -102,18 +146,6 @@ public class Acquisitions extends GenericSubsystem{
      * The speed to set the acquisitions motors at.
      */ 
     private double wantedSpeedAcq;
-    
-    /**
-     * The time in seconds to continue running the acquisitions motors after the 
-     * limit switch has been triggered.
-     */ 
-    private final double AQUIRE_TIME                                       = .5;
-    
-    /**
-     * The time in seconds to continue running the acquisitions motors in
-     * reverse the exiting ball has triggered the limit switch.
-     */ 
-    private final double RELEASE_TIME                                     = .75;
     
     /**
      * Stores if the limit switch has been triggered when releasing the ball.
@@ -152,16 +184,6 @@ public class Acquisitions extends GenericSubsystem{
     private double startTimeRelease;
     
     /**
-     * The timeout in seconds for pivoting to acquiring position.
-     */ 
-    private final double PIVOT_TIMEOUT = 15;
-    
-    /**
-     * The timeout in seconds for setting the home position.
-     */ 
-    private final double SET_HOME_TIMEOUT = 10;
-    
-    /**
      * The FPGA time when we started to attempt to set the home.
      */ 
     private double startTimeSetHome = -1;
@@ -170,6 +192,12 @@ public class Acquisitions extends GenericSubsystem{
      * A private Acquisitions used for the singleton model.
      */
     private static Acquisitions acq;
+    
+    /**
+     * The desired angle for the shooter to be positioned at. Use constants when
+     * possible.
+     */ 
+    private double wantedAngle;
     
     /**
      * Returns the singleton Acquisitions.
@@ -241,8 +269,12 @@ public class Acquisitions extends GenericSubsystem{
                         acquisitionsState = State.STANDBY;
                     }
                     break;
-                //TODO: Implement
                 case State.PIVOTING:
+                    wantedSpeedPivot = (pivotEncoderData.getDistance() > wantedAngle) ? -PIVOT_TURN_SPEED : PIVOT_TURN_SPEED;
+                    if(Math.abs(pivotEncoderData.getDistance() - wantedAngle) <= PIVOT_TOLERANCE){
+                        wantedSpeedPivot = 0;
+                        acquisitionsState = State.STANDBY;
+                    }
                     break;
                 case State.ASSISTING:
                     if(!shooterAcqModeSwitch.get() && !(Timer.getFPGATimestamp() - startTimeRelease > PIVOT_TIMEOUT)){
@@ -270,7 +302,6 @@ public class Acquisitions extends GenericSubsystem{
                     wantedSpeedPivot = -.1;
                     if(shooterSafeModeSwitch.get() || Timer.getFPGATimestamp() - startTimeSetHome > SET_HOME_TIMEOUT){
                         wantedSpeedPivot = 0;
-                        pivotEncoder.reset();
                         pivotEncoderData.reset();
                         acquisitionsState = State.STANDBY;
                     }
@@ -284,6 +315,15 @@ public class Acquisitions extends GenericSubsystem{
             }
             acqMotor.setX(wantedSpeedAcq);
             pivotMotor.setX(wantedSpeedPivot);
+            
+            if(Timer.getFPGATimestamp() - lastLogTime >= LOG_EVERY){
+                log.logMessage("Current State: " + State.getState(acquisitionsState));
+                log.logMessage("Pivot Encoder Dist: " + pivotEncoderData.getDistance());
+                log.logMessage("Pivot Motor Wanted Speed: " + wantedSpeedPivot + " Wanted Acq Speed: " + wantedSpeedAcq);
+                log.logMessage("Wanted Shooter Angle: " + wantedAngle);
+                log.logMessage("Is Ready to Shoot: " + isReadyToShoot());
+                lastLogTime = Timer.getFPGATimestamp();
+            }
         }
     }
     
@@ -303,6 +343,14 @@ public class Acquisitions extends GenericSubsystem{
         acquisitionsState = State.ASSISTING;
     }
     
+    public void pivot(double degrees){
+        wantedAngle = degrees;
+        acquisitionsState = State.PIVOTING;
+    }
+    
+    public boolean isReadyToShoot(){
+        return (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_SHOOT) <= PIVOT_TOLERANCE) || (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_TRUSS) <= PIVOT_TOLERANCE);
+    }
     /**
      * A class for storing the state of acquisitions.
      */ 

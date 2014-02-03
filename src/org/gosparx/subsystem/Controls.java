@@ -78,6 +78,41 @@ public class Controls extends GenericSubsystem{
      */    
     private boolean lastHoldInPlaceStop                                 = false;
     
+    /**
+     * The last value of the DPadXAxis
+     */
+    private double lastShooterMode                                      = 0;
+    
+    /**
+     * The last value of the DPadYAxis
+     */
+    private double lastAcquireMode                                      = 0;
+    
+    /**
+     * the last value of the DPadYAxis
+     */
+    private double lastTrussMode                                        = 0;
+    
+    /**
+     * The last value of the DPadXValue
+     */ 
+    private double lastReleaseMode                                      = 0;
+    
+    /**
+     * The last value of the RTWO button. 
+     */ 
+    private boolean lastShoot                                           = false;
+    
+    /**
+     * An instance of acquisitions.
+     */ 
+    private Acquisitions acq;
+    
+    /**
+     * An instance of Shooter for use of accessing non static methods.
+     */ 
+    private Shooter shooter;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -171,6 +206,8 @@ public class Controls extends GenericSubsystem{
         rightJoy = new Joystick(IO.RIGHT_DRIVER_JOY_PORT);
         opJoy = new Joystick(IO.OPER_JOY_PORT);
         drives = Drives.getInstance();
+        acq = Acquisitions.getInstance();
+        shooter = Shooter.getInstance();
     }
     /**
      * Reassigns all of the variables and sets drives speed to the Y variables 
@@ -181,11 +218,16 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         while(true){
             if(ds.isEnabled() && ds.isOperatorControl()){
+                lastShoot = opR2;
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
                 lastHoldInPlaceStart = opStart;
                 lastHoldInPlaceStop = opSelect;
+                lastShooterMode = opDPadXAxis;
+                lastTrussMode = opDPadYAxis;
+                lastAcquireMode = opDPadYAxis;
+                lastReleaseMode = opDPadXAxis;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -244,6 +286,19 @@ public class Controls extends GenericSubsystem{
                 }
                 drives.setManualShifting(shiftingOverride);
                 
+                if(opDPadXAxis == 1 && lastShooterMode != opDPadXAxis){
+                    acq.pivot(Acquisitions.MODE_SHOOT);
+                }else if(opDPadXAxis == -1 && lastReleaseMode != opDPadXAxis){
+                    acq.release();
+                }else if(opDPadYAxis == 1 && lastAcquireMode != opDPadYAxis){
+                    acq.acquire();
+                }else if(opDPadYAxis == -1 && lastTrussMode != opDPadYAxis){
+                    acq.pivot(Acquisitions.MODE_TRUSS);
+                }
+                
+                if(opR2 && !lastShoot){
+                    shooter.shoot();
+                }
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
