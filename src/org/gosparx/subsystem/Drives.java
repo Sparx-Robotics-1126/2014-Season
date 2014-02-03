@@ -2,6 +2,7 @@ package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
 import edu.wpi.first.wpilibj.PIDSource;
@@ -9,6 +10,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.IO;
+import org.gosparx.sensors.LightSensor;
 import org.gosparx.sensors.EncoderData;
 
 /**
@@ -165,9 +167,21 @@ public class Drives extends GenericSubsystem {
      * The Gyro used for turning calculations
      */
     private Gyro gyro;
+
+    /**
+     *Light sensor for detecting colors 
+     */
+    private LightSensor rightLightSensor;
+    private LightSensor leftLightSensor;
     
     /**
-     * Error to see if the gyro is responding. Used in gyroCheck();
+     * The current color being seen by the sensors.
+     * Colors can be seen in LightSensor.java
+     */
+    private int currentLineColor = 0;
+    
+    /**
+     *  Error to see if the gyro is responding. Used in gyroCheck();
      */
     private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
 
@@ -211,6 +225,12 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
+    
+    /**
+     * True if you are on the red Alliance, False if on blue.
+     * Used for line tracking
+     */
+    private boolean onRedAlliance;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -222,7 +242,7 @@ public class Drives extends GenericSubsystem {
         }
         return drives;
     }
-    
+
     /**
      * Creates a drives subsystem for controlling the drives subsystem.
      */
@@ -258,6 +278,9 @@ public class Drives extends GenericSubsystem {
         shifter.set(LOW_GEAR);
  
         gyro = new Gyro(IO.GYRO_ANALOG);
+        
+        rightLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_RED);
+        leftLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_RED);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
@@ -380,6 +403,43 @@ public class Drives extends GenericSubsystem {
                     } else{
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
+                    }
+                    break;
+                case State.FINDING_LINE:
+                    double topSpeed = 0.2;//make private after testing
+                    //MAY BE USEFULL
+                    if(DriverStation.Alliance.kRed == ds.getAlliance()){
+                        onRedAlliance = true;
+                    }else{
+                        onRedAlliance = false;
+                    }
+                    //HAVE TO DRIVE FOWARD
+                    //RIGHT
+                    if(rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){
+                        rightMotorOutput = 0;
+                        log.logMessage("Right has made it");
+                    }else if(rightLightSensor.isLineColor(LightSensor.RED_COLOR) && onRedAlliance || 
+                            rightLightSensor.isLineColor(LightSensor.BLUE_COLOR) && !onRedAlliance){
+                        rightMotorOutput = -topSpeed;
+                    }else if(rightLightSensor.isLineColor(LightSensor.CARPET_COLOR)){
+                        rightMotorOutput = topSpeed;
+                    }
+                    //LEFT
+                    if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR)){
+                        rightMotorOutput = 0;
+                        log.logMessage("Left has made it");
+                    }else if(leftLightSensor.isLineColor(LightSensor.RED_COLOR) && onRedAlliance || 
+                            rightLightSensor.isLineColor(LightSensor.BLUE_COLOR) && !onRedAlliance){
+                        leftMotorOutput = -topSpeed;
+                    }else if(leftLightSensor.isLineColor(LightSensor.CARPET_COLOR)){
+                        leftMotorOutput = topSpeed;
+                    }
+                    //DONE
+                    if(leftLightSensor.isLineColor(LightSensor.WHITE_COLOR) && rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){//STOP
+                        log.logMessage("BOTH sensors are on the line");
+                        rightMotorOutput = 0;
+                        leftMotorOutput = 0;
+                        startHoldPos();
                     }
                     break;
                 default:
@@ -556,6 +616,7 @@ public class Drives extends GenericSubsystem {
         static final int TURNING            = 6;
         static final int DRIVE_STRAIGHT     = 7;
         static final int HOLD_POS           = 8;
+        static final int FINDING_LINE       = 9;
         
         public static String getState(int state){
             switch(state){

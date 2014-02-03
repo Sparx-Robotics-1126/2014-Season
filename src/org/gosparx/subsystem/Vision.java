@@ -399,3 +399,4 @@ public class Vision extends GenericSubsystem {
         return imageLocation;
     }
 }
+
