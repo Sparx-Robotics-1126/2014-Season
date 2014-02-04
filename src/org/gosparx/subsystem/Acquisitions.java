@@ -85,6 +85,24 @@ public class Acquisitions extends GenericSubsystem{
     private static final double DEGREES_PER_TICK                          = 0.0;
     
     /**
+     * The amount of Amps a stalled mini CIM produces
+     */
+    private static final double MINI_CIM_STALL_AMPS = 84;
+    
+    /**
+     * The amount of time a MINI CIM can be stalled but still considered "running".
+     * IN SECONDS
+     * May reach this limit during startup
+     */
+    private static final double MINI_CIM_STALL_TIME = 0.25;
+    
+    /**
+     * A boolean to say if the winch has first started.
+     * Used to determine if the motor has stalled
+     */
+    private boolean firstWinchMotorStart = true;
+    
+    /**
      * The solenoid that toggles if the acquisitions rollers are able to hit the 
      * ball.
      */ 
@@ -238,26 +256,31 @@ public class Acquisitions extends GenericSubsystem{
      * Loops.
      */ 
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             wantedSpeedAcq = 0;
             wantedSpeedPivot = 0;
+            pivotEncoderData.calculateSpeed();
             switch(acquisitionsState){
                 case State.STANDBY:
                     wantedSpeedAcq = 0;
                     wantedSpeedPivot = 0;
                     break;
                 case State.ACQUIRING:
-                    if(!shooterAcqModeSwitch.get()  && !(Timer.getFPGATimestamp() - startTimeAquire > PIVOT_TIMEOUT)){
+                    if(!shooterAcqModeSwitch.get()  && !(Timer.getFPGATimestamp() - startTimeAquire > PIVOT_TIMEOUT)){//Sensors hasen't been hit
                         wantedSpeedPivot = PIVOT_TURN_SPEED;
-                    }else{
+                    }else if(shooterAcqModeSwitch.get()){//sensor has been hit
                         wantedSpeedPivot = 0;
                         wantedSpeedAcq = ROLLER_SPEED;
                         acqToggle.set(ACQ_DOWN);
+                    }else{//An error with the switches have occured
+                        wantedSpeedPivot = 0;
+                        acquisitionsState = State.STANDBY;
                     }
                     if(acqLimitSwitch.get()){
                         hasHitSwitchOnAcquire = true;
                         timeHitEntering = Timer.getFPGATimestamp();
                     }
+                    //THIS MAY NOT BE NEEDED
                     if(hasHitSwitchOnAcquire && Timer.getFPGATimestamp() - timeHitEntering > AQUIRE_TIME){
                         wantedSpeedAcq = 0;
                         acqToggle.set(ACQ_UP);
@@ -275,11 +298,15 @@ public class Acquisitions extends GenericSubsystem{
                 case State.ASSISTING:
                     if(!shooterAcqModeSwitch.get() && !(Timer.getFPGATimestamp() - startTimeRelease > PIVOT_TIMEOUT)){
                         wantedSpeedPivot = PIVOT_TURN_SPEED;
-                    }else{
+                    }else if(shooterAcqModeSwitch.get()){
                         wantedSpeedPivot = 0;
                         wantedSpeedAcq = -ROLLER_SPEED;
                         acqToggle.set(ACQ_UP);
+                    }else{
+                        wantedSpeedPivot = 0;
+                        acquisitionsState = State.STANDBY;
                     }
+                    
                     if(acqLimitSwitch.get()){
                         hasHitSwitchOnRelease = true;
                         timeHitRelease = Timer.getFPGATimestamp();
@@ -292,14 +319,24 @@ public class Acquisitions extends GenericSubsystem{
                     }
                     break;
                 case State.SETTING_HOME:
-                    if(ds.isEnabled() && startTimeSetHome == -1){
+                    if(ds.isEnabled() && firstWinchMotorStart){
                         startTimeSetHome = Timer.getFPGATimestamp();
+                        firstWinchMotorStart = false;
                     }
                     wantedSpeedPivot = -.1;
-                    if(shooterSafeModeSwitch.get() || Timer.getFPGATimestamp() - startTimeSetHome > SET_HOME_TIMEOUT){
+                    if(Timer.getFPGATimestamp() - startTimeSetHome > SET_HOME_TIMEOUT || 
+                            (pivotMotor.getOutputCurrent() >= MINI_CIM_STALL_AMPS &&
+                            Timer.getFPGATimestamp() - startTimeSetHome > MINI_CIM_STALL_TIME)){
+                        wantedSpeedPivot = 0;
+                        acquisitionsState = State.STANDBY;
+                    }else if(shooterSafeModeSwitch.get()){
                         wantedSpeedPivot = 0;
                         pivotEncoderData.reset();
                         acquisitionsState = State.STANDBY;
+                    }
+                    
+                    if(wantedSpeedPivot == 0){
+                        firstWinchMotorStart = true;
                     }
                     break;
                 default:
