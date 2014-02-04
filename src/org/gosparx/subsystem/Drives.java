@@ -295,9 +295,9 @@ public class Drives extends GenericSubsystem {
         shifter.set(LOW_GEAR);
  
         gyroAnalog = new AnalogChannel(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
-        gyro = new Gyro(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
+        gyro = new Gyro(gyroAnalog);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
-        gyro.setSensitivity(0.00640127388535031847133757961783);//0.64
+        gyro.setSensitivity(0.007);//0.64
         isGyroWorking = gyroCheck();
         drivesState = State.HOLD_POS;
     }
