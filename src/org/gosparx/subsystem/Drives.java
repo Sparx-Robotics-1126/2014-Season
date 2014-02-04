@@ -233,12 +233,13 @@ public class Drives extends GenericSubsystem {
     private double averageDistEncoder                                   = 0.0;
     
     /**
-     * The degrees we still need to go.
+     * The degrees we still need to go when turning using the 
+     * State.FUNCT_TURNING.
      */ 
     private double degToGo;
     
     /**
-     * Number of loops turning must go through to determine acuaracy
+     * Number of loops turning must go through to determine accuracy.
      */
     private static int turnCompleteCounter = 3;
     
@@ -247,6 +248,10 @@ public class Drives extends GenericSubsystem {
      */
     private int turnLoopCounter = 0;
     
+    /**
+     * The current state of the autofunctions. Can be any of the State.FUNCT 
+     * variables.
+     */ 
     private int autoFunctionState;
         
     /**
@@ -299,9 +304,10 @@ public class Drives extends GenericSubsystem {
         gyroAnalog = new AnalogChannel(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
         gyro = new Gyro(gyroAnalog);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
-        gyro.setSensitivity(0.007);//0.64
+        gyro.setSensitivity(0.007);
         isGyroWorking = gyroCheck();
-        drivesState = State.FUNCT_HOLD_POS;
+        drivesState = State.DRIVES_LOW_GEAR;
+        autoFunctionState = State.FUNCT_STANDBY;
     }
 
     /**
@@ -352,10 +358,10 @@ public class Drives extends GenericSubsystem {
                         }
                         log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
                     }else{
-                        drivesState = State.DRIVES_LOW_GEAR;
+                        autoFunctionState = State.DRIVES_LOW_GEAR;
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
-                        drivesState = State.DRIVES_LOW_GEAR;
+                        autoFunctionState = State.DRIVES_LOW_GEAR;
                     }
                     break;
                 case State.FUNCT_DRIVE_STRAIGHT:
@@ -372,7 +378,7 @@ public class Drives extends GenericSubsystem {
                         log.logMessage("Done Driving Straight.");
                         logDrivesInfo();
                         resetSensors();
-                        drivesState = State.FUNCT_HOLD_POS;
+                        autoFunctionState = State.FUNCT_HOLD_POS;
                     }
                     if(ds.isOperatorControl() || ds.isTest()){
                         autoFunctionState = State.DRIVES_LOW_GEAR;
@@ -466,7 +472,7 @@ public class Drives extends GenericSubsystem {
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
-        log.logMessage("Drive State = " + State.getState(drivesState));
+        log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
     }
     
     /**
@@ -507,7 +513,7 @@ public class Drives extends GenericSubsystem {
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
-        drivesState = State.FUNCT_TURNING;
+        autoFunctionState = State.FUNCT_TURNING;
     }
     
     /**
@@ -516,7 +522,7 @@ public class Drives extends GenericSubsystem {
      *                 go backwards
      */
     public void driveStraight(double inches){
-        drivesState = State.FUNCT_DRIVE_STRAIGHT;
+        autoFunctionState = State.FUNCT_DRIVE_STRAIGHT;
         inchesToGo = inches;
         leftDrivesEncoder.reset();
         rightDrivesEncoder.reset();
@@ -557,13 +563,13 @@ public class Drives extends GenericSubsystem {
      */
     public void startHoldPos(){
         resetSensors();
-        drivesState = State.FUNCT_HOLD_POS;
+        autoFunctionState = State.FUNCT_HOLD_POS;
     }
     /**
      * Stops the holding of the position saved when startHoldPos() was called
      */
     public void stopHoldPos(){
-        drivesState = State.DRIVES_LOW_GEAR;
+        autoFunctionState = State.FUNCT_STANDBY;
     }
     
     /**
