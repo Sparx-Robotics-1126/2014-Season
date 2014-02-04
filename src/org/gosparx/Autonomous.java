@@ -195,6 +195,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        autoSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
     }
 
     /**
@@ -351,8 +352,7 @@ public class Autonomous extends GenericSubsystem{
             }
       }
     }
-        autoSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
-        while(!ds.isTest()){
+        
     }
     
     /**
