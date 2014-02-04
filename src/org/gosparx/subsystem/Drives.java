@@ -634,6 +634,8 @@ public class Drives extends GenericSubsystem {
                     return "Drive Straight";
                 case HOLD_POS:
                     return "Holding current Position";
+                case FINDING_LINE:
+                    return "Finding Colored Line";
         }
             return "UNKOWN MODE";
         }
