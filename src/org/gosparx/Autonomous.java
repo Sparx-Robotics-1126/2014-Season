@@ -352,8 +352,6 @@ public class Autonomous extends GenericSubsystem{
             }
       }
     }
-        
-    }
     
     /**
      * Waits until the Drives class is done doing its last command
