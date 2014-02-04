@@ -69,14 +69,9 @@ public class Controls extends GenericSubsystem{
     private boolean lastShiftDown                                       = false;
     
     /**
-     * The last state of the hold in place start button
-     */ 
-    private boolean lastHoldInPlaceStart                                = false;
-    
-    /**
-     * The last state of the hold in place stop button
-     */    
-    private boolean lastHoldInPlaceStop                                 = false;
+     * The last state of the hold in place button
+     */
+    private boolean lastHoldInPlace                                = false;
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
@@ -184,8 +179,7 @@ public class Controls extends GenericSubsystem{
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
-                lastHoldInPlaceStart = opStart;
-                lastHoldInPlaceStop = opSelect;
+                lastHoldInPlace = driverRightTopButton;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -220,6 +214,14 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
+                
+                if(driverRightTopButton != lastHoldInPlace){
+                    if(driverRightTopButton){
+                        drives.startHoldPos();
+                    }else{
+                        drives.stopHoldPos();
+                    }
+                }
                 drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
                 if(driverLeftTopButton && !lastShiftOverrideState){
                     shiftingOverride = !shiftingOverride;
@@ -237,11 +239,7 @@ public class Controls extends GenericSubsystem{
                         drives.manualShiftUp();
                     }
                 }
-                if(!lastHoldInPlaceStart && opStart){
-                    drives.startHoldPos();
-                }else if(!lastHoldInPlaceStop && opSelect){
-                    drives.stopHoldPos();
-                }
+                
                 drives.setManualShifting(shiftingOverride);
                 
                 
