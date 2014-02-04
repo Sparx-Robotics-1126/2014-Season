@@ -1,12 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.gosparx;
-
-import edu.wpi.first.wpilibj.AnalogChannel;
 
 /**
  * The purpose of this class is to have all the electrical configuration in one 
@@ -37,7 +29,7 @@ public class IO {
     public static final int SHIFT_CHAN                  = 1;
     
     //Drives Gyro slot
-    public static final AnalogChannel GYRO_ANALOG       = new AnalogChannel(1);
+    public static final int GYRO_ANALOG                 = 1;
     
     //Drives Booleans
     public static final boolean DRIVES_TURN_LEFT        = true;

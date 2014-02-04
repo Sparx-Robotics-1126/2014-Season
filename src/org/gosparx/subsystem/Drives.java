@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
@@ -181,6 +182,11 @@ public class Drives extends GenericSubsystem {
     private Gyro gyro;
     
     /**
+     * The gyro analog channel
+     */
+    private AnalogChannel gyroAnalog;
+    
+    /**
      * Error to see if the gyro is responding. Used in gyroCheck();
      */
     private static final double GYRO_ERROR = 1;//got this by unplugging encoder and seeing what values it gave
@@ -288,7 +294,8 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
         shifter.set(LOW_GEAR);
  
-        gyro = new Gyro(IO.GYRO_ANALOG);
+        gyroAnalog = new AnalogChannel(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
+        gyro = new Gyro(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(0.00640127388535031847133757961783);//0.64
         isGyroWorking = gyroCheck();
@@ -445,7 +452,7 @@ public class Drives extends GenericSubsystem {
      */
     private void logDrivesInfo(){
         log.logMessage("Gyro: " + gyro.getAngle());
-        log.logMessage("Gyro Voltage: " + IO.GYRO_ANALOG.getVoltage());
+        log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
@@ -575,7 +582,7 @@ public class Drives extends GenericSubsystem {
     }
     
     private boolean gyroCheck(){
-        if(IO.GYRO_ANALOG.getVoltage() > GYRO_ERROR){
+        if(gyroAnalog.getVoltage() > GYRO_ERROR){
            return true;
         }else{
             return false;
