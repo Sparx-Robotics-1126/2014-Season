@@ -67,11 +67,6 @@ public class Autonomous extends GenericSubsystem{
     private boolean smartAutoMode = false;
     
     /**
-     * The Integer of the wanted auto mode
-     */
-    private Integer smartAutoNumber;
-    
-    /**
      * The name of the currently selected auto mode
      */
     private String selectedAutoName = "UNKNOWN";
@@ -210,8 +205,7 @@ public class Autonomous extends GenericSubsystem{
      */
     public void getAutoMode(){
         if(smartAutoMode){
-            smartAutoNumber = (Integer) smartChoose.getSelected();
-            wantedAutoMode = smartAutoNumber.intValue();
+            wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
            double voltage = 0; // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
@@ -435,7 +429,7 @@ public class Autonomous extends GenericSubsystem{
     
     private String smartChooseName = "Current Auto";
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString(smartChooseName, autoName);
+        SmartDashboard.putString("Current Auto:", autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
     }
 
@@ -451,6 +445,6 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 7", new Integer(7));
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
-        SmartDashboard.getBoolean("USE SMART AUTO", false);
+        SmartDashboard.putBoolean(smartChooseName, false);
     }
 }
