@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.DigitalOutput;
  * @author Connor
  */
 public class LightSensor {
-    private DigitalOutput led;
     private AnalogChannel blueReader;
     private AnalogChannel redReader;
 //    private AnalogChannel greenReader;//green is not used
@@ -26,8 +25,7 @@ public class LightSensor {
     private static final int BLUE_THRESHOLD = 50;
     
     public LightSensor(int lightSlot, int lightChannel, int blueSlot, int blueChannel, int redSlot, int redChannel){
-        led = new DigitalOutput(lightSlot, lightChannel);
-        led.set(true);//turns lights on
+        new DigitalOutput(lightSlot, lightChannel).set(true);
         blueReader = new AnalogChannel(blueSlot, blueChannel);
         redReader = new AnalogChannel(redSlot, redChannel);
     }
