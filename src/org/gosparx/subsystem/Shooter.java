@@ -24,54 +24,54 @@ public class Shooter extends GenericSubsystem{
      /**
      * The timeout for winding the cable onto the winch, in seconds.
      */ 
-    private final double WIND_TIMEOUT = 2;
+    private static final double WIND_TIMEOUT = 2;
     
     /**
      * The Diameter of the cylinder we are wrapping the cable around.
      */ 
-    private final double DIAMETER_CYLINDER = 2;
+    private static final double DIAMETER_CYLINDER = 2;
     
     /**
      * The number of turns in the potentiometer.
      */ 
-    private final double POT_TURNS = 10;
+    private static final double POT_TURNS = 10;
     
     /**
      * The inches the pot travels per volt change.
      */
-    private final double INCHES_PER_VOLT = (DIAMETER_CYLINDER * Math.PI) / (5 / POT_TURNS);
+    private static final double INCHES_PER_VOLT = (DIAMETER_CYLINDER * Math.PI) / (5 / POT_TURNS);
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private final double INCHES_TO_WIND = 15;
+    private static final double INCHES_TO_WIND = 15;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
      */ 
-    private final double UNWIND_TIMEOUT = 2;
+    private static final double UNWIND_TIMEOUT = 2;
     
      /**
      * The motor speed to pull back the winch at.
      */
-    private final double WINCH_SPEED = 1.0;
+    private static final double WINCH_SPEED = 1.0;
     
     /**
      * The boolean constant if the latch is engaged.
      */
-    private final boolean LATCH_ENGAGED = true;
+    private static final boolean LATCH_ENGAGED = true;
     
     /**
      * The boolean constant if the latch is disengaged.
      */
-    private final boolean LATCH_DISENGAGED = !LATCH_ENGAGED;
+    private static final boolean LATCH_DISENGAGED = !LATCH_ENGAGED;
     
     /**
      * How long in seconds between shooting the ball and starting to pull the
      * winch back again.
      */ 
-    private final double TIME_BETWEEN_SHOTS = .5;
+    private static final double TIME_BETWEEN_SHOTS = .5;
     
     /**
      * The Potentiometer for the winch. 

@@ -1,14 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.gosparx.sensors;
 
 import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 
 /**
- * @author Alex
  * A class for interpreting the data we receive from a Potentiometer
+ * @author Alex
  */
 public class PotentiometerData {
     

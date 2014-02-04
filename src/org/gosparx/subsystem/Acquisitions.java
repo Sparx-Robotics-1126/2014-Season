@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.CANJaguar;
@@ -22,34 +18,34 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The timeout in seconds for pivoting to acquiring position.
      */ 
-    private final double PIVOT_TIMEOUT = 15;
+    private static final double PIVOT_TIMEOUT = 15;
     
     /**
      * The timeout in seconds for setting the home position.
      */ 
-    private final double SET_HOME_TIMEOUT = 10;
+    private static final double SET_HOME_TIMEOUT = 10;
     
      /**
      * The time in seconds to continue running the acquisitions motors after the 
      * limit switch has been triggered.
      */ 
-    private final double AQUIRE_TIME                                       = .5;
+    private static final double AQUIRE_TIME                                       = .5;
     
     /**
      * The time in seconds to continue running the acquisitions motors in
      * reverse the exiting ball has triggered the limit switch.
      */ 
-    private final double RELEASE_TIME                                     = .75;
+    private static final double RELEASE_TIME                                     = .75;
     
      /**
      * The % max speed to run the motors when pivoting.
      */
-    private final double PIVOT_TURN_SPEED                                 = .25;
+    private static final double PIVOT_TURN_SPEED                                 = .25;
     
     /**
      * The % max speed to run the motors when acquiring a ball.
      */ 
-    private final double ROLLER_SPEED                                       = 1;
+    private static final double ROLLER_SPEED                                       = 1;
      /**
      * The solenoid value if the acquisitions system is down.
      */    
@@ -63,7 +59,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The amount of degrees plus or minus we see as good when pivoting.
      */ 
-    private final double PIVOT_TOLERANCE = 2.5;
+    private static final double PIVOT_TOLERANCE = 2.5;
     
     /**
      * The angle of shooter when it is in truss passing position
@@ -86,7 +82,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The degrees that the shooter rotates per tick of the encoder
      */
-    private static final double DEGREES_PER_TICK                               = 0.0;
+    private static final double DEGREES_PER_TICK                          = 0.0;
     
     /**
      * The solenoid that toggles if the acquisitions rollers are able to hit the 
