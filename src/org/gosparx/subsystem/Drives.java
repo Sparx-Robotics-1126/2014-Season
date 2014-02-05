@@ -316,7 +316,6 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
-            System.out.println("GYRO: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
@@ -329,7 +328,7 @@ public class Drives extends GenericSubsystem {
             
             averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
             
-            switch(autoFunctionState){
+            switch(drivesState){
                 case State.FUNCT_TURNING:
                     degToGo = desiredAngle - currentAngle;
                     if(isGyroWorking){

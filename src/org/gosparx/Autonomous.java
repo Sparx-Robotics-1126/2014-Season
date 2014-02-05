@@ -127,7 +127,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int[][] autoSquare = {
         {DRIVES_DONE},
         {LOOP, 4},
-        {DRIVES_GO_FORWARD, 12*4},
+        {DRIVES_GO_FORWARD, 12},
         {DRIVES_DONE},
         {DRIVES_TURN_RIGHT, 90},
         {DRIVES_DONE},
