@@ -7,6 +7,7 @@ package org.gosparx.subsystem;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.util.Logger;
 
@@ -216,7 +217,7 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShoot = opR2;
                 lastShiftDown = driverLeftTrigger;
@@ -315,5 +316,13 @@ public class Controls extends GenericSubsystem{
      */
     private double getSpeed(double joystickValue){
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
+    }
+
+    public void liveWindow() {
+        
+    }
+    
+    private void smartDashboardTimer(){
+        SmartDashboard.putNumber("Timer", ds.getMatchTime());
     }
 }
