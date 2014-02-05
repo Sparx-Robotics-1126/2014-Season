@@ -6,12 +6,38 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 import org.gosparx.util.Logger;
 
 /**
  * @author Alex
+ */
+
+/**
+ * 
+1) Rotate from shooting mode to acquire mode
+2)Encoder/limit switch tells us we are down
+3)extend/turn on motors to aquire
+4)Limit Switch/operator override
+5)REtract smaller cylinder
+6)Retact large cylinder at an angle (can't go out of the 5 foot height)
+7)Go to an angle (shooting/safe)
+8)Extend small cylinder before firing
+9)DO IT ALL AGAIN
+
+STATES:
+Rotate Up
+Rotate Down
+Rotate_Ready_to_Extend
+Acquiring - NO BALL
+Acquired - HAVE BALL
+Ready_to_retract(both small and large)
+Ready_to_shoot
+Safe_State
+
+ * @author Connor
  */
 public class Acquisitions extends GenericSubsystem{
     
@@ -49,7 +75,7 @@ public class Acquisitions extends GenericSubsystem{
      /**
      * The solenoid value if the acquisitions system is down.
      */    
-    private static final boolean ACQ_DOWN                               = true;
+    private static final boolean ACQ_EXTENDED                               = true;
     
     /**
      * The solenoid value if the acquisitions system is up.
@@ -248,7 +274,7 @@ public class Acquisitions extends GenericSubsystem{
         pivotEncoderData = new EncoderData(pivotEncoder, DEGREES_PER_TICK);
         shooterAcqModeSwitch = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
         keepInFrame = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
-        keepInFrame.set(true);
+        keepInFrame.set(false);
         acquisitionsState = State.SETTING_HOME;
     }
 
@@ -271,7 +297,7 @@ public class Acquisitions extends GenericSubsystem{
                     }else if(shooterAcqModeSwitch.get()){//sensor has been hit
                         wantedSpeedPivot = 0;
                         wantedSpeedAcq = ROLLER_SPEED;
-                        acqToggle.set(ACQ_DOWN);
+                        acqToggle.set(ACQ_EXTENDED);
                     }else{//An error with the switches have occured
                         wantedSpeedPivot = 0;
                         acquisitionsState = State.STANDBY;
@@ -283,7 +309,7 @@ public class Acquisitions extends GenericSubsystem{
                     //THIS MAY NOT BE NEEDED
                     if(hasHitSwitchOnAcquire && Timer.getFPGATimestamp() - timeHitEntering > AQUIRE_TIME){
                         wantedSpeedAcq = 0;
-                        acqToggle.set(ACQ_UP);
+//                        acqToggle.set(ACQ_UP);
                         hasHitSwitchOnAcquire = false;
                         acquisitionsState = State.STANDBY;
                     }
@@ -313,7 +339,7 @@ public class Acquisitions extends GenericSubsystem{
                     }
                     if(hasHitSwitchOnRelease && Timer.getFPGATimestamp() - timeHitRelease > RELEASE_TIME){
                         wantedSpeedAcq = 0;
-                        acqToggle.set(ACQ_DOWN);
+                        acqToggle.set(ACQ_EXTENDED);
                         hasHitSwitchOnRelease = false;
                         acquisitionsState = State.STANDBY;
                     }
@@ -346,7 +372,7 @@ public class Acquisitions extends GenericSubsystem{
             if(ds.isEnabled() && keepInFrame.get()){
                 keepInFrame.set(false);
             }
-            acqMotor.setX(wantedSpeedAcq);
+            acqMotor.setX(wantedSpeedAcq * -1);
             pivotMotor.setX(wantedSpeedPivot);
             
             if(Timer.getFPGATimestamp() - lastLogTime >= LOG_EVERY){
@@ -383,6 +409,17 @@ public class Acquisitions extends GenericSubsystem{
     
     public boolean isReadyToShoot(){
         return (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_SHOOT) <= PIVOT_TOLERANCE) || (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_TRUSS) <= PIVOT_TOLERANCE);
+    }
+
+    private String subsystemName = "Acquisitions";
+    
+    public void liveWindow() {
+        LiveWindow.addActuator(subsystemName, "Pivot", pivotMotor);
+        LiveWindow.addActuator(subsystemName, "Acquisitions", acqMotor);
+        LiveWindow.addActuator(subsystemName, "Small Cylinder", keepInFrame);
+        LiveWindow.addActuator(subsystemName, "Large Cylinder", acqToggle);
+        LiveWindow.addSensor(subsystemName, "Upper Limit Switch", shooterSafeModeSwitch);
+        LiveWindow.addSensor(subsystemName, "Lower Limit Switch", shooterAcqModeSwitch);
     }
     /**
      * A class for storing the state of acquisitions.

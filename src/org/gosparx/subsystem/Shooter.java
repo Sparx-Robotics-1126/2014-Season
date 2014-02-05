@@ -247,6 +247,10 @@ public class Shooter extends GenericSubsystem{
        log.logMessage("Attempted to shoot, but could not");
        return false;
     }
+
+    public void liveWindow() {
+       
+    }
     
     /**
      * A class used for storing possible states of the Shooter.
