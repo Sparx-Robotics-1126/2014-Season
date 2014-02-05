@@ -9,6 +9,8 @@ package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.subsystem.Controls;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
@@ -50,6 +52,7 @@ public class EntryPoint extends SimpleRobot {
         
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].init();
+            subsystems[i].liveWindow();
             subsystems[i].start();
         }
     }
@@ -83,6 +86,10 @@ public class EntryPoint extends SimpleRobot {
      * This function is called once each time the robot enters test mode.
      */
     public void test() {
-    
+            while(isTest() && isEnabled()){
+                LiveWindow.run();
+                Timer.delay(0.1);
+            }
     }
+    
 }
