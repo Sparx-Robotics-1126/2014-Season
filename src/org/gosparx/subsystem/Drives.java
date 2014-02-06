@@ -433,13 +433,13 @@ public class Drives extends GenericSubsystem {
                     if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
                         drivesState = State.DRIVES_LOW_GEAR;
                     }
-                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
+                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
                     break;
                 case State.DRIVES_SHIFT_HIGH_GEAR:
                     if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
                         drivesState = State.DRIVES_HIGH_GEAR;
                     }
-                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
+                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
                     break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
