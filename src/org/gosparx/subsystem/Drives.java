@@ -303,11 +303,10 @@ public class Drives extends GenericSubsystem {
  
         gyroAnalog = new AnalogChannel(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
         gyro = new Gyro(gyroAnalog);
-        gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(0.007);
         isGyroWorking = gyroCheck();
         drivesState = State.DRIVES_LOW_GEAR;
-        autoFunctionState = State.FUNCT_STANDBY;
+        autoFunctionState = State.FUNCT_HOLD_POS;
     }
 
     /**
@@ -322,7 +321,6 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
-            System.out.println("GYRO: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
@@ -358,7 +356,7 @@ public class Drives extends GenericSubsystem {
                         }
                         log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
                     }else{
-                        autoFunctionState = State.DRIVES_LOW_GEAR;
+                        autoFunctionState = State.FUNCT_HOLD_POS;
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
                         autoFunctionState = State.DRIVES_LOW_GEAR;
@@ -408,6 +406,7 @@ public class Drives extends GenericSubsystem {
                 default:
                     log.logMessage("UNKNOWN STATE: " + autoFunctionState);
             }
+            
             switch(drivesState){
                 case State.DRIVES_LOW_GEAR:
                     if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
@@ -460,7 +459,7 @@ public class Drives extends GenericSubsystem {
                 logDrivesInfo();
             }
             Thread.sleep(10);
-        }
+        } 
     }
     
     /**
@@ -601,6 +600,7 @@ public class Drives extends GenericSubsystem {
         if(gyroAnalog.getVoltage() > GYRO_ERROR){
            return true;
         }else{
+            log.logMessage("NO GYRO STUPID");
             return false;
         }
     }
@@ -609,7 +609,7 @@ public class Drives extends GenericSubsystem {
      * Returns if the last command is done
      */
     public boolean isLastCommandDone() {
-        return drivesState == State.FUNCT_HOLD_POS;
+        return autoFunctionState == State.FUNCT_HOLD_POS;
     }
     
     private static class State{
