@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.PotentiometerData;
 import org.gosparx.util.Logger;
@@ -168,6 +169,7 @@ public class Shooter extends GenericSubsystem{
      */ 
     public void execute() throws Exception {
         wantedWinchSpeed = 0;
+        while(!ds.isTest()){
         switch(shooterState){
             // Disengauges the latch and then sets the lastShotTime to the 
             // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
@@ -232,6 +234,7 @@ public class Shooter extends GenericSubsystem{
             log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
             lastLogTime = Timer.getFPGATimestamp();
         }
+        }
     }
     
     /**
@@ -239,7 +242,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY && Acquisitions.getInstance().isReadyToShoot()){
+       if(shooterState == State.STANDBY){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -248,8 +251,13 @@ public class Shooter extends GenericSubsystem{
        return false;
     }
 
+    private String subsystemName = "Shooter";
     public void liveWindow() {
-       
+        LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
+        LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
+        LiveWindow.addActuator(subsystemName, "Fire", latch);
+        LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
+        
     }
     
     /**
