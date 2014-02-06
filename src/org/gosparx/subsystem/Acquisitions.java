@@ -4,19 +4,18 @@ import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import org.gosparx.Autonomous;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
-import org.gosparx.util.Logger;
 
 /**
- * @author Alex
+ *Tried to improve Acquisitions
+ * @author Connor
  */
 
-/**
- * 
+/*/
 1) Rotate from shooting mode to acquire mode
 2)Encoder/limit switch tells us we are down
 3)extend/turn on motors to aquire
@@ -36,418 +35,306 @@ Acquired - HAVE BALL
 Ready_to_retract(both small and large)
 Ready_to_shoot
 Safe_State
+/*/
 
- * @author Connor
- */
 public class Acquisitions extends GenericSubsystem{
-    
+
     /**
-     * The timeout in seconds for pivoting to acquiring position.
-     */ 
-    private static final double PIVOT_TIMEOUT = 15;
-    
-    /**
-     * The timeout in seconds for setting the home position.
-     */ 
-    private static final double SET_HOME_TIMEOUT = 10;
-    
-     /**
-     * The time in seconds to continue running the acquisitions motors after the 
-     * limit switch has been triggered.
-     */ 
-    private static final double AQUIRE_TIME                                       = .5;
-    
-    /**
-     * The time in seconds to continue running the acquisitions motors in
-     * reverse the exiting ball has triggered the limit switch.
-     */ 
-    private static final double RELEASE_TIME                                     = .75;
-    
-     /**
-     * The % max speed to run the motors when pivoting.
+     * The Acquisitions object.
+     * Is returned in getInstance
      */
-    private static final double PIVOT_TURN_SPEED                                 = .25;
+    private static Acquisitions acquisitions;
+    
+    /*/*************MOTORS/SENSORS/SOLENOIDS******************** /*/
     
     /**
-     * The % max speed to run the motors when acquiring a ball.
-     */ 
-    private static final double ROLLER_SPEED                                       = 1;
-     /**
-     * The solenoid value if the acquisitions system is down.
-     */    
-    private static final boolean ACQ_EXTENDED                               = true;
-    
-    /**
-     * The solenoid value if the acquisitions system is up.
+     * Used to control the angle of the shooter
+     * mini-CIM driven with a 55/12 reduction (motor/output)
      */
-    private static final boolean ACQ_UP                                 = false;
-        
-    /**
-     * The amount of degrees plus or minus we see as good when pivoting.
-     */ 
-    private static final double PIVOT_TOLERANCE = 2.5;
+    private CANJaguar rotatingMotor;
     
     /**
-     * The angle of shooter when it is in truss passing position
-     * TODO: Get proper angle
+     * Used to control the intake rollers
+     * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
-    public static final double MODE_TRUSS = 0.0;
+    private CANJaguar acqRoller;
     
     /**
-     * The angle of the shooter when it is in shooter mode.
-     * TODO: Get proper angle
+     * Used to fully extend the acquisition rollers to be able to acquire balls
      */
-    public static final double MODE_SHOOT = 0.0;
+    private Solenoid acqLongPnu;
     
     /**
-     * The angle of the shooter when the robot is in aquire mode.
-     * TODO: Get proper angle
-     */ 
-    public static final double MODE_ACQUIRE = 0.0;
-    
-    /**
-     * The degrees that the shooter rotates per tick of the encoder
+     * Used to move acquisition rollers out of the way of the ball when firing.
+     * Should be extended once match begins
      */
-    private static final double DEGREES_PER_TICK                          = 0.0;
+    private Solenoid acqShortPnu;
     
     /**
-     * The amount of Amps a stalled mini CIM produces
+     * Limit Switch. Mounted on the acquisition rollers
+     * Detects when a ball is between the first and second roller
      */
-    private static final double MINI_CIM_STALL_AMPS = 84;
+    private DigitalInput ballDetector;
     
     /**
-     * The amount of time a MINI CIM can be stalled but still considered "running".
-     * IN SECONDS
-     * May reach this limit during startup
+     * Two Limit Switches run in series. NORMALLY CLOSED
+     * Mounted on the pivoting frame. 
+     * Detect when the shooter has reached its maximum angle (safe position)
      */
-    private static final double MINI_CIM_STALL_TIME = 0.25;
+    private DigitalInput upperLimit; 
     
     /**
-     * A boolean to say if the winch has first started.
-     * Used to determine if the motor has stalled
+     * Two Limit Switches run in series. NORMALLY CLOSED
+     * Mounted on the drive base.
+     * Detect when the shooter has reached it maximum angle (acquiring position)
      */
-    private boolean firstWinchMotorStart = true;
-    
+    private DigitalInput lowerLimit;
+            
     /**
-     * The solenoid that toggles if the acquisitions rollers are able to hit the 
-     * ball.
-     */ 
-    private Solenoid acqToggle;
-     
-    /**
-     * The limit switch on the acquisitions system. It detects if a ball has 
-     * been sucked in.
-     */ 
-    private DigitalInput acqLimitSwitch;
-    
-    /**
-     * The Jaguar that controls the pivoting system.
-     */  
-    private CANJaguar pivotMotor;
-    
-    /**
-     * The Jaguar that controls the acquisitions system.
+     * Is attached to the motor that drives the rotating motion.
+     * There is a 55/12 reduction from the encoder to the shooter.
+     * Rotating DOWN will give you a negative distance.
+     * Rotating UP will gave you a positive distance.
      */
-    private CANJaguar acqMotor;
-        
+    private Encoder rotateEncoder;
+    
     /**
-     * The limit switch that detects if the shooter is in "home" position, all
-     * the way up.
+     * Reliable data gotten from the rotateEncoder.
+     * Calculates currentSpeed and distance traveled by the encoder.
      */
-    private DigitalInput shooterSafeModeSwitch;
+    private EncoderData rotateEncoderData;
+    
+    /*/************************FINAL VARIABLES*********************** /*/
     
     /**
-     * The encoder that tracks the pivoting motion.
-     */ 
-    private Encoder pivotEncoder;
-    
-    /**
-     * The encoder data for the pivotEncoder.
-     */ 
-    private EncoderData pivotEncoderData;
-    
-    /**
-     * The limit switch that detects if the shooter is in aquire mode.
-     */ 
-    private DigitalInput shooterAcqModeSwitch;
-    
-    /**
-     * The current state of the acquisitions system.
-     */ 
-    private int acquisitionsState;
-    
-    
-    /**
-     * The speed to set the pivot motors at.
-     */ 
-    private double wantedSpeedPivot;
-    
-    /**
-     * The speed to set the acquisitions motors at.
-     */ 
-    private double wantedSpeedAcq;
-    
-    /**
-     * Stores if the limit switch has been triggered when releasing the ball.
-     */ 
-    private boolean hasHitSwitchOnRelease;
-    
-    /**
-     * Stores if the limit switch has been triggered when acquiring the ball.
-     */ 
-    private boolean hasHitSwitchOnAcquire;
-    
-    /**
-     * The FPGA time when the limit switch was hit when releasing the ball.
+     * The extended state of the short cylinder used to move the rollers out of the way of the shooter.
+     * Extended = NO interference;
+     * Retracted = interference;
      */
-    private double timeHitRelease;
+    private final static boolean ACQ_SHORT_PNU_EXTENDED = true;//TODO: CHECK
     
     /**
-     * The FPGA time when the limit switch was hit when acquiring the ball.
-     */ 
-    private double timeHitEntering;
-    
-    /**
-     * The solenoid for keeping the acquisitions within the frame perimeter at 
-     * the start of the match.
-     */ 
-    private Solenoid keepInFrame;
-    
-    /**
-     * The time we attempted to start acquiring.
-     */ 
-    private double startTimeAquire;
-    
-    /**
-     * The time we attempted to start releasing the ball.
+     * The extended state of the long cylinder used to move the rollers into acquiring position.
+     * Extended = Able to pick up ball
+     * Retracted = In the shooter perimeter (can't pick up balls)
      */
-    private double startTimeRelease;
+    private final static boolean ACQ_LONG_PNU_EXTENDED = true;//TODO: CHECK
     
     /**
-     * The FPGA time when we started to attempt to set the home.
-     */ 
-    private double startTimeSetHome = -1;
-    
-    /**
-     * A private Acquisitions used for the singleton model.
+     * The speed at which the rollers pick up a ball.
+     * May have to be modified based on design. (slower may be better)
      */
-    private static Acquisitions acq;
+    private final static double INTAKE_ROLLER_SPEED = 1.0;//TODO: CHECK
     
     /**
-     * The desired angle for the shooter to be positioned at. Use constants when
-     * possible.
-     */ 
-    private double wantedAngle;
+     * The distance each tick travels. (in degrees)
+     */
+    private final static double DEGREES_PER_TICK = 0.0;//TODO: MATH
     
     /**
-     * Returns the singleton Acquisitions.
+     * The angle at which it is legal for the acquisition rollers to extend without breaking rules
+     */
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
+    
+    /**
+     * The name of this subsystem.
+     * Used in live window to setup all the motors/sensors/solenoid to be grouped with with class
+     */
+    private final static String subsystemName = "Acquisitions";
+   
+    /*/************************VARIABLES***************************** /*/
+    
+    /**
+     * The current acquisition state that the robot is in.
+     * See the State class to find all possible states
+     */
+    private int acquisitionState;
+    
+    /**
+     * The speed at which the shooter will rotate. (in percentage)
+     */
+    private double rotationSpeed = 0;
+    
+    /**
+     * The wanted angle of the shooter. Between 0 and 120. 
+     * 0 being vertical (safe mode).
+     * 120 being acquiring (acquiring mode)
+     */
+    private int wantedShooterAngle = 0;
+    
+    /**
+     * 
+     * @returns the only running thread of Acquisitions.
+     * This should be used instead of (new Acquisitions2)
      */
     public static Acquisitions getInstance(){
-        if(acq == null){
-            acq = new Acquisitions();
+        if(acquisitions == null){
+            acquisitions = new Acquisitions();
         }
-        return acq;
+        return acquisitions;
     }
+    
     /**
-     * Creates a new Acquisitions.
+     * Constructor for Acquisitions
+     * Sets the thread priority and sets the name of the subsystem for logging purposes
      */
     private Acquisitions(){
-        super(Logger.SUB_ACQUISITIONS, Thread.NORM_PRIORITY);
+        super("Acq", Thread.NORM_PRIORITY);
     }
     
     /**
-     * Initializes everything.
-     */ 
+     * Initiates all of the motors/sensors/solenoids.
+     * Sets the short cylinder to its default position.
+     */
     public void init() {
         try {
-            pivotMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
-            acqMotor = new CANJaguar(IO.CAN_ADRESS_ACQ);
+            rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
+            acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
         } catch (CANTimeoutException ex) {
-            log.logError("CANBus Timeout it Acquisitions init()");
+            log.logError("CANBus Timeout it Acquisitions2 init()");
         }
-        acqToggle = new Solenoid(IO.ACQ_TOGGLE_CHAN);
-        acqToggle.set(ACQ_UP);
-        acqLimitSwitch = new DigitalInput(IO.ACQ_SWITCH_CHAN);
-        shooterSafeModeSwitch = new DigitalInput(IO.SHOOTER_SAFE_MODE_CHAN);
-        pivotEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2);
-        pivotEncoder.setDistancePerPulse(DEGREES_PER_TICK);
-        pivotEncoderData = new EncoderData(pivotEncoder, DEGREES_PER_TICK);
-        shooterAcqModeSwitch = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
-        keepInFrame = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
-        keepInFrame.set(false);
-        acquisitionsState = State.SETTING_HOME;
+        acqLongPnu = new Solenoid(IO.ACQ_TOGGLE_CHAN);
+        ballDetector = new DigitalInput(IO.ACQ_SWITCH_CHAN);
+        upperLimit = new DigitalInput(IO.SHOOTER_SAFE_MODE_CHAN);
+        rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2);
+        rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
+        rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
+        lowerLimit = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
+        acqShortPnu = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
+        acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
+        acquisitionState = AcqState.SAFE_STATE;//default state
     }
 
     /**
-     * Loops.
-     */ 
+     * Main run method. Is called through genericSubsystem.
+     * @throws Exception - if thrown then the thread will try to restart itself
+     */
     public void execute() throws Exception {
-        while(!ds.isTest()){
-            wantedSpeedAcq = 0;
-            wantedSpeedPivot = 0;
-            pivotEncoderData.calculateSpeed();
-            switch(acquisitionsState){
-                case State.STANDBY:
-                    wantedSpeedAcq = 0;
-                    wantedSpeedPivot = 0;
-                    break;
-                case State.ACQUIRING:
-                    if(!shooterAcqModeSwitch.get()  && !(Timer.getFPGATimestamp() - startTimeAquire > PIVOT_TIMEOUT)){//Sensors hasen't been hit
-                        wantedSpeedPivot = PIVOT_TURN_SPEED;
-                    }else if(shooterAcqModeSwitch.get()){//sensor has been hit
-                        wantedSpeedPivot = 0;
-                        wantedSpeedAcq = ROLLER_SPEED;
-                        acqToggle.set(ACQ_EXTENDED);
-                    }else{//An error with the switches have occured
-                        wantedSpeedPivot = 0;
-                        acquisitionsState = State.STANDBY;
-                    }
-                    if(acqLimitSwitch.get()){
-                        hasHitSwitchOnAcquire = true;
-                        timeHitEntering = Timer.getFPGATimestamp();
-                    }
-                    //THIS MAY NOT BE NEEDED
-                    if(hasHitSwitchOnAcquire && Timer.getFPGATimestamp() - timeHitEntering > AQUIRE_TIME){
-                        wantedSpeedAcq = 0;
-//                        acqToggle.set(ACQ_UP);
-                        hasHitSwitchOnAcquire = false;
-                        acquisitionsState = State.STANDBY;
-                    }
-                    break;
-                case State.PIVOTING:
-                    wantedSpeedPivot = (pivotEncoderData.getDistance() > wantedAngle) ? -PIVOT_TURN_SPEED : PIVOT_TURN_SPEED;
-                    if(Math.abs(pivotEncoderData.getDistance() - wantedAngle) <= PIVOT_TOLERANCE){
-                        wantedSpeedPivot = 0;
-                        acquisitionsState = State.STANDBY;
-                    }
-                    break;
-                case State.ASSISTING:
-                    if(!shooterAcqModeSwitch.get() && !(Timer.getFPGATimestamp() - startTimeRelease > PIVOT_TIMEOUT)){
-                        wantedSpeedPivot = PIVOT_TURN_SPEED;
-                    }else if(shooterAcqModeSwitch.get()){
-                        wantedSpeedPivot = 0;
-                        wantedSpeedAcq = -ROLLER_SPEED;
-                        acqToggle.set(ACQ_UP);
+        while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
+            rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
+            switch(acquisitionState){
+                case AcqState.ROTATE_UP://rotate shooter up
+                    if(wantedShooterAngle == 0 && !upperLimit.get()){//limit Switch reads false when touched
+                        rotationSpeed = 0;
+                    }else if(wantedShooterAngle >= rotateEncoderData.getDistance()){
+                        rotationSpeed = 0;
                     }else{
-                        wantedSpeedPivot = 0;
-                        acquisitionsState = State.STANDBY;
+                        rotationSpeed = 0.2;//MAY WANT TO RAMP
                     }
-                    
-                    if(acqLimitSwitch.get()){
-                        hasHitSwitchOnRelease = true;
-                        timeHitRelease = Timer.getFPGATimestamp();
-                    }
-                    if(hasHitSwitchOnRelease && Timer.getFPGATimestamp() - timeHitRelease > RELEASE_TIME){
-                        wantedSpeedAcq = 0;
-                        acqToggle.set(ACQ_EXTENDED);
-                        hasHitSwitchOnRelease = false;
-                        acquisitionsState = State.STANDBY;
+                    if(!upperLimit.get()){
+                        rotationSpeed = 0;
+                        log.logMessage("Upper Limit has been tripped, unknown position");
                     }
                     break;
-                case State.SETTING_HOME:
-                    if(ds.isEnabled() && firstWinchMotorStart){
-                        startTimeSetHome = Timer.getFPGATimestamp();
-                        firstWinchMotorStart = false;
+                case AcqState.ROTATE_DOWN://rotate shooter down
+                    if(wantedShooterAngle == 120 && !lowerLimit.get()){//limit Switch reads false when touched
+                        rotationSpeed = 0;
+                    }else if(wantedShooterAngle <= rotateEncoderData.getDistance()){
+                        rotationSpeed = 0;
+                    }else{
+                        rotationSpeed = -0.2;//MAY WANT TO RAMP
                     }
-                    wantedSpeedPivot = -.1;
-                    if(Timer.getFPGATimestamp() - startTimeSetHome > SET_HOME_TIMEOUT || 
-                            (pivotMotor.getOutputCurrent() >= MINI_CIM_STALL_AMPS &&
-                            Timer.getFPGATimestamp() - startTimeSetHome > MINI_CIM_STALL_TIME)){
-                        wantedSpeedPivot = 0;
-                        acquisitionsState = State.STANDBY;
-                    }else if(shooterSafeModeSwitch.get()){
-                        wantedSpeedPivot = 0;
-                        pivotEncoderData.reset();
-                        acquisitionsState = State.STANDBY;
-                    }
-                    
-                    if(wantedSpeedPivot == 0){
-                        firstWinchMotorStart = true;
+                    if(!lowerLimit.get()){
+                        rotationSpeed = 0;
+                        log.logMessage("Lower Limit has been tripped, unknown position");
                     }
                     break;
-                default:
-                    log.logError("Unknown state for Acquisitions: " + acquisitionsState);
+                case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()){
+                        acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
+                    }
+                    break;
+                case AcqState.ACQUIRING://Rollers are running and we are getting a ball
+                    setAcquiringMotor(INTAKE_ROLLER_SPEED);//Turns rollers on
+                    break;
+                case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
+                    setAcquiringMotor(0);
+                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                    break;
+                case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
+                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rollers right on out
+                    break;
+                case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
+                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    break;
+                case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    break;
+                case AcqState.SAFE_STATE://Shooter is in the robots perimeter
+                    if(!upperLimit.get()){//Switch has been pressed
+                        rotationSpeed = 0;
+                    }else{
+                        rotationSpeed = 0.2;//MAY WANT TO RAMP
+                    }
+                    break;
+                case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
+                    rotationSpeed = 0;
+                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    setAcquiringMotor(0);
+                    break;
             }
-
-            if(ds.isEnabled() && keepInFrame.get()){
-                keepInFrame.set(false);
-            }
-            acqMotor.setX(wantedSpeedAcq * -1);
-            pivotMotor.setX(wantedSpeedPivot);
-            
-            if(Timer.getFPGATimestamp() - lastLogTime >= LOG_EVERY){
-                log.logMessage("Current State: " + State.getState(acquisitionsState));
-                log.logMessage("Pivot Encoder Dist: " + pivotEncoderData.getDistance());
-                log.logMessage("Pivot Motor Wanted Speed: " + wantedSpeedPivot + " Wanted Acq Speed: " + wantedSpeedAcq);
-                log.logMessage("Wanted Shooter Angle: " + wantedAngle);
-                log.logMessage("Is Ready to Shoot: " + isReadyToShoot());
-                lastLogTime = Timer.getFPGATimestamp();
-            }
+            rotatingMotor.setX(rotationSpeed);
+        }
+    }
+    
+    private void setAcquiringMotor(double value){
+        try {
+            acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
+        } catch (CANTimeoutException ex) {
+            ex.printStackTrace();
         }
     }
     
     /**
-     * Sets the start acquire time and sets the state to State.ACQUIRING.
-     */ 
-    public void acquire(){
-        startTimeAquire = Timer.getFPGATimestamp();
-        acquisitionsState = State.ACQUIRING;
+     * The state you want the system to enter
+     * @param state - get from AcqsitionState 
+     */
+    public void setMode(int state){
+        acquisitionState = state;
     }
     
     /**
-     * Sets the start release time and sets State.ASSISTING.
-     */ 
-    public void release(){
-        startTimeRelease = Timer.getFPGATimestamp();
-        acquisitionsState = State.ASSISTING;
-    }
-    
-    public void pivot(double degrees){
-        wantedAngle = degrees;
-        acquisitionsState = State.PIVOTING;
-    }
-    
-    public boolean isReadyToShoot(){
-        return (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_SHOOT) <= PIVOT_TOLERANCE) || (acquisitionsState == State.STANDBY && Math.abs(pivotEncoderData.getDistance() - MODE_TRUSS) <= PIVOT_TOLERANCE);
-    }
-
-    private String subsystemName = "Acquisitions";
-    
+     * Is called right after init().
+     * This groups all of the motors/sensors/solenoid together.
+     * Sets up the live window screen used in test mode to control each system manually.
+     */
     public void liveWindow() {
-        LiveWindow.addActuator(subsystemName, "Pivot", pivotMotor);
-        LiveWindow.addActuator(subsystemName, "Acquisitions", acqMotor);
-        LiveWindow.addActuator(subsystemName, "Small Cylinder", keepInFrame);
-        LiveWindow.addActuator(subsystemName, "Large Cylinder", acqToggle);
-        LiveWindow.addSensor(subsystemName, "Upper Limit Switch", shooterSafeModeSwitch);
-        LiveWindow.addSensor(subsystemName, "Lower Limit Switch", shooterAcqModeSwitch);
+        LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
+        LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
+        LiveWindow.addActuator(subsystemName, "Small Cylinder", acqShortPnu);
+        LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
+        LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
+        LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
     }
+    
     /**
-     * A class for storing the state of acquisitions.
-     */ 
-    public static class State{
-        public static final int STANDBY = 1;
-        public static final int ACQUIRING = 2;
-        public static final int PIVOTING = 3;
-        public static final int ASSISTING = 4;
-        public static final int SETTING_HOME = 5;
-        
-        /**
-         * Returns a string version of the state.
-         */
-        public static String getState(int state){
-            switch(state){
-                case STANDBY:
-                    return "Standby";
-                case ACQUIRING:
-                    return "Acquiring";
-                case PIVOTING:
-                    return "Pivoting";
-                case ASSISTING:
-                    return "Assisting";
-                case SETTING_HOME:
-                    return "Setting home";
-            }
-            return "UNKOWN MODE: " + state;
-        }
+     * Contains all the possible acquisition states.
+     * STATES:
+     * ROTATE_UP                - rotate shooter up
+     * ROTATE_DOWN              - rotate shooter down
+     * ROTATE_READY_TO_EXTEND   - angle at which it is safe to extend the rollers
+     * ACQUIRING                - Rollers are running and we are getting a ball
+     * ACQUIRED                 - limit switch has been pressed - short cylinder retracts
+     * EJECT_BALLS              - ball is being ejected from robot through rollers
+     * READY_TO_RETRACT         - The maximum angle to be at before an over 5' penalty
+     * READY_TO_SHOOT           - Rollers are out of the way, Shooting angle is set
+     * SAFE_STATE               - Shooter is in the robots perimeter
+     * OFF_STATE                - Something has gone wrong. All motors are set to 0.0
+     */
+    public static class AcqState{
+        public static final int ROTATE_UP = 1;
+        public static final int ROTATE_DOWN = 2;
+        public static final int ROTATE_READY_TO_EXTEND = 3;
+        public static final int ACQUIRING = 4;
+        public static final int ACQUIRED = 5;
+        public static final int EJECT_BALL = 6;
+        public static final int READY_TO_RETRACT = 7;
+        public static final int READY_TO_SHOOT = 8;
+        public static final int SAFE_STATE = 9;
+        public static final int OFF_STATE = 10;
     }
+    
 }
