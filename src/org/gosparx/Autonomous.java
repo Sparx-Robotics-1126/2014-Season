@@ -274,10 +274,8 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        int start = 0, current = start, finished = currentAutonomous.length;
-        while (true){
+        int start = 0, finished = currentAutonomous.length;
             while(ds.isAutonomous() &&  ds.isEnabled()){
-                    current++;
                 for (int i = start; i <= finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
@@ -366,12 +364,16 @@ public class Autonomous extends GenericSubsystem{
                         case END:
                             runAutonomous = false;
                         default:
-//                            print("No case statement: " + currentAutonomous[i]);
+                            log.logMessage("No case statement: " + currentAutonomous[i]);
                     }
                 }   
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ex) {
+                        log.logError("AUTO: SLEEP FAILED");
+                    }
             }
         }              
-      }
     }
 
     /**
