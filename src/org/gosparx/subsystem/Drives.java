@@ -586,7 +586,7 @@ public class Drives extends GenericSubsystem {
      * Resets the gyro
      */
     private void resetGyro(){
-        gyro.reset();
+//        gyro.reset();
     }
     
     /**
