@@ -45,4 +45,8 @@ public class IO {
     public static final int RIGHT_DRIVER_JOY_PORT       = 2;
     
     public static final int OPER_JOY_PORT               = 3;
+    
+    //Analog Ports
+    public static final int DEFAULT_ANALOG_MODULE                                 = 1;
+    public static final int AUTOSWITCH_CHANNEL                                    = 4;
 }

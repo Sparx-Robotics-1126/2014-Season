@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 
@@ -26,7 +27,12 @@ public class Drives extends GenericSubsystem {
     private static Drives drives;
     
     /**
-     * The distance the robot travels per tick of the encoder in inches.
+     * The name of the subsystem for liveWindow
+     */
+    private final String subsystemName = "Drives";
+    
+    /**
+     * The distance the robot travels per tick of the encoder.
      */
     private static final double DIST_PER_TICK           = 0.047;//inches
     
@@ -319,7 +325,7 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
-        while(true){
+        while(!ds.isTest()){
             currentAngle = gyro.getAngle();
 //            log.logMessage("GYRO ANGLE: " + currentAngle);
             leftEncoderData.calculateSpeed();
@@ -612,6 +618,17 @@ public class Drives extends GenericSubsystem {
     public boolean isLastCommandDone() {
         return autoFunctionState == State.FUNCT_HOLD_POS;
     }
+
+    public void liveWindow() {
+        LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
+        LiveWindow.addActuator(subsystemName, "Right Back", rightFrontDrives);
+        LiveWindow.addSensor(subsystemName, "Right Encoder", rightDrivesEncoder);
+        LiveWindow.addActuator(subsystemName, "Left Front", rightFrontDrives);
+        LiveWindow.addActuator(subsystemName, "Left Back", rightFrontDrives);
+        LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
+        LiveWindow.addActuator(subsystemName, "Shifting", shifter);
+        LiveWindow.addSensor(subsystemName, "GYRO", gyro);
+    }
     
     private static class State{
         static final int DRIVES_LOW_GEAR           = 1;
@@ -645,4 +662,5 @@ public class Drives extends GenericSubsystem {
             return "UNKOWN MODE";
         }
     }
+
 }
