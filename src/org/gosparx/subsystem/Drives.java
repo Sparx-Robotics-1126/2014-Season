@@ -321,6 +321,7 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
+            log.logMessage("GYRO ANGLE: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
