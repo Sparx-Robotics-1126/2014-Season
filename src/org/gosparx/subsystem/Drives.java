@@ -269,7 +269,7 @@ public class Drives extends GenericSubsystem {
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
-        super("Drives", Thread.MAX_PRIORITY); 
+        super("Drives", Thread.NORM_PRIORITY); 
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
@@ -321,7 +321,7 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(true){
             currentAngle = gyro.getAngle();
-            log.logMessage("GYRO ANGLE: " + currentAngle);
+//            log.logMessage("GYRO ANGLE: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
