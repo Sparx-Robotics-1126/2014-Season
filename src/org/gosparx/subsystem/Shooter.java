@@ -241,7 +241,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY){
+       if(shooterState == State.STANDBY && Acquisitions.getInstance().readyToShoot()){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
