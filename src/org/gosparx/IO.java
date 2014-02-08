@@ -48,7 +48,7 @@ public class IO {
     
     //Analog Ports
     public static final int DEFAULT_ANALOG_MODULE       = 1;
-    public static final int AUTOSWITCH_CHANNEL          = 4;
+    public static final int AUTOSWITCH_CHANNEL          = 2;
     
     //Shooter IO
     public static final int WINCH_POT_CHAN              = 3;

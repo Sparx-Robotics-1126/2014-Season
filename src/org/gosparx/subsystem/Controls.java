@@ -257,6 +257,8 @@ public class Controls extends GenericSubsystem{
                 driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
                 driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
                 driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+                
+                /*/****************DRIVER********************* /*/
                 if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                     driverLeftYAxis = 0;
                 }
@@ -287,6 +289,7 @@ public class Controls extends GenericSubsystem{
                 }
                 drives.setManualShifting(shiftingOverride);
                 
+                /*/********************OPERATOR****************** /*/
                 if(opCircle){
                     acq.setMode(Acquisitions.AcqState.ACQUIRING);
                 }else if(opCross){
@@ -295,6 +298,16 @@ public class Controls extends GenericSubsystem{
                     acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                 }else if(opStart){
                     acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
+                }else if(opSquare){
+                    acq.setMode(Acquisitions.AcqState.SAFE_STATE);
+                }
+                
+                if(opDPadYAxis == -1){
+                    acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
+                }else if(opDPadXAxis == 1){
+                    acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
+                }else if(opDPadYAxis == 1){
+                    acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }
                 
                 if(opR2 && !lastShoot){

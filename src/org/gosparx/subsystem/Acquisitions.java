@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.Autonomous;
@@ -130,18 +131,37 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The distance each tick travels. (in degrees)
      */
-    private final static double DEGREES_PER_TICK = 0.0;//TODO: MATH
+    private final static double DEGREES_PER_TICK = -0.007670476;
+    
+    private final static double ROTATE_UP_SPEED = -60;
     
     /**
      * The angle at which it is legal for the acquisition rollers to extend without breaking rules
      */
     private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
     
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 90;
+    
     /**
      * The name of this subsystem.
      * Used in live window to setup all the motors/sensors/solenoid to be grouped with with class
      */
     private final static String subsystemName = "Acquisitions";
+    
+    /**
+     * Close Shooter preset
+     */
+    private final static int CLOSE_SHOOTER_PRESET = 00;
+    
+    /**
+     * Mid Shooter preset
+     */
+   private final static int MID_SHOOTER_PRESET = 00;
+   
+   /**
+    * Far Shooter preset
+    */
+   private final static int FAR_SHOOTER_PRESET = 00;
    
     /*/************************VARIABLES***************************** /*/
     
@@ -166,13 +186,15 @@ public class Acquisitions extends GenericSubsystem{
      * 0 being vertical (safe mode).
      * 120 being acquiring (acquiring mode)
      */
-    private int wantedShooterAngle = 0;
+    private int wantedShooterAngle = 0;//Default
     
     /**
      * The current state of the bigger general state. Used in findNextCase()
      * Automagicly increments.
      */ 
     private int currentStatePosition = 0;
+    
+    private boolean isEncoderDataSet = false;//Not true on power up
     
     /**
      * 
@@ -214,7 +236,8 @@ public class Acquisitions extends GenericSubsystem{
         lowerLimit = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
         acqShortPnu = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
-        acquisitionState = AcqState.SAFE_STATE;//default state
+        acquisitionState = AcqState.ROTATE_UP;//default state
+        wantedState = AcqState.ROTATE_UP;
     }
 
     /**
@@ -222,73 +245,87 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
+        rotateEncoderData.reset();
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
-            if(currentStatePosition < 50){
-                System.out.println("Wanted State: " + wantedState + " Current State: " + acquisitionState + " Command: " + AcqState.getStateName(acquisitionState));
-            }
             switch(acquisitionState){                
                 case AcqState.ROTATE_UP://rotate shooter up
-                    if(wantedShooterAngle == 0 && !upperLimit.get()){//straight up and down
+                    if(wantedShooterAngle == 0 && upperLimit.get()){//straight up and down
                         rotationSpeed = 0;
-                        findNewCase();
-                    }else if(wantedShooterAngle >= rotateEncoderData.getDistance()){
+                        isEncoderDataSet = true;
+                        rotateEncoderData.reset();
+                        acquisitionState = AcqState.SAFE_STATE;
+                    }else if(wantedShooterAngle >= rotateEncoderData.getDistance() && isEncoderDataSet){
                         rotationSpeed = 0;
-                        findNewCase();
+                        acquisitionState = wantedState;
                     }else{
-                        rotationSpeed = 0.2;//MAY WANT TO RAMP
+                        if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
+                            rotationSpeed += .05;
+                        }else {
+                            rotationSpeed -= .05; 
+                        }
                     }
-                    if(!upperLimit.get()){
-                        rotationSpeed = 0;
-                        log.logMessage("Upper Limit has been tripped, unknown position");
-                    }
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance() 
+                            && acqShortPnu.get() == ACQ_SHORT_PNU_EXTENDED)
+                        acquisitionState = AcqState.ROTATE_READY_RETRACT;
+                    
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER >= rotateEncoderData.getDistance() 
+                            && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED)
+                        acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                     break;
                 case AcqState.ROTATE_DOWN://rotate shooter down
-                    if(wantedShooterAngle == 120 && !lowerLimit.get()){//limit Switch reads false when touched
+                    if(wantedShooterAngle == 120 && lowerLimit.get()){//limit Switch reads false when touched
                         rotationSpeed = 0;
-                        findNewCase();
+                        acquisitionState = wantedState;
                     }else if(wantedShooterAngle <= rotateEncoderData.getDistance()){
                         rotationSpeed = 0;
-                        findNewCase();
+                        acquisitionState = wantedState;
                     }else{
-                        rotationSpeed = -0.2;//MAY WANT TO RAMP
+                        rotationSpeed = 0.6;//MAY WANT TO RAMP
                     }
-                    if(!lowerLimit.get()){
+                    if(lowerLimit.get()){
                         rotationSpeed = 0;
                         log.logMessage("Lower Limit has been tripped, unknown position");
+                    }
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance() 
+                            && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED){
+                        acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                     }
                     break;
                 case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
                         acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
-                        findNewCase();
+                        acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                    break;
+                case AcqState.ROTATE_READY_RETRACT://angle at which it is safe to extend the rollers
+                    setAcquiringMotor(0);
+                    //acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
+                    acquisitionState = AcqState.ROTATE_UP;
                     break;
                 case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                    setAcquiringMotor(INTAKE_ROLLER_SPEED);//Turns rollers on
-                    findNewCase();
+                        setAcquiringMotor(INTAKE_ROLLER_SPEED);//Turns rollers on
+                        if(!ballDetector.get()){
+                            acquisitionState = AcqState.ACQUIRED;
+                            log.logMessage("Ball Detected!");
+                        }
                     break;
                 case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
-                    if(ballDetector.get()){
-                        setAcquiringMotor(0);
-                        acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
-                        findNewCase();
-                    }
+                    setAcquiringMotor(0);
+                    //acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
                     break;
                 case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rollers right on out
-                    findNewCase();
                     break;
                 case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                    findNewCase();
                     break;
                 case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                    findNewCase();
                     break;
                 case AcqState.SAFE_STATE://Shooter is in the robots perimeter
-                    findNewCase();
                     break;
                 case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
                     rotationSpeed = 0;
@@ -298,6 +335,10 @@ public class Acquisitions extends GenericSubsystem{
                     break;
             }
             rotatingMotor.setX(rotationSpeed);
+            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
+                lastLogTime = Timer.getFPGATimestamp();
+                logFile();
+            }
         }
     }
     
@@ -317,71 +358,13 @@ public class Acquisitions extends GenericSubsystem{
         return(acquisitionState == AcqState.READY_TO_SHOOT);
     }
     
-    /**
-     * Gets the next case and sets acquisitionsState to the next needed state.
-     */ 
-    private void findNewCase(){
+    private void logFile(){
         rotateEncoderData.calculateSpeed();
-        switch(wantedState){
-            case AcqState.ACQUIRING:
-                switch(currentStatePosition){
-                    case 1:
-                        acquisitionState = AcqState.ROTATE_DOWN;
-                        break;
-                    case 2:
-                        acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
-                        break;
-                    case 3:
-                        acquisitionState = AcqState.ACQUIRING;
-                        break;
-                    case 4:
-                        acquisitionState = AcqState.ROTATE_DOWN;
-                        break;
-                }
-                break;
-            case AcqState.READY_TO_SHOOT:
-                switch(currentStatePosition){
-                    case 1:
-                        if(rotateEncoderData.getDistance() < 5){
-                            acquisitionState = AcqState.ROTATE_DOWN;
-                        }else{
-                            acquisitionState = AcqState.ROTATE_UP;
-                        }
-                    case 2:
-                        acquisitionState = AcqState.READY_TO_SHOOT;
-                        break;
-                    case 3:
-                        acquisitionState = AcqState.READY_TO_SHOOT;
-                        break;
-                }
-                break;
-            case AcqState.EJECT_BALL:
-                switch(currentStatePosition){
-                    case 1:
-                        acquisitionState = AcqState.ROTATE_DOWN;
-                        break;
-                    case 2:
-                        acquisitionState = AcqState.EJECT_BALL;
-                        break;
-                }
-                break;
-            case AcqState.SAFE_STATE:
-                switch(currentStatePosition){
-                    case 1:
-                        acquisitionState = AcqState.ROTATE_UP;
-                        break;
-                    case 2:
-                        acquisitionState = AcqState.SAFE_STATE;
-                }
-                break;
-            case AcqState.OFF_STATE:
-                acquisitionState = AcqState.OFF_STATE;
-                break;
-            default:
-                currentStatePosition = 100;
-                break;
-        }
-        currentStatePosition++;
+       log.logMessage("State: " + AcqState.getStateName(acquisitionState));
+       log.logMessage("Wanted State: " + AcqState.getStateName(wantedState));
+       log.logMessage("Wanted Angle: " + wantedShooterAngle);
+       log.logMessage("Rotate Encoder: " + rotateEncoderData.getDistance());
+       log.logMessage("Rotate Motor: " + rotationSpeed);
     }
     
     /**
@@ -389,10 +372,35 @@ public class Acquisitions extends GenericSubsystem{
      * @param state - get from AcqsitionState 
      */
     public void setMode(int state){
-        wantedState = state;
-        currentStatePosition = 1;
-        findNewCase();
+            wantedState = state;
+            currentStatePosition = 1;
+            switch(state){
+                case AcqState.ACQUIRING:
+                    wantedShooterAngle = 120;
+                    acquisitionState = AcqState.ROTATE_DOWN;
+                    break;
+                case AcqState.SAFE_STATE:
+                    wantedShooterAngle = 0;
+                    acquisitionState = AcqState.ROTATE_UP;
+            }
     }
+
+    public void setPreset(int preset){
+        switch(preset){
+            case AcqState.CLOSE_SHOOTER_PRESET:
+                wantedShooterAngle = CLOSE_SHOOTER_PRESET;
+                break;
+            case AcqState.MIDDLE_SHOOTER_PRESET:
+                wantedShooterAngle = MID_SHOOTER_PRESET;
+                break;
+            case AcqState.FAR_SHOOTER_PRESET:
+                wantedShooterAngle = FAR_SHOOTER_PRESET;
+                break;
+            default:
+                wantedShooterAngle = 0;
+        }
+    }
+
     
     /**
      * Is called right after init().
@@ -430,9 +438,14 @@ public class Acquisitions extends GenericSubsystem{
         public static final int ACQUIRED = 5;
         public static final int EJECT_BALL = 6;
         public static final int READY_TO_RETRACT = 7;
-        public static final int READY_TO_SHOOT = 8;
-        public static final int SAFE_STATE = 9;
-        public static final int OFF_STATE = 10;
+        public static final int ROTATE_READY_RETRACT = 8;
+        public static final int READY_TO_SHOOT = 9;
+        public static final int SAFE_STATE = 10;
+        public static final int OFF_STATE = 11;
+        //USED FOR PRESETS:
+        public static final int CLOSE_SHOOTER_PRESET = 20;
+        public static final int MIDDLE_SHOOTER_PRESET = 21;
+        public static final int FAR_SHOOTER_PRESET = 22;
         
         public static String getStateName(int state){
             switch(state){
@@ -442,6 +455,8 @@ public class Acquisitions extends GenericSubsystem{
                     return "Rotating Down";
                 case ROTATE_READY_TO_EXTEND:
                     return "Rotate Ready to Extend";
+                case ROTATE_READY_RETRACT:
+                    return "Rotate Ready tp Retract";
                 case ACQUIRING:
                     return "Acquring";
                 case ACQUIRED:

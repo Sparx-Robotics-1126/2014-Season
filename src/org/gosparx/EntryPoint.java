@@ -50,7 +50,7 @@ public class EntryPoint extends SimpleRobot {
                 {Controls.getInstance()},
                 {Autonomous.getInstance()},
                 {Acquisitions.getInstance()},
-//                {Shooter.getInstance()},
+                {Shooter.getInstance()},
 //                {Vision.getInstance()}
                 };
 
