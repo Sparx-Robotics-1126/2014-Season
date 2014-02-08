@@ -49,14 +49,13 @@ public class EntryPoint extends SimpleRobot {
                 {Drives.getInstance()},
                 {Controls.getInstance()},
                 {Autonomous.getInstance()},
-//                {Acquisitions.getInstance()},
-//                {Shooter.getInstance()},
+                {Acquisitions.getInstance()},
+                {Shooter.getInstance()},
 //                {Vision.getInstance()}
                 };
 
         logger = new Logger("Robot State");
         auto = Autonomous.getInstance();
-        
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i][0].init();
             subsystems[i][0].liveWindow();

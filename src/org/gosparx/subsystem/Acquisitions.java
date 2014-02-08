@@ -151,6 +151,11 @@ public class Acquisitions extends GenericSubsystem{
     private int acquisitionState;
     
     /**
+     * The wanted state of the system
+     */
+    private int wantedState;
+    
+    /**
      * The speed at which the shooter will rotate. (in percentage)
      */
     private double rotationSpeed = 0;
@@ -213,11 +218,14 @@ public class Acquisitions extends GenericSubsystem{
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             switch(acquisitionState){
+                System.out.println("Wanted State: " + wantedState + " Current State: " + aq);
                 case AcqState.ROTATE_UP://rotate shooter up
-                    if(wantedShooterAngle == 0 && !upperLimit.get()){//limit Switch reads false when touched
+                    if(wantedShooterAngle == 0 && !upperLimit.get()){//straight up and down
                         rotationSpeed = 0;
+                        findNewCase();
                     }else if(wantedShooterAngle >= rotateEncoderData.getDistance()){
                         rotationSpeed = 0;
+                        findNewCase();
                     }else{
                         rotationSpeed = 0.2;//MAY WANT TO RAMP
                     }
@@ -229,8 +237,10 @@ public class Acquisitions extends GenericSubsystem{
                 case AcqState.ROTATE_DOWN://rotate shooter down
                     if(wantedShooterAngle == 120 && !lowerLimit.get()){//limit Switch reads false when touched
                         rotationSpeed = 0;
+                        findNewCase();
                     }else if(wantedShooterAngle <= rotateEncoderData.getDistance()){
                         rotationSpeed = 0;
+                        findNewCase();
                     }else{
                         rotationSpeed = -0.2;//MAY WANT TO RAMP
                     }
@@ -240,34 +250,36 @@ public class Acquisitions extends GenericSubsystem{
                     }
                     break;
                 case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()){
                         acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
-                    }
+                        findNewCase();
                     break;
                 case AcqState.ACQUIRING://Rollers are running and we are getting a ball
                     setAcquiringMotor(INTAKE_ROLLER_SPEED);//Turns rollers on
+                    findNewCase();
                     break;
                 case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
-                    setAcquiringMotor(0);
-                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                    if(ballDetector.get()){
+                        setAcquiringMotor(0);
+                        acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                        findNewCase();
+                    }
                     break;
                 case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rollers right on out
+                    findNewCase();
                     break;
                 case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    findNewCase();
                     break;
                 case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    findNewCase();
                     break;
                 case AcqState.SAFE_STATE://Shooter is in the robots perimeter
-                    if(!upperLimit.get()){//Switch has been pressed
-                        rotationSpeed = 0;
-                    }else{
-                        rotationSpeed = 0.2;//MAY WANT TO RAMP
-                    }
+                    findNewCase();
                     break;
                 case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
                     rotationSpeed = 0;
@@ -288,12 +300,75 @@ public class Acquisitions extends GenericSubsystem{
         }
     }
     
+    private void findNewCase(){
+        rotateEncoderData.calculateSpeed();
+        switch(wantedState){
+            case AcqState.ACQUIRING:
+                switch(acquisitionState){
+                    case AcqState.OFF_STATE:
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                        break;
+                    case AcqState.ROTATE_DOWN:
+                        if(rotateEncoderData.getDistance() > ACQ_ROLLER_ALLOWED_TO_EXTEND &&
+                                rotateEncoderData.getDistance() < ACQ_ROLLER_ALLOWED_TO_EXTEND + 2){
+                            acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
+                        }else{
+                            acquisitionState = AcqState.ACQUIRING;
+                        }
+                        break;
+                    case AcqState.ROTATE_READY_TO_EXTEND:
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                }
+                break;
+            case AcqState.READY_TO_SHOOT:
+                switch(acquisitionState){
+                    case AcqState.OFF_STATE:
+                        if(rotateEncoderData.getDistance() < 5){
+                            acquisitionState = AcqState.ROTATE_DOWN;
+                        }else{
+                            acquisitionState = AcqState.ROTATE_UP;
+                        }
+                    case AcqState.ROTATE_DOWN:
+                        acquisitionState = AcqState.READY_TO_SHOOT;
+                        break;
+                    case AcqState.ROTATE_UP:
+                        acquisitionState = AcqState.READY_TO_SHOOT;
+                        break;
+                }
+                break;
+            case AcqState.EJECT_BALL:
+                switch(acquisitionState){
+                    case AcqState.OFF_STATE:
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                        break;
+                    case AcqState.ROTATE_DOWN:
+                        acquisitionState = AcqState.EJECT_BALL;
+                        break;
+                }
+                break;
+            case AcqState.SAFE_STATE:
+                switch(acquisitionState){
+                    case AcqState.OFF_STATE:
+                        acquisitionState = AcqState.ROTATE_UP;
+                        break;
+                    case AcqState.ROTATE_UP:
+                        acquisitionState = AcqState.SAFE_STATE;
+                }
+                break;
+            case AcqState.OFF_STATE:
+                acquisitionState = AcqState.OFF_STATE;
+                break;
+        }
+    }
+    
     /**
      * The state you want the system to enter
      * @param state - get from AcqsitionState 
      */
     public void setMode(int state){
-        acquisitionState = state;
+        wantedState = state;
+        acquisitionState = AcqState.OFF_STATE;
+        findNewCase();
     }
     
     /**
@@ -335,6 +410,33 @@ public class Acquisitions extends GenericSubsystem{
         public static final int READY_TO_SHOOT = 8;
         public static final int SAFE_STATE = 9;
         public static final int OFF_STATE = 10;
+        
+        public static String getStateName(int state){
+            switch(state){
+                case ROTATE_UP:
+                    return "Rotating Up";
+                case ROTATE_DOWN:
+                    return "Rotating Down";
+                case ROTATE_READY_TO_EXTEND:
+                    return "Rotate REady to Extend";
+                case ACQUIRING:
+                    return "Acquring";
+                case ACQUIRED:
+                    return "Acquired";
+                case EJECT_BALL:
+                    return "Reject ball";
+                case READY_TO_RETRACT:
+                    return "Ready to Retract";
+                case READY_TO_SHOOT:
+                    return "Ready to Shoot";
+                case SAFE_STATE:
+                    return "Safe State";
+                case OFF_STATE:
+                    return "Off State";
+                default:
+                    return "UNKNOWN";
+            }
+        }
     }
     
 }
