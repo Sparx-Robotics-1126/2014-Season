@@ -260,9 +260,9 @@ public class Acquisitions extends GenericSubsystem{
                         acquisitionState = wantedState;
                     }else{
                         if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
-                            rotationSpeed += .05;
+                            rotationSpeed += -.05;
                         }else {
-                            rotationSpeed -= .05; 
+                            rotationSpeed -= -.05; 
                         }
                     }
                     if(ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance() 
@@ -281,7 +281,7 @@ public class Acquisitions extends GenericSubsystem{
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
                     }else{
-                        rotationSpeed = 0.6;//MAY WANT TO RAMP
+                        rotationSpeed = -0.6;//MAY WANT TO RAMP
                     }
                     if(lowerLimit.get()){
                         rotationSpeed = 0;
