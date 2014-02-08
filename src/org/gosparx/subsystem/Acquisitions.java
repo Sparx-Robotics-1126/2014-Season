@@ -373,7 +373,6 @@ public class Acquisitions extends GenericSubsystem{
      */
     public void setMode(int state){
             wantedState = state;
-            currentStatePosition = 1;
             switch(state){
                 case AcqState.ACQUIRING:
                     wantedShooterAngle = 120;
@@ -382,9 +381,23 @@ public class Acquisitions extends GenericSubsystem{
                 case AcqState.SAFE_STATE:
                     wantedShooterAngle = 0;
                     acquisitionState = AcqState.ROTATE_UP;
+                    break;
+                case AcqState.READY_TO_SHOOT:
+                    setPreset(MID_SHOOTER_PRESET);
+                    break;
+                case AcqState.EJECT_BALL:
+                    wantedShooterAngle = 120;//Acquiring
+                    acquisitionState = AcqState.ROTATE_DOWN;
+                    break;
             }
     }
 
+    /**
+     * Sets the wanted angle of the shooter.
+     * 0 - straight up and down
+     * 120 - acquiring
+     * @param preset 
+     */
     public void setPreset(int preset){
         switch(preset){
             case AcqState.CLOSE_SHOOTER_PRESET:
@@ -402,13 +415,34 @@ public class Acquisitions extends GenericSubsystem{
     }
     
     /**
-     * Sets the wanted shooting angle of the robot
+     * Sets the wanted shooting angle of the robot. And rotates the shooter
      * @param angle - wanted angle in degrees.
      * 0 - straight up
      * 120 - acquiring
      */
     private void setAngle(int angle){
         wantedShooterAngle = angle;
+        rotateEncoderData.calculateSpeed();
+        if(rotateEncoderData.getDistance() > wantedShooterAngle){
+            acquisitionState = AcqState.ROTATE_UP;
+        }else{
+            acquisitionState = AcqState.ROTATE_DOWN;
+        }
+    }
+    
+    public void addOffset(int offset){
+        wantedShooterAngle += offset;
+        if(wantedShooterAngle < 0){
+            wantedShooterAngle = 0;
+        }else if(wantedShooterAngle > 120){
+            wantedShooterAngle = 120;
+        }
+        if(offset < 0){
+            acquisitionState = AcqState.ROTATE_UP;
+        }else{
+            acquisitionState = AcqState.ROTATE_DOWN;
+        }
+        wantedState = AcqState.READY_TO_SHOOT;
     }
 
     
