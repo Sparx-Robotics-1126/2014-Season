@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.Autonomous;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
+import org.gosparx.util.Logger;
 
 /**
  *Tried to improve Acquisitions
@@ -168,6 +169,12 @@ public class Acquisitions extends GenericSubsystem{
     private int wantedShooterAngle = 0;
     
     /**
+     * The current state of the bigger general state. Used in findNextCase()
+     * Automagicly increments.
+     */ 
+    private int currentStatePosition = 0;
+    
+    /**
      * 
      * @returns the only running thread of Acquisitions.
      * This should be used instead of (new Acquisitions2)
@@ -184,7 +191,7 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the thread priority and sets the name of the subsystem for logging purposes
      */
     private Acquisitions(){
-        super("Acq", Thread.NORM_PRIORITY);
+        super(Logger.SUB_ACQUISITIONS, Thread.NORM_PRIORITY);
     }
     
     /**
@@ -196,7 +203,7 @@ public class Acquisitions extends GenericSubsystem{
             rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
             acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
         } catch (CANTimeoutException ex) {
-            log.logError("CANBus Timeout it Acquisitions2 init()");
+            log.logError("CANBus Timeout in Acquisitions init()");
         }
         acqLongPnu = new Solenoid(IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.ACQ_SWITCH_CHAN);
@@ -218,7 +225,7 @@ public class Acquisitions extends GenericSubsystem{
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             if(currentStatePosition < 50){
-            System.out.println("Wanted State: " + wantedState + " Current State: " + acquisitionState + " Command: " + AcqState.getStateName(acquisitionState));
+                System.out.println("Wanted State: " + wantedState + " Current State: " + acquisitionState + " Command: " + AcqState.getStateName(acquisitionState));
             }
             switch(acquisitionState){                
                 case AcqState.ROTATE_UP://rotate shooter up
@@ -310,7 +317,9 @@ public class Acquisitions extends GenericSubsystem{
         return(acquisitionState == AcqState.READY_TO_SHOOT);
     }
     
-    private int currentStatePosition = 0;
+    /**
+     * Gets the next case and sets acquisitionsState to the next needed state.
+     */ 
     private void findNewCase(){
         rotateEncoderData.calculateSpeed();
         switch(wantedState){
@@ -372,6 +381,7 @@ public class Acquisitions extends GenericSubsystem{
                 currentStatePosition = 100;
                 break;
         }
+        currentStatePosition++;
     }
     
     /**
@@ -431,7 +441,7 @@ public class Acquisitions extends GenericSubsystem{
                 case ROTATE_DOWN:
                     return "Rotating Down";
                 case ROTATE_READY_TO_EXTEND:
-                    return "Rotate REady to Extend";
+                    return "Rotate Ready to Extend";
                 case ACQUIRING:
                     return "Acquring";
                 case ACQUIRED:
