@@ -56,7 +56,7 @@ public class Shooter extends GenericSubsystem{
      /**
      * The motor speed to pull back the winch at.
      */
-    private static final double WINCH_SPEED = 1.0;
+    private static final double WINCH_SPEED = 0.5;
     
     /**
      * The boolean constant if the latch is engaged.
@@ -168,77 +168,76 @@ public class Shooter extends GenericSubsystem{
      * Loops. 
      */ 
     public void execute() throws Exception {
-        wantedWinchSpeed = 0;
         while(!ds.isTest()){
-        switch(shooterState){
-            // Disengauges the latch and then sets the lastShotTime to the 
-            // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
-            case State.SHOOT:
-                latch.set(LATCH_DISENGAGED);
-                lastShotTime = Timer.getFPGATimestamp();
-                shooterState = State.SHOOTER_COOLDOWN;
-                break;
-            // Retracts the winch until the limit switch is hit
-            case State.RETRACT:
-                latch.set(LATCH_DISENGAGED);
-                lastWindTime = Timer.getFPGATimestamp();
-                shooterState = State.WINDING;
-                break;
-            // Does nothing
-            case State.STANDBY:
-                latch.set(LATCH_ENGAGED);
-                wantedWinchSpeed = 0;
-                break;
-            // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
-            // Then starts retracting the winch.
-            case State.SHOOTER_COOLDOWN:
-                if(Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS){
-                    shooterState = State.RETRACT;
-                } 
-                break;
-            case State.SET_HOME:
-                wantedWinchSpeed = WINCH_SPEED;
-                if(latchSwitch.get()){
+            wantedWinchSpeed = 0;
+            switch(shooterState){
+                // Disengauges the latch and then sets the lastShotTime to the 
+                // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
+                case State.SHOOT:
+                    latch.set(LATCH_DISENGAGED);
+                    lastShotTime = Timer.getFPGATimestamp();
+                    shooterState = State.SHOOTER_COOLDOWN;
+                    break;
+                // Retracts the winch until the limit switch is hit
+                case State.RETRACT:
+                    latch.set(LATCH_DISENGAGED);
+                    lastWindTime = Timer.getFPGATimestamp();
+                    shooterState = State.WINDING;
+                    break;
+                // Does nothing
+                case State.STANDBY:
                     wantedWinchSpeed = 0;
-                    shooterState = State.STANDBY;
-                    potData.reset();
-                }
-                break;
-            case State.UNWIND_WINCH:
-                latch.set(LATCH_ENGAGED);
-                lastUnwindTime = Timer.getFPGATimestamp();
-                shooterState = State.UNWINDING;
-                break;
-            case State.UNWINDING:
-                wantedWinchSpeed = -WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
-                    wantedWinchSpeed = 0;
-                    shooterState = State.STANDBY;
-                }
-                break;
-           case State.WINDING:
-                wantedWinchSpeed = WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastWindTime >= WIND_TIMEOUT) || potData.getInches() <= 0){
-                    wantedWinchSpeed = 0;
-                    shooterState = State.UNWIND_WINCH;
-                }
-                break;
-            default:
-                log.logError("Unknown Shooter state: " + shooterState);
-                break;
-        }
-        winchMotor.setX(wantedWinchSpeed);
-        if(Timer.getFPGATimestamp() - lastLogTime > LOG_EVERY){
-            log.logMessage("Current State: " + State.getState(shooterState));
-            log.logMessage("Pot Dist: " + potData.getInches());
-            log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
-            lastLogTime = Timer.getFPGATimestamp();
-        }
+                    break;
+                // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
+                // Then starts retracting the winch.
+                case State.SHOOTER_COOLDOWN:
+                    if(Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS){
+                        shooterState = State.RETRACT;
+                    } 
+                    break;
+                case State.SET_HOME:
+                    wantedWinchSpeed = WINCH_SPEED;
+                    if(latchSwitch.get()){
+                        wantedWinchSpeed = 0;
+                        shooterState = State.UNWIND_WINCH;
+                        potData.reset();
+                    }
+                    break;
+                case State.UNWIND_WINCH:
+                    latch.set(LATCH_ENGAGED);
+                    lastUnwindTime = Timer.getFPGATimestamp();
+                    shooterState = State.UNWINDING;
+                    break;
+                case State.UNWINDING:
+                    wantedWinchSpeed = -WINCH_SPEED;
+                    if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
+                        wantedWinchSpeed = 0;
+                        shooterState = State.STANDBY;
+                    }
+                    break;
+               case State.WINDING:
+                    wantedWinchSpeed = WINCH_SPEED;
+                    if((Timer.getFPGATimestamp() - lastWindTime >= WIND_TIMEOUT) || potData.getInches() <= 0){
+                        wantedWinchSpeed = 0;
+                        shooterState = State.UNWIND_WINCH;
+                    }
+                    break;
+                default:
+                    log.logError("Unknown Shooter state: " + shooterState);
+                    break;
+            }
+            winchMotor.setX(wantedWinchSpeed);
+            if(Timer.getFPGATimestamp() - lastLogTime > LOG_EVERY){
+                log.logMessage("Current State: " + State.getState(shooterState));
+                log.logMessage("Pot Dist: " + potData.getInches());
+                log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
+                lastLogTime = Timer.getFPGATimestamp();
+            }
         }
     }
     
     /**
-     * Sets the state of the Shooter to State.WAIT_WINCH.
+     * Sets the state of the Shooter to State.Shoot if the current state of the robot is standby.
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
@@ -262,6 +261,18 @@ public class Shooter extends GenericSubsystem{
     
     /**
      * A class used for storing possible states of the Shooter.
+     * 
+     * SHOOT - Shoots the ball
+     * RETRACT - disengages the latch and then sets to WINDIND
+     * STANDBY - Does nothing
+     * SHOOTER_COOLDOWN - Waits TIME_BETWEEN_SHOTS seconds after the shot, then
+     *                    starts winding
+     * SET_HOME - Drives the winch all the way back, sets the pot to 0, and then
+     *            engages the latch and unwinds the winch
+     * UNWIND_WINCH - Engages the latch then sets the state to UNWINDING
+     * UNWINDING - Unwinds the winch until the pot reaches INCHES_TO_WIND, then
+     *             Goes to Standby
+     * WINDING - Winds the winch until it reaches 0 or 
      */ 
     private static class State{
         public static final int SHOOT = 1;
