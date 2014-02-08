@@ -388,17 +388,27 @@ public class Acquisitions extends GenericSubsystem{
     public void setPreset(int preset){
         switch(preset){
             case AcqState.CLOSE_SHOOTER_PRESET:
-                wantedShooterAngle = CLOSE_SHOOTER_PRESET;
+                setAngle(CLOSE_SHOOTER_PRESET);
                 break;
             case AcqState.MIDDLE_SHOOTER_PRESET:
-                wantedShooterAngle = MID_SHOOTER_PRESET;
+                setAngle(MID_SHOOTER_PRESET);
                 break;
             case AcqState.FAR_SHOOTER_PRESET:
-                wantedShooterAngle = FAR_SHOOTER_PRESET;
+                setAngle(FAR_SHOOTER_PRESET);
                 break;
             default:
                 wantedShooterAngle = 0;
         }
+    }
+    
+    /**
+     * Sets the wanted shooting angle of the robot
+     * @param angle - wanted angle in degrees.
+     * 0 - straight up
+     * 120 - acquiring
+     */
+    private void setAngle(int angle){
+        wantedShooterAngle = angle;
     }
 
     
