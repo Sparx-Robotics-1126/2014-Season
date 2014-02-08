@@ -287,14 +287,14 @@ public class Controls extends GenericSubsystem{
                 }
                 drives.setManualShifting(shiftingOverride);
                 
-                if(opDPadXAxis == 1){
+                if(opCircle){
                     acq.setMode(Acquisitions.AcqState.ACQUIRING);
-                }else if(opDPadXAxis == -1){
+                }else if(opCross){
                     acq.setMode(Acquisitions.AcqState.OFF_STATE);
-                }else if(opDPadYAxis == 1 && lastAcquireMode != opDPadYAxis){
+                }else if(opTriangle){
                     acq.setMode(Acquisitions.AcqState.EJECT_BALL);
-                }else if(opDPadYAxis == -1 && lastTrussMode != opDPadYAxis){
-
+                }else if(opStart){
+                    acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
                 }
                 
                 if(opR2 && !lastShoot){
