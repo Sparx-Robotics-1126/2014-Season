@@ -244,6 +244,7 @@ public class Drives extends GenericSubsystem {
      * {@link GenericSubsystem#init() here}.
      */
     public void init() {
+        log.logMessage("DRIVES IS STARTING");
         leftFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
         leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
         leftDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.LEFT_DRIVES_ENCODER_CHAN_1,IO.DEFAULT_SLOT,IO.LEFT_DRIVES_ENCODER_CHAN_2, false, EncodingType.k4X);
@@ -268,6 +269,7 @@ public class Drives extends GenericSubsystem {
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
         drivesState = State.LOW_GEAR;
+        log.logMessage("DRIVES INIT HAS ENDED");
     }
 
     /**
