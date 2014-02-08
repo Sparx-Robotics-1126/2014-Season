@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package org.gosparx;
 
 import edu.wpi.first.wpilibj.AnalogChannel;
@@ -52,8 +46,11 @@ public class IO {
     
     public static final int OPER_JOY_PORT               = 3;
     
-    //Shooter IO
+    //Analog Ports
+    public static final int DEFAULT_ANALOG_MODULE       = 1;
+    public static final int AUTOSWITCH_CHANNEL          = 4;
     
+    //Shooter IO
     public static final int WINCH_POT_CHAN              = 3;
     
     public static final int CAN_ADRESS_PIVOT            = 4;//4
