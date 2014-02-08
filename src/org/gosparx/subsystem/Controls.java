@@ -7,6 +7,7 @@ package org.gosparx.subsystem;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.util.Logger;
 
@@ -179,7 +180,7 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
@@ -220,7 +221,7 @@ public class Controls extends GenericSubsystem{
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-
+                drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
                 if(driverLeftTopButton && !lastShiftOverrideState){
                     shiftingOverride = !shiftingOverride;
                     log.logMessage("Toggled manual shifting");
@@ -244,14 +245,29 @@ public class Controls extends GenericSubsystem{
                 }
                 drives.setManualShifting(shiftingOverride);
                 
-                drives.setSpeed(Drives.MAX_ROBOT_SPEED * ((driverLeftYAxis > 0) ? MathUtils.pow(driverLeftYAxis,2): -MathUtils.pow(driverLeftYAxis,2)) * -1, Drives.MAX_ROBOT_SPEED * ((driverRightYAxis > 0) ? MathUtils.pow(driverRightYAxis,2): -MathUtils.pow(driverRightYAxis,2)) * -1);
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
-                    log.logMessage("Left: " + Drives.MAX_ROBOT_SPEED * driverLeftYAxis * -1 + " Right: " + Drives.MAX_ROBOT_SPEED * driverRightYAxis * -1);
+                    log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
                 }
                 Thread.sleep(20);
             }
         }
+    }
+    /**
+     * Edit this method to change how the joystick values translate into speed
+     * @param joystickValue - the joystick value to convert to speed
+     * @return the speed desired after the joystickValue is applied to the formula
+     */
+    private double getSpeed(double joystickValue){
+        return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
+    }
+
+    public void liveWindow() {
+        
+    }
+    
+    private void smartDashboardTimer(){
+        SmartDashboard.putNumber("Timer", ds.getMatchTime());
     }
 }
