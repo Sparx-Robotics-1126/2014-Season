@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
@@ -25,7 +21,7 @@ public class Shooter extends GenericSubsystem{
      /**
      * The timeout for winding the cable onto the winch, in seconds.
      */ 
-    private static final double WIND_TIMEOUT = 2;
+    private static final double WIND_TIMEOUT = 2;//MAY BE MORE
     
     /**
      * The Diameter of the cylinder we are wrapping the cable around.
