@@ -49,8 +49,8 @@ public class EntryPoint extends SimpleRobot {
                 {Drives.getInstance()},
                 {Controls.getInstance()},
                 {Autonomous.getInstance()},
-                {Acquisitions.getInstance()},
-//                {Shooter.getInstance()},
+//                {Acquisitions.getInstance()},
+                {Shooter.getInstance()},
 //                {Vision.getInstance()}
                 };
 

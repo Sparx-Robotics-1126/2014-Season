@@ -302,11 +302,11 @@ public class Controls extends GenericSubsystem{
                     acq.setMode(Acquisitions.AcqState.SAFE_STATE);
                 }
                 
-                if(opDPadYAxis == -1){
+                if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
                 }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                }else if(opDPadYAxis == 1){
+                }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }
                 

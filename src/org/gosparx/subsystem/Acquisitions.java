@@ -154,17 +154,17 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset
      */
-    private final static int CLOSE_SHOOTER_PRESET = 00;
+    private final static int CLOSE_SHOOTER_PRESET = 20;
     
     /**
      * Mid Shooter preset
      */
-   private final static int MID_SHOOTER_PRESET = 00;
+   private final static int MID_SHOOTER_PRESET = 40;
    
    /**
     * Far Shooter preset
     */
-   private final static int FAR_SHOOTER_PRESET = 00;
+   private final static int FAR_SHOOTER_PRESET = 60;
    
     /*/************************VARIABLES***************************** /*/
     
@@ -254,6 +254,11 @@ public class Acquisitions extends GenericSubsystem{
      */
     public void execute() throws Exception {
         rotateEncoderData.reset();
+        /*if(!IO.USE_PWM_CABLES){
+                rotatingMotor.setX(0);
+            }else{
+                rotatingMotorPWM.set(0);
+        }*/
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             switch(acquisitionState){                
@@ -399,7 +404,7 @@ public class Acquisitions extends GenericSubsystem{
                     acquisitionState = AcqState.ROTATE_UP;
                     break;
                 case AcqState.READY_TO_SHOOT:
-                    setPreset(MID_SHOOTER_PRESET);
+                    setPreset(AcqState.MIDDLE_SHOOTER_PRESET);
                     break;
                 case AcqState.EJECT_BALL:
                     wantedShooterAngle = 120;//Acquiring
