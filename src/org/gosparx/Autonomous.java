@@ -290,7 +290,7 @@ public class Autonomous extends GenericSubsystem{
     private void runAutonomous(){
         int start = 0, finished = currentAutonomous.length;
             while(ds.isAutonomous() &&  ds.isEnabled()){
-                for (int i = start; i <= finished; i++){
+                for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -318,6 +318,8 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case INTAKE_AQUIRE_BALL:
                             
+                            System.out.println("Auto is configuring");
+                            System.out.println("Auto Acquiring");
                             break;
                         case INTAKE_REVERSE:
                             
@@ -388,7 +390,6 @@ public class Autonomous extends GenericSubsystem{
                     }
             }
         }              
-    }
 
     /**
      * Gets an instance of all the subsystems
