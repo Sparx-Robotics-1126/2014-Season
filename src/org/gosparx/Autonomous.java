@@ -318,8 +318,6 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case INTAKE_AQUIRE_BALL:
                             
-                            System.out.println("Auto is configuring");
-                            System.out.println("Auto Acquiring");
                             break;
                         case INTAKE_REVERSE:
                             
@@ -382,14 +380,15 @@ public class Autonomous extends GenericSubsystem{
                         default:
                             log.logMessage("No case statement: " + currentAutonomous[i]);
                     }
-                }   
                     try {
                         Thread.sleep(20);
                     } catch (InterruptedException ex) {
                         log.logError("AUTO: SLEEP FAILED");
                     }
+                    }
+                }       
             }
-        }              
+    }
 
     /**
      * Gets an instance of all the subsystems
