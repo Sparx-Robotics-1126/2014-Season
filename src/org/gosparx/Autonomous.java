@@ -107,10 +107,11 @@ public class Autonomous extends GenericSubsystem{
     private static final int DRIVES_DONE                    = 6;
     
     /* Aquire */
-    private static final int INTAKE_AQUIRE_BALL             = 10;
-    private static final int INTAKE_REVERSE                 = 11;
-    private static final int INTAKE_IN_POSITION             = 12;
-    private static final int INTAKE_DONE                    = 13;
+    private static final int ACQ_READY                      = 10;
+    private static final int ACQ_AQUIRE_BALL                = 11;
+    private static final int ACQ_REVERSE                    = 12;
+    private static final int ACQ_IN_POSITION                = 13;
+    private static final int ACQ_DONE                       = 14;
     
     /* Shooter */
     private static final int SHOOTER_SHOOT                  = 20;
@@ -192,8 +193,9 @@ public class Autonomous extends GenericSubsystem{
     
     private static final String ACQUIRE_BALL = "Acquire Ball";
     private static final int[][] acquiring_ball = {
-        {INTAKE_AQUIRE_BALL},
-        {INTAKE_IN_POSITION},
+        {ACQ_READY},
+        {ACQ_AQUIRE_BALL},
+        {ACQ_IN_POSITION},
         {END}
     };
     
@@ -319,16 +321,19 @@ public class Autonomous extends GenericSubsystem{
                             log.logMessage("Auto Waiting for Drives");
                             isDoneDrives();
                             break;
-                        case INTAKE_AQUIRE_BALL:
+                        case ACQ_READY:
+                            isAcquisitionsReady();
+                            break;
+                        case ACQ_AQUIRE_BALL:
                             acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
-                        case INTAKE_REVERSE:
+                        case ACQ_REVERSE:
                             acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                             break;
-                        case INTAKE_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                        case ACQ_IN_POSITION://ONLY WORKS WITH ACQUIRING
                             isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
                             break;
-                        case INTAKE_DONE:
+                        case ACQ_DONE:
                             isAcquisitionsDone(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_SHOOT:
@@ -431,6 +436,16 @@ public class Autonomous extends GenericSubsystem{
      */
     private void isVisionDone(){
         while(!vision.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void isAcquisitionsReady(){
+        while(!acq.isAcquisitionsReady()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {

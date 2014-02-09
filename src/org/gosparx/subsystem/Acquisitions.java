@@ -191,12 +191,6 @@ public class Acquisitions extends GenericSubsystem{
      */
     private int wantedShooterAngle = 0;//Default
     
-    /**
-     * The current state of the bigger general state. Used in findNextCase()
-     * Automagicly increments.
-     */ 
-    private int currentStatePosition = 0;
-    
     private boolean isEncoderDataSet = false;//Not true on power up
     
     /**
@@ -398,22 +392,24 @@ public class Acquisitions extends GenericSubsystem{
      */
     public void setMode(int state){
             wantedState = state;
-            switch(state){
-                case AcqState.ACQUIRING:
-                    wantedShooterAngle = 120;
-                    acquisitionState = AcqState.ROTATE_DOWN;
-                    break;
-                case AcqState.SAFE_STATE:
-                    wantedShooterAngle = 0;
-                    acquisitionState = AcqState.ROTATE_UP;
-                    break;
-                case AcqState.READY_TO_SHOOT:
-                    setPreset(AcqState.MIDDLE_SHOOTER_PRESET);
-                    break;
-                case AcqState.EJECT_BALL:
-                    wantedShooterAngle = 120;//Acquiring
-                    acquisitionState = AcqState.ROTATE_DOWN;
-                    break;
+            if(isEncoderDataSet){
+                switch(state){
+                    case AcqState.ACQUIRING:
+                        wantedShooterAngle = 120;
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                        break;
+                    case AcqState.SAFE_STATE:
+                        wantedShooterAngle = 0;
+                        acquisitionState = AcqState.ROTATE_UP;
+                        break;
+                    case AcqState.READY_TO_SHOOT:
+                        setPreset(AcqState.MIDDLE_SHOOTER_PRESET);
+                        break;
+                    case AcqState.EJECT_BALL:
+                        wantedShooterAngle = 120;//Acquiring
+                        acquisitionState = AcqState.ROTATE_DOWN;
+                        break;
+                }
             }
     }
 
@@ -468,6 +464,10 @@ public class Acquisitions extends GenericSubsystem{
             acquisitionState = AcqState.ROTATE_DOWN;
         }
         wantedState = AcqState.READY_TO_SHOOT;
+    }
+    
+    public boolean isAcquisitionsReady(){
+        return isEncoderDataSet;
     }
     
     /**
