@@ -1,7 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+//It can't be that hard - Mo - frisbee
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
@@ -73,6 +70,10 @@ public class Controls extends GenericSubsystem{
      * The last state of the hold in place button
      */
     private boolean lastHoldInPlace                                = false;
+    
+    private double lastLeftJoyYValue = 0.000000000000000000000000000000000000;
+    
+    private double lastRightJoyYValue = 0.00000000000000000000000000000000000;
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
@@ -209,12 +210,23 @@ public class Controls extends GenericSubsystem{
                 driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
                 driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
                 driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+                
                 if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                     driverLeftYAxis = 0;
                 }
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
+                
+                //RAMPING
+                if(driverLeftYAxis < lastLeftJoyYValue){
+                    driverLeftYAxis = (lastLeftJoyYValue + driverLeftYAxis)/2;//closer to 1 = slower   
+                }
+                lastLeftJoyYValue = driverLeftYAxis;
+                if(driverRightYAxis < lastRightJoyYValue){
+                    driverRightYAxis = (lastRightJoyYValue + driverRightYAxis)/2;//closer to 1 = slower   
+                }
+                lastLeftJoyYValue = driverLeftYAxis;
                 
                 if(driverRightTopButton != lastHoldInPlace){
                     if(driverRightTopButton){
