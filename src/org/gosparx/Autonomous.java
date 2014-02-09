@@ -110,7 +110,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int ACQ_READY                      = 10;
     private static final int ACQ_AQUIRE_BALL                = 11;
     private static final int ACQ_REVERSE                    = 12;
-    private static final int ACQ_IN_POSITION                = 13;
+    private static final int ACQ_ACQUIRE_IN_POSITION                = 13;
     private static final int ACQ_DONE                       = 14;
     
     /* Shooter */
@@ -191,11 +191,17 @@ public class Autonomous extends GenericSubsystem{
     };
    
     
-    private static final String ACQUIRE_BALL = "Acquire Ball";
-    private static final int[][] acquiring_ball = {
+    private static final String TWO_BALLS_IN_HIGH = "Two balls in high";
+    private static final int[][] twoBallsInHigh = {
         {ACQ_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_IN_POSITION},
         {ACQ_AQUIRE_BALL},
-        {ACQ_IN_POSITION},
+        {ACQ_ACQUIRE_IN_POSITION},
+        {DRIVES_GO_FORWARD, 30},
+        {DRIVES_DONE},
+        {SHOOTER_SET_PRESET},
+        {SHOOTER_IN_POSITION, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
         {END}
     };
     
@@ -264,8 +270,8 @@ public class Autonomous extends GenericSubsystem{
                 selectedAutoName = TURN_90_NAME;
                 break;
             case 5:
-                currentAutonomous = acquiring_ball;
-                selectedAutoName = ACQUIRE_BALL;
+                currentAutonomous = twoBallsInHigh;
+                selectedAutoName = TWO_BALLS_IN_HIGH;
                 break;
             case 6:
                 
@@ -291,12 +297,12 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = acquiring_ball;
+        currentAutonomous = twoBallsInHigh;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
                     current++;
-                for (int i = start; i <= finished; i++){
+                for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -324,17 +330,19 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case ACQ_READY:
                             log.logMessage("Auto is configuring");
+                            System.out.println("Auto configure");
                             isAcquisitionsReady();
                             break;
                         case ACQ_AQUIRE_BALL:
                             log.logMessage("Auto Acquiring");
+                            System.out.println("Auto Acquiring");
                             acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case ACQ_REVERSE:
                             log.logMessage("Auto Ejecting Ball");
                             acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                             break;
-                        case ACQ_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                        case ACQ_ACQUIRE_IN_POSITION://ONLY WORKS WITH ACQUIRING
                             log.logMessage("Auto is waiting for Acquisitions to acquire");
                             isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
                             break;
@@ -346,10 +354,10 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case SHOOTER_SET_PRESET:
-                            
+                            acq.setPreset(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_IN_POSITION:
-                            
+                            isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
                         case SHOOTER_DONE:
                             isVisionDone();
