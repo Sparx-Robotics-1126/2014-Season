@@ -214,6 +214,7 @@ public class Autonomous extends GenericSubsystem{
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
            double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading;
+           System.out.println("Auto Switch: " + voltage);
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
