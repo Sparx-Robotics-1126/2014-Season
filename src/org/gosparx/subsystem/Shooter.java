@@ -258,7 +258,11 @@ public class Shooter extends GenericSubsystem{
 
     private String subsystemName = "Shooter";
     public void liveWindow() {
-        LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
+        if(!usePWMCables){
+            LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
+        }else{
+            LiveWindow.addActuator(subsystemName, "Winch", winchMotorPWM);
+        }
         LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);

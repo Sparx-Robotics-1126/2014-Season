@@ -468,8 +468,13 @@ public class Acquisitions extends GenericSubsystem{
      * Sets up the live window screen used in test mode to control each system manually.
      */
     public void liveWindow() {
-        LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
-        LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
+        if(!usePWMCables){
+            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
+            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
+        }else{
+            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotorPWM);
+            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRollerPWM);
+        }
         LiveWindow.addActuator(subsystemName, "Small Cylinder", acqShortPnu);
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
