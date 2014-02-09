@@ -312,7 +312,7 @@ public class Drives extends GenericSubsystem {
         gyro.setSensitivity(0.007);
         isGyroWorking = gyroCheck();
         drivesState = State.DRIVES_LOW_GEAR;
-        autoFunctionState = State.FUNCT_HOLD_POS;
+        autoFunctionState = State.FUNCT_STANDBY;
     }
 
     /**

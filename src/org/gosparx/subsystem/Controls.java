@@ -40,6 +40,8 @@ public class Controls extends GenericSubsystem{
      */ 
     private Drives drives;
     
+    private static final double SLOW_DOWN_RAMP = 1.35;
+    
     /**
      * The dead zone for the Driver joysticks. This is the zone in which the    
      * drives will be set to 0.
@@ -211,22 +213,23 @@ public class Controls extends GenericSubsystem{
                 driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
                 driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
                 
+                //RAMPING
+                if(driverLeftYAxis > lastLeftJoyYValue){
+                    driverLeftYAxis = (lastLeftJoyYValue + driverLeftYAxis)/SLOW_DOWN_RAMP;//closer to 1 = slower   
+                }
+                lastLeftJoyYValue = driverLeftYAxis;
+                
+                if(driverRightYAxis > lastRightJoyYValue){
+                    driverRightYAxis = (lastRightJoyYValue + driverRightYAxis)/SLOW_DOWN_RAMP;//closer to 1 = slower   
+                }
+                lastRightJoyYValue = driverRightYAxis;
+                
                 if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                     driverLeftYAxis = 0;
                 }
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-                
-                //RAMPING
-                if(driverLeftYAxis < lastLeftJoyYValue){
-                    driverLeftYAxis = (lastLeftJoyYValue + driverLeftYAxis)/2;//closer to 1 = slower   
-                }
-                lastLeftJoyYValue = driverLeftYAxis;
-                if(driverRightYAxis < lastRightJoyYValue){
-                    driverRightYAxis = (lastRightJoyYValue + driverRightYAxis)/2;//closer to 1 = slower   
-                }
-                lastLeftJoyYValue = driverLeftYAxis;
                 
                 if(driverRightTopButton != lastHoldInPlace){
                     if(driverRightTopButton){
@@ -259,6 +262,8 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
+                    log.logMessage("Left: " + driverLeftYAxis + " Left Last: " + lastLeftJoyYValue);
+                    log.logMessage("Right: " + driverRightYAxis + " Right Last: " + lastRightJoyYValue);
                 }
                 Thread.sleep(20);
             }
