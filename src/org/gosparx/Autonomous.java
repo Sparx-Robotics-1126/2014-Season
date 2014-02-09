@@ -1,5 +1,6 @@
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -75,6 +76,11 @@ public class Autonomous extends GenericSubsystem{
      * Wanted auto mode for autonomous
      */
     private int wantedAutoMode;
+    
+    /**
+     * The auto switch on the robot. It tells what auto to run
+     */
+    private AnalogChannel autoSelectSwitch;
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
@@ -207,7 +213,7 @@ public class Autonomous extends GenericSubsystem{
         if(smartAutoMode){
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
-           double voltage = 0; // need voltage reaading;
+           double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading;
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
@@ -382,6 +388,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        autoSelectSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
     }
 
     /**
