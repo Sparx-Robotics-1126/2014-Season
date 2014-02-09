@@ -30,6 +30,11 @@ public class LightSensor {
         redReader = new AnalogChannel(redSlot, redChannel);
     }
     
+    public LightSensor(int blueSlot, int blueChannel, int redSlot, int redChannel){
+        blueReader = new AnalogChannel(blueSlot, blueChannel);
+        redReader = new AnalogChannel(redSlot, redChannel);
+    }
+    
     /**
      * Returns a direct value from the color sensor
      */
@@ -49,7 +54,7 @@ public class LightSensor {
         blueValue = getBlueValue();
         redValue = getRedValue();
         totalValue = blueValue + redValue;
-        System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON'T HAVE A LOGGER
+//        System.out.println("BLUE: " + blueValue + " RED: " + redValue);//DON'T HAVE A LOGGER
         if(blueValue > redValue && totalValue < RED_THRESHOLD){
             return BLUE_COLOR;
         }else if(blueValue < redValue && totalValue < BLUE_THRESHOLD){

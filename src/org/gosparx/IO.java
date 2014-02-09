@@ -35,10 +35,9 @@ public class IO {
     //Light Sensor Channels
     public static final int RIGHT_LIGHT_READER_RED              = 6;
     public static final int RIGHT_LIGHT_READER_BLUE             = 7;
-    public static final int RIGHT_LIGHT_READER_LIGHT            = 8;
+    public static final int LIGHT_READER_LIGHT                  = 8;
     public static final int LEFT_LIGHT_READER_RED               = 4;              
     public static final int LEFT_LIGHT_READER_BLUE              = 5;
-    public static final int LEFT_LIGHT_READER_LIGHT             = 7;
     
     // Drives Pnumatic Slots
     public static final int SHIFT_CHAN                  = 1;

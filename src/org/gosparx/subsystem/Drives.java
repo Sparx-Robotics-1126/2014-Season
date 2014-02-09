@@ -279,12 +279,12 @@ public class Drives extends GenericSubsystem {
  
         gyro = new Gyro(IO.GYRO_ANALOG);
         
-        rightLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_RED);
-        leftLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_RED);
+        rightLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.LIGHT_READER_LIGHT, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.RIGHT_LIGHT_READER_RED);
+        leftLightSensor = new LightSensor(IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_BLUE, IO.DEFAULT_SLOT, IO.LEFT_LIGHT_READER_RED);
         gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
         gyro.setSensitivity(.0067);
         isGyroWorking = gyroCheck();
-        drivesState = State.LOW_GEAR;
+        drivesState = State.FINDING_LINE;
     }
 
     /**
@@ -406,7 +406,7 @@ public class Drives extends GenericSubsystem {
                     }
                     break;
                 case State.FINDING_LINE:
-                    double topSpeed = 0.2;//make private after testing
+                    double topSpeed = 0;//make private after testing
                     //MAY BE USEFULL
                     if(DriverStation.Alliance.kRed == ds.getAlliance()){
                         onRedAlliance = true;
@@ -415,6 +415,7 @@ public class Drives extends GenericSubsystem {
                     }
                     //HAVE TO DRIVE FOWARD
                     //RIGHT
+                    System.out.println("RED: " + leftLightSensor.getRedValue() + " Blue" + leftLightSensor.getBlueValue());
                     if(rightLightSensor.isLineColor(LightSensor.WHITE_COLOR)){
                         rightMotorOutput = 0;
                         log.logMessage("Right has made it");
