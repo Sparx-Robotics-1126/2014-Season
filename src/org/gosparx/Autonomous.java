@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.gosparx.subsystem.Acquisitions;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -24,6 +25,11 @@ public class Autonomous extends GenericSubsystem{
      * Instance of vision
      */
     private Vision vision;
+    
+    /**
+     * Instance of acquisitions
+     */
+    private Acquisitions acq;
     
     /**
      * A list of choices for Smart autonomous mode
@@ -183,6 +189,14 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
    
+    
+    private static final String ACQUIRE_BALL = "Acquire Ball";
+    private static final int[][] acquiring_ball = {
+        {INTAKE_AQUIRE_BALL},
+        {INTAKE_IN_POSITION},
+        {END}
+    };
+    
     /**
      * Autonomous Constructor
      */
@@ -248,7 +262,8 @@ public class Autonomous extends GenericSubsystem{
                 selectedAutoName = TURN_90_NAME;
                 break;
             case 5:
-                
+                currentAutonomous = acquiring_ball;
+                selectedAutoName = ACQUIRE_BALL;
                 break;
             case 6:
                 
@@ -305,16 +320,16 @@ public class Autonomous extends GenericSubsystem{
                             isDoneDrives();
                             break;
                         case INTAKE_AQUIRE_BALL:
-                            
+                            acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case INTAKE_REVERSE:
-                            
+                            acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                             break;
-                        case INTAKE_IN_POSITION:
-                            
+                        case INTAKE_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                            isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case INTAKE_DONE:
-                            
+                            isAcquisitionsDone(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_SHOOT:
                             
@@ -380,6 +395,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        acq = Acquisitions.getInstance();
     }
 
     /**
@@ -415,6 +431,16 @@ public class Autonomous extends GenericSubsystem{
      */
     private void isVisionDone(){
         while(!vision.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void isAcquisitionsDone(int wantedDoneState){
+        while(!acq.isLastCommandDone(wantedDoneState)){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {

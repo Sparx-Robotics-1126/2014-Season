@@ -469,6 +469,15 @@ public class Acquisitions extends GenericSubsystem{
         }
         wantedState = AcqState.READY_TO_SHOOT;
     }
+    
+    /**
+     * Tells auto if the next command can start
+     * @param doneState
+     * @return true if the command is done or false if not
+     */
+    public boolean isLastCommandDone(int doneState){
+        return (doneState == acquisitionState);
+    }
 
     
     /**
