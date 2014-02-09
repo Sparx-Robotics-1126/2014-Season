@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.AnalogChannel;
  */
 public class IO {
     
+    public static final boolean USE_PWM_CABLES          = true;
+    
     // Digital Side Card Slots
     public static final int DEFAULT_SLOT                = 1;
     
@@ -57,10 +59,10 @@ public class IO {
     public static final int PWM_PIVOT                   = 3;
     
     public static final int CAN_ADRESS_WINCH            = 2;//2
-    public static final int PWM_WINCH                   = 2;
+    public static final int PWM_WINCH                   = 1;
     
     public static final int CAN_ADRESS_ACQ              = 3;
-    public static final int PWM_ACQ                     = 1;
+    public static final int PWM_ACQ                     = 2;
     
     public static final int PIVOT_ENCODER_CHAN_1        = 5;
     

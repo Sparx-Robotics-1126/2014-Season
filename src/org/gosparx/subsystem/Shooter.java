@@ -149,7 +149,7 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        if(!usePWMCables){
+        if(!IO.USE_PWM_CABLES){
             try {
                 winchMotor = new CANJaguar(IO.CAN_ADRESS_WINCH);
             } catch (CANTimeoutException ex) {
@@ -228,7 +228,7 @@ public class Shooter extends GenericSubsystem{
                     log.logError("Unknown Shooter state: " + shooterState);
                     break;
             }
-            if(!usePWMCables){
+            if(!IO.USE_PWM_CABLES){
                 winchMotor.setX(wantedWinchSpeed);
             }else{
                 winchMotorPWM.set(wantedWinchSpeed);
@@ -258,7 +258,7 @@ public class Shooter extends GenericSubsystem{
 
     private String subsystemName = "Shooter";
     public void liveWindow() {
-        if(!usePWMCables){
+        if(!IO.USE_PWM_CABLES){
             LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
         }else{
             LiveWindow.addActuator(subsystemName, "Winch", winchMotorPWM);

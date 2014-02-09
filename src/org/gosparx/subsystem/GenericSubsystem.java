@@ -31,8 +31,6 @@ public abstract class GenericSubsystem extends Thread {
      */
     protected double lastLogTime;
     
-    protected boolean usePWMCables = true;
-    
     /**
      * This creates a generic subsystem.
      *

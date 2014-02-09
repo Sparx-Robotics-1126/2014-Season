@@ -134,7 +134,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The distance each tick travels. (in degrees)
      */
-    private final static double DEGREES_PER_TICK = -0.007670476;
+    private final static double DEGREES_PER_TICK = 0.007670476;
     
     private final static double ROTATE_UP_SPEED = -60;
     
@@ -224,7 +224,7 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        if(!usePWMCables){
+        if(!IO.USE_PWM_CABLES){
             try {
                 rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
                 acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
@@ -289,7 +289,7 @@ public class Acquisitions extends GenericSubsystem{
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
                     }else{
-                        rotationSpeed = -0.6;//MAY WANT TO RAMP
+                        rotationSpeed = -0.5;//MAY WANT TO RAMP
                     }
                     if(lowerLimit.get()){
                         rotationSpeed = 0;
@@ -342,7 +342,7 @@ public class Acquisitions extends GenericSubsystem{
                     setAcquiringMotor(0);
                     break;
             }
-            if(!usePWMCables){
+            if(!IO.USE_PWM_CABLES){
                 rotatingMotor.setX(rotationSpeed);
             }else{
                 rotatingMotorPWM.set(rotationSpeed);
@@ -355,14 +355,14 @@ public class Acquisitions extends GenericSubsystem{
     }
     
     private void setAcquiringMotor(double value){
-        if(!usePWMCables){
+        if(!IO.USE_PWM_CABLES){
             try {
                 acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
             } catch (CANTimeoutException ex) {
                 ex.printStackTrace();
             }
         }else{
-            acqRollerPWM.set(value);
+            acqRollerPWM.set(value * -1);
         }
     }
     
@@ -468,7 +468,7 @@ public class Acquisitions extends GenericSubsystem{
      * Sets up the live window screen used in test mode to control each system manually.
      */
     public void liveWindow() {
-        if(!usePWMCables){
+        if(!IO.USE_PWM_CABLES){
             LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
             LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
         }else{
