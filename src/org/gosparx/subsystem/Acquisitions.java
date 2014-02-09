@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.Autonomous;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
@@ -235,6 +236,7 @@ public class Acquisitions extends GenericSubsystem{
         rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2);
         rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
         rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
+        rotateEncoderData.reset();
         lowerLimit = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
         acqShortPnu = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
@@ -247,12 +249,6 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
-        rotateEncoderData.reset();
-        /*if(!IO.USE_PWM_CABLES){
-                rotatingMotor.setX(0);
-            }else{
-                rotatingMotorPWM.set(0);
-        }*/
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             switch(acquisitionState){                
@@ -354,6 +350,7 @@ public class Acquisitions extends GenericSubsystem{
                 lastLogTime = Timer.getFPGATimestamp();
                 logFile();
             }
+        updateSmartDashboard();
         }
     }
     
@@ -478,6 +475,11 @@ public class Acquisitions extends GenericSubsystem{
     public boolean isLastCommandDone(int doneState){
         return (doneState == acquisitionState);
     }
+    
+    private static final String readyToShoot = "Ready To Shoot";
+    private void updateSmartDashboard(){
+        SmartDashboard.putBoolean(readyToShoot, readyToShoot());
+    }
 
     
     /**
@@ -497,6 +499,7 @@ public class Acquisitions extends GenericSubsystem{
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
+        SmartDashboard.putBoolean(readyToShoot, false);
     }
     
     /**

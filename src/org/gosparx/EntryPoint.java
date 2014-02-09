@@ -46,7 +46,7 @@ public class EntryPoint extends SimpleRobot {
         //TODO: Log init starting
         GenericSubsystem subsystems[][]= {
                 {LogWriter.getInstance()},
-//                {Drives.getInstance()},
+                {Drives.getInstance()},
                 {Controls.getInstance()},
                 {Autonomous.getInstance()},
                 {Acquisitions.getInstance()},

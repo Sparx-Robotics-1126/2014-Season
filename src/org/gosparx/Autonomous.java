@@ -291,6 +291,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
+        currentAutonomous = acquiring_ball;
         int start = 0, current = start, finished = currentAutonomous.length;
         while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
@@ -322,18 +323,23 @@ public class Autonomous extends GenericSubsystem{
                             isDoneDrives();
                             break;
                         case ACQ_READY:
+                            log.logMessage("Auto is configuring");
                             isAcquisitionsReady();
                             break;
                         case ACQ_AQUIRE_BALL:
+                            log.logMessage("Auto Acquiring");
                             acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case ACQ_REVERSE:
+                            log.logMessage("Auto Ejecting Ball");
                             acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                             break;
                         case ACQ_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                            log.logMessage("Auto is waiting for Acquisitions to acquire");
                             isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case ACQ_DONE:
+                            log.logMessage("Auto is waiting for Acquisitions");
                             isAcquisitionsDone(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_SHOOT:
