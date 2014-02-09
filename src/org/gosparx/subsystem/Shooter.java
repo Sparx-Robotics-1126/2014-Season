@@ -3,6 +3,7 @@ package org.gosparx.subsystem;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
@@ -79,6 +80,7 @@ public class Shooter extends GenericSubsystem{
      * The motor controller for the winch.
      */
     private CANJaguar winchMotor;
+    private Jaguar winchMotorPWM;
     
     /**
      * The limit switch for the winch latch.
@@ -147,10 +149,14 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        try {
-            winchMotor = new CANJaguar(IO.CAN_ADRESS_WINCH);
-        } catch (CANTimeoutException ex) {
-            log.logError("CANBus timeout in Shooter init()");
+        if(!usePWMCables){
+            try {
+                winchMotor = new CANJaguar(IO.CAN_ADRESS_WINCH);
+            } catch (CANTimeoutException ex) {
+                log.logError("CANBus timeout in Shooter init()");
+            }
+        }else{
+            winchMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
         }
         latchSwitch = new DigitalInput(IO.LATCH_SWITCH_CHAN);
         latch = new Solenoid(IO.LATCH_CHAN);
@@ -222,7 +228,11 @@ public class Shooter extends GenericSubsystem{
                     log.logError("Unknown Shooter state: " + shooterState);
                     break;
             }
-            winchMotor.setX(wantedWinchSpeed);
+            if(!usePWMCables){
+                winchMotor.setX(wantedWinchSpeed);
+            }else{
+                winchMotorPWM.set(wantedWinchSpeed);
+            }
             if(Timer.getFPGATimestamp() - lastLogTime > LOG_EVERY){
                 log.logMessage("Current State: " + State.getState(shooterState));
                 log.logMessage("Pot Dist: " + potData.getInches());

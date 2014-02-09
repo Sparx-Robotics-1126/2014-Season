@@ -54,10 +54,13 @@ public class IO {
     public static final int WINCH_POT_CHAN              = 3;
     
     public static final int CAN_ADRESS_PIVOT            = 4;//4
+    public static final int PWM_PIVOT                   = 3;
     
     public static final int CAN_ADRESS_WINCH            = 2;//2
+    public static final int PWM_WINCH                   = 2;
     
     public static final int CAN_ADRESS_ACQ              = 3;
+    public static final int PWM_ACQ                     = 1;
     
     public static final int PIVOT_ENCODER_CHAN_1        = 5;
     

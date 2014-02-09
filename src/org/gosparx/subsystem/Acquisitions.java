@@ -3,6 +3,7 @@ package org.gosparx.subsystem;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
@@ -54,12 +55,14 @@ public class Acquisitions extends GenericSubsystem{
      * mini-CIM driven with a 55/12 reduction (motor/output)
      */
     private CANJaguar rotatingMotor;
+    private Jaguar rotatingMotorPWM;
     
     /**
      * Used to control the intake rollers
      * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
     private CANJaguar acqRoller;
+    private Jaguar acqRollerPWM;
     
     /**
      * Used to fully extend the acquisition rollers to be able to acquire balls
@@ -221,11 +224,16 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        try {
-            rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
-            acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
-        } catch (CANTimeoutException ex) {
-            log.logError("CANBus Timeout in Acquisitions init()");
+        if(!usePWMCables){
+            try {
+                rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
+                acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
+            } catch (CANTimeoutException ex) {
+                log.logError("CANBus Timeout in Acquisitions init()");
+            }
+        }else{
+            rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
+            acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         }
         acqLongPnu = new Solenoid(IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.ACQ_SWITCH_CHAN);
@@ -334,7 +342,11 @@ public class Acquisitions extends GenericSubsystem{
                     setAcquiringMotor(0);
                     break;
             }
-            rotatingMotor.setX(rotationSpeed);
+            if(!usePWMCables){
+                rotatingMotor.setX(rotationSpeed);
+            }else{
+                rotatingMotorPWM.set(rotationSpeed);
+            }
             if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
                 lastLogTime = Timer.getFPGATimestamp();
                 logFile();
@@ -343,10 +355,14 @@ public class Acquisitions extends GenericSubsystem{
     }
     
     private void setAcquiringMotor(double value){
-        try {
-            acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
-        } catch (CANTimeoutException ex) {
-            ex.printStackTrace();
+        if(!usePWMCables){
+            try {
+                acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
+            } catch (CANTimeoutException ex) {
+                ex.printStackTrace();
+            }
+        }else{
+            acqRollerPWM.set(value);
         }
     }
     
