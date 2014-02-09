@@ -159,12 +159,12 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Mid Shooter preset
      */
-   private final static int MID_SHOOTER_PRESET = 40;
+   private final static int MID_SHOOTER_PRESET = 30;
    
    /**
     * Far Shooter preset
     */
-   private final static int FAR_SHOOTER_PRESET = 60;
+   private final static int FAR_SHOOTER_PRESET = 45;
    
     /*/************************VARIABLES***************************** /*/
     
@@ -279,12 +279,15 @@ public class Acquisitions extends GenericSubsystem{
                         }
                     }
                     if(ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance() 
-                            && acqShortPnu.get() == ACQ_SHORT_PNU_EXTENDED)
+                            && acqShortPnu.get() == ACQ_SHORT_PNU_EXTENDED && wantedState != AcqState.READY_TO_SHOOT){
                         acquisitionState = AcqState.ROTATE_READY_RETRACT;
+                    }
                     
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER >= rotateEncoderData.getDistance() 
-                            && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED)
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER >= rotateEncoderData.getDistance()
+                            && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED){
                         acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    }
+                    setAcquiringMotor(0);//turns motors off
                     break;
                 case AcqState.ROTATE_DOWN://rotate shooter down
                     if(wantedShooterAngle == 120 && lowerLimit.get()){//limit Switch reads false when touched
@@ -304,6 +307,7 @@ public class Acquisitions extends GenericSubsystem{
                             && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED){
                         acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                     }
+                    setAcquiringMotor(0);//turns motors off
                     break;
                 case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
                         acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);

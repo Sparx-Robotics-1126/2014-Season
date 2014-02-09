@@ -53,7 +53,7 @@ public class Shooter extends GenericSubsystem{
      /**
      * The motor speed to pull back the winch at.
      */
-    private static final double WINCH_SPEED = 0.5;
+    private static final double WINCH_SPEED = 0.75;
     
     /**
      * The boolean constant if the latch is engaged.
@@ -158,8 +158,8 @@ public class Shooter extends GenericSubsystem{
         }else{
             winchMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
         }
-        latchSwitch = new DigitalInput(IO.LATCH_SWITCH_CHAN);
-        latch = new Solenoid(IO.LATCH_CHAN);
+        latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_SWITCH_CHAN);
+        latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
@@ -200,6 +200,7 @@ public class Shooter extends GenericSubsystem{
                 case State.SET_HOME:
                     wantedWinchSpeed = WINCH_SPEED;
                     if(latchSwitch.get()){
+                        log.logMessage("LATCH HAS BEEN TRIGGERED");
                         wantedWinchSpeed = 0;
                         shooterState = State.UNWIND_WINCH;
                         potData.reset();
@@ -213,6 +214,7 @@ public class Shooter extends GenericSubsystem{
                 case State.UNWINDING:
                     wantedWinchSpeed = -WINCH_SPEED;
                     if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
+                        log.logMessage("UNWINDING COMPLETE");
                         wantedWinchSpeed = 0;
                         shooterState = State.STANDBY;
                     }
