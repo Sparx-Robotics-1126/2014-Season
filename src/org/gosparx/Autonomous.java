@@ -211,10 +211,11 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
+        
         if(smartAutoMode){
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
-           double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading;
+           double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
@@ -445,7 +446,7 @@ public class Autonomous extends GenericSubsystem{
     
     private String smartChooseName = "Current Auto";
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString("Current Auto:", autoName);
+        SmartDashboard.putString(smartChooseName, autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
     }
 
