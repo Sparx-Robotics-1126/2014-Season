@@ -85,15 +85,16 @@ public class Autonomous extends GenericSubsystem{
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
-    private static final double AUTO_SETTING_0 = 3.208;
-    private static final double AUTO_SETTING_1 = 3.126;
-    private static final double AUTO_SETTING_2 = 3.036;
-    private static final double AUTO_SETTING_3 = 2.935;
-    private static final double AUTO_SETTING_4 = 2.824;
-    private static final double AUTO_SETTING_5 = 2.701;
-    private static final double AUTO_SETTING_6 = 2.563;
-    private static final double AUTO_SETTING_7 = 2.405;
-    private static final double AUTO_SETTING_8 = 2.225;
+    private static final double AUTO_SETTING_0 = 5.00;
+    private static final double AUTO_SETTING_1 = 4.45;
+    private static final double AUTO_SETTING_2 = 3.89;
+    private static final double AUTO_SETTING_3 = 3.33;
+    private static final double AUTO_SETTING_4 = 2.77;
+    private static final double AUTO_SETTING_5 = 2.22;
+    private static final double AUTO_SETTING_6 = 1.66;
+    private static final double AUTO_SETTING_7 = 1.10;
+    private static final double AUTO_SETTING_8 = 0.54;
+    private static final double AUTO_SETTING_9 = -0.1;
     /**************************************************************************/
     /************************ Autonomous commands *****************************/
     /**************************************************************************/
@@ -214,7 +215,6 @@ public class Autonomous extends GenericSubsystem{
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
            double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading;
-           System.out.println("Auto Switch: " + voltage);
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
@@ -229,6 +229,12 @@ public class Autonomous extends GenericSubsystem{
                wantedAutoMode = 5;
            }else if (voltage >= AUTO_SETTING_6){
                wantedAutoMode = 6;
+           }else if (voltage >= AUTO_SETTING_7){
+               wantedAutoMode = 7;
+           }else if (voltage >= AUTO_SETTING_8){
+               wantedAutoMode = 8;
+           }else if (voltage >= AUTO_SETTING_9){
+               wantedAutoMode = 9;
            }else{
                wantedAutoMode = 100;
            }
