@@ -327,7 +327,7 @@ public class Acquisitions extends GenericSubsystem{
                     break;
                 case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rollers right on out
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rolls right on out
                     break;
                 case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
