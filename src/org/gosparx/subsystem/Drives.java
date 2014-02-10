@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
+import org.gosparx.util.Logger;
 
 /**
  * The purpose of this class is to implement the drives subsystem.  This class 
@@ -275,7 +276,7 @@ public class Drives extends GenericSubsystem {
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
-        super("Drives", Thread.NORM_PRIORITY); 
+        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY); 
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
@@ -592,7 +593,7 @@ public class Drives extends GenericSubsystem {
      * Resets the gyro
      */
     private void resetGyro(){
-//        gyro.reset();
+        gyro.reset();
     }
     
     /**

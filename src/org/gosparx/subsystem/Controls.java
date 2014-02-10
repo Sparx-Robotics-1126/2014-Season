@@ -1,4 +1,3 @@
-//It can't be that hard - Mo - frisbee
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
@@ -71,11 +70,17 @@ public class Controls extends GenericSubsystem{
     /**
      * The last state of the hold in place button
      */
-    private boolean lastHoldInPlace                                = false;
+    private boolean lastHoldInPlace                                     = false;
     
-    private double lastLeftJoyYValue = 0.000000000000000000000000000000000000;
+    /**
+     * The last Y value of the left Joystick
+     */ 
+    private double lastLeftJoyYValue                                      = 0.0;
     
-    private double lastRightJoyYValue = 0.00000000000000000000000000000000000;
+    /**
+     * The last Y value of the right Joystick
+     */ 
+    private double lastRightJoyYValue                                     = 0.0;
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
