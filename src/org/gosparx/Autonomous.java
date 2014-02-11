@@ -88,6 +88,17 @@ public class Autonomous extends GenericSubsystem{
      */
     private AnalogChannel autoSelectSwitch;
     
+    /**    
+     * String used in sendSmartAuto(), used as the group for the current auto name
+     * on the livewindow
+     */ 
+    private String smartChooseName = "Current Auto";
+    
+    /**
+     * The String used for the group of the boolean data that we use to decide 
+     * if we are using smartdashboard to choose an automode.
+     */ 
+    private String smartChooser = "Use SmartDashboard";
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
@@ -481,6 +492,9 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Waits until acquisitions is ready for the next command
+     */ 
     private void isAcquisitionsReady(){
         while(!acq.isAcquisitionsReady()){
             try {
@@ -491,6 +505,10 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Waits until acquisitions is in wantedDoneState state
+     * @param wantedDoneState - the state to wait until acquisitions is in
+     */
     private void isAcquisitionsDone(int wantedDoneState){
         while(!acq.isLastCommandDone(wantedDoneState)){
             try {
@@ -501,17 +519,27 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Sets if autonomous is allowed to run
+     * @param allowedToRun - whether or not autonomous is ready to run
+     */ 
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
     }
     
-    private String smartChooseName = "Current Auto";
-    private String smartChooser = "Use SmartDashboard";
+    /**
+     * Sends the name of the current autonomous to the livewindow and gets if we
+     * are using smart dashboard to choose the autonomous mode
+     * @param autoName - the name of the current autonomous mode
+     */ 
     private void sendSmartAuto(String autoName){
         SmartDashboard.putString(smartChooseName, autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooser);
     }
 
+    /**
+     * Inits and sends all of the components of the livewindow
+     */ 
     public void liveWindow() {
         smartChoose = new SendableChooser();
         smartChoose.addDefault("No Auto", new Integer(0));
