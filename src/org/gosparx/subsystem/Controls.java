@@ -274,9 +274,9 @@ public class Controls extends GenericSubsystem{
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
-                    log.logMessage("Left: " + leftSpeedToSet + " Right: " + rightSpeedToSet);
-                    log.logMessage("Left: " + driverLeftYAxis + " Left Last: " + lastLeftJoyYValue);
-                    log.logMessage("Right: " + driverRightYAxis + " Right Last: " + lastRightJoyYValue);
+                    log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
+                    log.logMessage("Left Joystick Y: " + driverLeftYAxis + " Left Joystick Last Y: " + lastLeftJoyYValue);
+                    log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
                 }
                 Thread.sleep(20);
             }
