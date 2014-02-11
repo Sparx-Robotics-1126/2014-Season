@@ -129,6 +129,12 @@ public class Controls extends GenericSubsystem{
      */ 
     private Shooter shooter;
     
+    private boolean lastTrimUp                                          = false;
+    
+    private boolean lastTrimDown                                        = false;
+    
+    private static final int TRIM_ANGLE                                 = 2;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -235,6 +241,8 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         while(!ds.isTest()){
             if(ds.isEnabled() && ds.isOperatorControl()){
+                lastTrimUp = opL1;
+                lastTrimDown = opL2;
                 lastShoot = opR2;
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
@@ -343,6 +351,12 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
+                }
+                
+                if(opL1 && !lastTrimUp){
+                    acq.addOffset(TRIM_ANGLE);
+                }else if(opL2 && !lastTrimDown){
+                    acq.addOffset(-TRIM_ANGLE);
                 }
                 smartDashboardTimer();
                 Thread.sleep(20);
