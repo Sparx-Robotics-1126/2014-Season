@@ -137,14 +137,17 @@ public class Acquisitions extends GenericSubsystem{
      */
     private final static double DEGREES_PER_TICK = 0.007670476;
     
-    private final static double ROTATE_UP_SPEED = -60;
+    /**
+     * Degrees per second
+     */
+    private final static double ROTATE_UP_SPEED = -80;
     
     /**
      * The angle at which it is legal for the acquisition rollers to extend without breaking rules
      */
     private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
     
-    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 90;
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 65;
     
     /**
      * The name of this subsystem.
@@ -166,6 +169,14 @@ public class Acquisitions extends GenericSubsystem{
     * Far Shooter preset
     */
    private final static int FAR_SHOOTER_PRESET = 45;
+   
+   /**
+    * TODO: COMMENT
+    */
+   private final static int CENTER_OF_GRAVITY_ANGLE = 25;
+   private final static int CLOES_TO_ACQUIRING_ANGLE = 90;
+   
+   private final static double BALL_DETECT_TIME = 0.1;
    
     /*/************************VARIABLES***************************** /*/
     
@@ -193,6 +204,10 @@ public class Acquisitions extends GenericSubsystem{
     private int wantedShooterAngle = 0;//Default
     
     private boolean isEncoderDataSet = false;//Not true on power up
+    
+    private double lastBallDetectTime = 0;
+    
+    private boolean isBallInRollers = false;
     
     /**
      * 
@@ -230,18 +245,18 @@ public class Acquisitions extends GenericSubsystem{
             rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
             acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         }
-        acqLongPnu = new Solenoid(IO.ACQ_TOGGLE_CHAN);
-        ballDetector = new DigitalInput(IO.ACQ_SWITCH_CHAN);
-        upperLimit = new DigitalInput(IO.SHOOTER_SAFE_MODE_CHAN);
+        acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
+        ballDetector = new DigitalInput(IO.DEFAULT_SLOT, IO.ACQ_BALL_DETECTOR);
+        upperLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_SAFE_MODE_CHAN);
         rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2);
         rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
         rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
         rotateEncoderData.reset();
-        lowerLimit = new DigitalInput(IO.SHOOTER_ACQ_MODE_CHAN);
-        acqShortPnu = new Solenoid(IO.KEEP_IN_FRAME_CHAN);
+        lowerLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_ACQ_MODE_CHAN);
+        acqShortPnu = new Solenoid(IO.DEFAULT_SLOT, IO.KEEP_IN_FRAME_CHAN);
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
         acquisitionState = AcqState.ROTATE_UP;//default state
-        wantedState = AcqState.ROTATE_UP;
+        wantedState = AcqState.SAFE_STATE;
     }
 
     /**
@@ -249,8 +264,18 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
+        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
+            if(!IO.USE_PWM_CABLES){
+                rotatingMotor.setX(0);
+                acqRoller.setX(0);
+            }else{
+                rotatingMotorPWM.set(0);
+                acqRollerPWM.set(0);
+            }
+        }
         while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
+            isBallInRollers = !ballDetector.get();
             switch(acquisitionState){                
                 case AcqState.ROTATE_UP://rotate shooter up
                     if(wantedShooterAngle == 0 && upperLimit.get()){//straight up and down
@@ -262,10 +287,14 @@ public class Acquisitions extends GenericSubsystem{
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
                     }else{
-                        if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
-                            rotationSpeed += -.05;
-                        }else {
-                            rotationSpeed -= -.05; 
+                        if(rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE){
+                            if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
+                                rotationSpeed += -.05;
+                            }else {
+                                rotationSpeed -= -.05; 
+                            }
+                        }else{
+                            rotationSpeed = 0.3;
                         }
                     }
                     if(ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance() 
@@ -287,14 +316,14 @@ public class Acquisitions extends GenericSubsystem{
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
                     }else{
-                        rotationSpeed = -0.5;//MAY WANT TO RAMP
+                        if(rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE){
+                            rotationSpeed = -0.9;//MAY WANT TO RAMP
+                        }else{
+                            rotationSpeed = -0.45;
+                        }
                     }
-                    if(lowerLimit.get()){
-                        rotationSpeed = 0;
-                        log.logMessage("Lower Limit has been tripped, unknown position");
-                    }
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance() 
-                            && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED){
+                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance() &&
+                            acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED){
                         acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                     }
                     setAcquiringMotor(0);//turns motors off
@@ -306,20 +335,26 @@ public class Acquisitions extends GenericSubsystem{
                     break;
                 case AcqState.ROTATE_READY_RETRACT://angle at which it is safe to extend the rollers
                     setAcquiringMotor(0);
-                    //acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                     acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
                     acquisitionState = AcqState.ROTATE_UP;
                     break;
                 case AcqState.ACQUIRING://Rollers are running and we are getting a ball
+                        acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
+                        acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                         setAcquiringMotor(INTAKE_ROLLER_SPEED);//Turns rollers on
-                        if(!ballDetector.get()){
+                        if(isBallInRollers && Timer.getFPGATimestamp() - lastBallDetectTime >= BALL_DETECT_TIME){
                             acquisitionState = AcqState.ACQUIRED;
                             log.logMessage("Ball Detected!");
+                        }else if(isBallInRollers && lastBallDetectTime == 0){
+                            lastBallDetectTime = Timer.getFPGATimestamp();
+                        }else if(!isBallInRollers){
+                            lastBallDetectTime = 0;
                         }
                     break;
                 case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
                     setAcquiringMotor(0);
-                    //acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
                     break;
                 case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
@@ -406,6 +441,8 @@ public class Acquisitions extends GenericSubsystem{
                         wantedShooterAngle = 120;//Acquiring
                         acquisitionState = AcqState.ROTATE_DOWN;
                         break;
+                    case AcqState.OFF_STATE:
+                        acquisitionState = AcqState.OFF_STATE;
                 }
             }
     }
@@ -417,6 +454,9 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
+        if(ds.isAutonomous()){
+            wantedState = AcqState.READY_TO_SHOOT;
+        }
         switch(preset){
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
@@ -476,9 +516,11 @@ public class Acquisitions extends GenericSubsystem{
         return (doneState == acquisitionState);
     }
     
-    private static final String readyToShoot = "Ready To Shoot";
+    private static final String readyToShootDisplay = "Ready To Shoot";
+    private static final String wantedAngleDisplsy = "Wanted Angle";
     private void updateSmartDashboard(){
-        SmartDashboard.putBoolean(readyToShoot, readyToShoot());
+        SmartDashboard.putBoolean(readyToShootDisplay, readyToShoot());
+        SmartDashboard.putNumber(wantedAngleDisplsy, wantedShooterAngle);
     }
 
     
@@ -499,7 +541,9 @@ public class Acquisitions extends GenericSubsystem{
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
-        SmartDashboard.putBoolean(readyToShoot, false);
+        LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
+        SmartDashboard.putBoolean(readyToShootDisplay, false);
+         SmartDashboard.putNumber(wantedAngleDisplsy, 0);
     }
     
     /**

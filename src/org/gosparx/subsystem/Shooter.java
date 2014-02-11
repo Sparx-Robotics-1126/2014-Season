@@ -170,6 +170,13 @@ public class Shooter extends GenericSubsystem{
      * Loops. 
      */ 
     public void execute() throws Exception {
+        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
+            if(IO.USE_PWM_CABLES){
+                winchMotor.setX(0);
+            }else{
+                winchMotorPWM.set(0);
+            }
+        }
         while(!ds.isTest()){
             wantedWinchSpeed = 0;
             switch(shooterState){

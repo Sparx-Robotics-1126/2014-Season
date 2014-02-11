@@ -105,6 +105,21 @@ public class Controls extends GenericSubsystem{
     private boolean lastShoot                                           = false;
     
     /**
+     * The Time the last shooter angle offset was updated
+     */
+    private double lastOffsetTime;
+    
+    /**
+     * Time (in seconds) between offset
+     */
+    private static final double OFFSET_TIME = 0.5;
+    
+    /**
+     * The time at which the robot was enabled
+     */
+    private double startingMatchTime;
+    
+    /**
      * An instance of acquisitions.
      */ 
     private Acquisitions acq;
@@ -210,6 +225,7 @@ public class Controls extends GenericSubsystem{
         acq = Acquisitions.getInstance();
         shooter = Shooter.getInstance();
     }
+    
     /**
      * Reassigns all of the variables and sets drives speed to the Y variables 
      * of the driver joysticks
@@ -310,6 +326,16 @@ public class Controls extends GenericSubsystem{
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }
                 
+                //OFFSET
+                if(Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)){
+                    lastOffsetTime = Timer.getFPGATimestamp();
+                    if(opL2){
+                        acq.addOffset(2);
+                    }else{
+                        acq.addOffset(-2);
+                    }
+                }
+                
                 if(opR2 && !lastShoot){
                     shooter.shoot();
                 }
@@ -318,7 +344,10 @@ public class Controls extends GenericSubsystem{
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
                 }
+                smartDashboardTimer();
                 Thread.sleep(20);
+            }else{
+                startingMatchTime = Timer.getFPGATimestamp();
             }
         }
     }
@@ -332,10 +361,10 @@ public class Controls extends GenericSubsystem{
     }
 
     public void liveWindow() {
-        
+        SmartDashboard.putNumber("Timer", 0);
     }
     
     private void smartDashboardTimer(){
-        SmartDashboard.putNumber("Timer", ds.getMatchTime());
+        SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
     }
 }

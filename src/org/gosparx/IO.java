@@ -72,7 +72,7 @@ public class IO {
     
     public static final int ACQ_TOGGLE_CHAN             = 3;
     
-    public static final int ACQ_SWITCH_CHAN             = 12;
+    public static final int ACQ_BALL_DETECTOR           = 12;
     
     public static final int LATCH_SWITCH_CHAN           = 11;
     
@@ -83,4 +83,6 @@ public class IO {
     public static final int LATCH_CHAN                  = 4;
     
     public static final int KEEP_IN_FRAME_CHAN          = 2;
+    
+    public static final int CAMERA_LIGHT_RELAY          = 5;
 }

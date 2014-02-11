@@ -282,6 +282,12 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
+        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
+            rightFrontDrives.set(0);
+            rightRearDrives.set(0);
+            leftFrontDrives.set(0);
+            leftRearDrives.set(0);
+        }
         while(!ds.isTest()){
             currentAngle = gyro.getAngle();
             leftEncoderData.calculateSpeed();

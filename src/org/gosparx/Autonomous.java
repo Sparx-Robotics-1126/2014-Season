@@ -110,7 +110,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int ACQ_READY                      = 10;
     private static final int ACQ_AQUIRE_BALL                = 11;
     private static final int ACQ_REVERSE                    = 12;
-    private static final int ACQ_ACQUIRE_IN_POSITION                = 13;
+    private static final int ACQ_ACQUIRE_IN_POSITION        = 13;
     private static final int ACQ_DONE                       = 14;
     
     /* Shooter */
@@ -196,6 +196,7 @@ public class Autonomous extends GenericSubsystem{
         {ACQ_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
         {SHOOTER_IN_POSITION},
+        {WAIT, 1000},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
         {DRIVES_GO_FORWARD, 30},
@@ -330,7 +331,6 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case ACQ_READY:
                             log.logMessage("Auto is configuring");
-                            System.out.println("Auto configure");
                             isAcquisitionsReady();
                             break;
                         case ACQ_AQUIRE_BALL:
@@ -395,7 +395,11 @@ public class Autonomous extends GenericSubsystem{
                             loopTime = currentAutonomous[i][1];
                             break;
                         case WAIT:
-                            
+                            try {
+                                Thread.sleep(currentAutonomous[i][1]);
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
                             break;
                         case END:
                             runAutonomous = false;
