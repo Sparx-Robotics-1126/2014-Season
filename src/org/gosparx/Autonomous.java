@@ -1,5 +1,6 @@
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -76,18 +77,24 @@ public class Autonomous extends GenericSubsystem{
      */
     private int wantedAutoMode;
     
+    /**
+     * The auto switch on the robot. It tells what auto to run
+     */
+    private AnalogChannel autoSelectSwitch;
+    
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
-    private static final double AUTO_SETTING_0 = 3.208;
-    private static final double AUTO_SETTING_1 = 3.126;
-    private static final double AUTO_SETTING_2 = 3.036;
-    private static final double AUTO_SETTING_3 = 2.935;
-    private static final double AUTO_SETTING_4 = 2.824;
-    private static final double AUTO_SETTING_5 = 2.701;
-    private static final double AUTO_SETTING_6 = 2.563;
-    private static final double AUTO_SETTING_7 = 2.405;
-    private static final double AUTO_SETTING_8 = 2.225;
+    private static final double AUTO_SETTING_0 = 5.00;
+    private static final double AUTO_SETTING_1 = 4.45;
+    private static final double AUTO_SETTING_2 = 3.89;
+    private static final double AUTO_SETTING_3 = 3.33;
+    private static final double AUTO_SETTING_4 = 2.77;
+    private static final double AUTO_SETTING_5 = 2.22;
+    private static final double AUTO_SETTING_6 = 1.66;
+    private static final double AUTO_SETTING_7 = 1.10;
+    private static final double AUTO_SETTING_8 = 0.54;
+    private static final double AUTO_SETTING_9 = -0.1;
     /**************************************************************************/
     /************************ Autonomous commands *****************************/
     /**************************************************************************/
@@ -206,10 +213,11 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
+        
         if(smartAutoMode){
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
-           double voltage = 0; // need voltage reaading;
+           double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading
            if (voltage >= AUTO_SETTING_0){
                wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
@@ -224,6 +232,12 @@ public class Autonomous extends GenericSubsystem{
                wantedAutoMode = 5;
            }else if (voltage >= AUTO_SETTING_6){
                wantedAutoMode = 6;
+           }else if (voltage >= AUTO_SETTING_7){
+               wantedAutoMode = 7;
+           }else if (voltage >= AUTO_SETTING_8){
+               wantedAutoMode = 8;
+           }else if (voltage >= AUTO_SETTING_9){
+               wantedAutoMode = 9;
            }else{
                wantedAutoMode = 100;
            }
@@ -276,12 +290,9 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = autoSquare;
-        int start = 0, current = start, finished = currentAutonomous.length;
+        int start = 0, finished = currentAutonomous.length;
         System.out.println("************* " + finished + " *************************");
-        while (true){
             while(ds.isAutonomous() &&  ds.isEnabled()){
-                    current++;
                 for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
@@ -371,13 +382,17 @@ public class Autonomous extends GenericSubsystem{
                             runAutonomous = false;
                             break;
                         default:
-//                            print("No case statement: " + currentAutonomous[i]);
+                            log.logMessage("No case statement: " + currentAutonomous[i]);
                             break;
                     }
-                }   
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ex) {
+                        log.logError("AUTO: SLEEP FAILED");
+                    }
+                    }
+                }       
             }
-        }              
-      }
     }
 
     /**
@@ -386,6 +401,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        autoSelectSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
     }
 
     /**
@@ -407,7 +423,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Drives class is done doing its last command
      */
     private void isDoneDrives(){
-        while(!drives.isLastCommandDone()){
+        while(!drives.isLastCommandDone() && ds.isAutonomous()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -420,7 +436,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Vision class is done doing its last command
      */
     private void isVisionDone(){
-        while(!vision.isLastCommandDone()){
+        while(!vision.isLastCommandDone() && ds.isAutonomous()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -435,7 +451,7 @@ public class Autonomous extends GenericSubsystem{
     
     private String smartChooseName = "Current Auto";
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString("Current Auto:", autoName);
+        SmartDashboard.putString(smartChooseName, autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
     }
 
