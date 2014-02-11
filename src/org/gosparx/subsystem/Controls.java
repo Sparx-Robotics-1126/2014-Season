@@ -39,6 +39,11 @@ public class Controls extends GenericSubsystem{
      */ 
     private Drives drives;
     
+    /**
+     * The factor to divide the previous + the current joystick Y values. Used 
+     * to slow down the drives to a complete stop so that they do not flip the 
+     * robot on a sudden stop
+     */ 
     private static final double SLOW_DOWN_RAMP = 1.35;
     
     /**
