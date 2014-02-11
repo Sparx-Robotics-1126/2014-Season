@@ -83,8 +83,6 @@ public class Vision extends GenericSubsystem {
         while (!ds.isTest()) {
             getBestTarget();
             freeImage();
-            getLastImageTime();
-            System.out.println("Degrees: " + getDegrees() + " Current Location: " + getLocation() + " Distance: " + getDistance());
         }
     }
 

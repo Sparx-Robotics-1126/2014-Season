@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
+import org.gosparx.util.Logger;
 
 
 public class Autonomous extends GenericSubsystem{
@@ -192,7 +193,7 @@ public class Autonomous extends GenericSubsystem{
      * Autonomous Constructor
      */
     private Autonomous(){
-        super("Autonomous", GenericSubsystem.NORM_PRIORITY);   
+        super(Logger.SUB_AUTONOMOUS, GenericSubsystem.NORM_PRIORITY);   
     }
     
     /**

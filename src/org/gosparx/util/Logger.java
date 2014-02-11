@@ -18,6 +18,7 @@ public class Logger {
     public static final String SUB_ACQUISITIONS = "Acqui";
     public static final String SUB_VISON = "Vison";
     public static final String SUB_CONTROLER = "Contr";
+    public static final String SUB_AUTONOMOUS = "Auto ";
     
     /**
      * Creates a new Logger to log
