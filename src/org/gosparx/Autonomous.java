@@ -208,8 +208,8 @@ public class Autonomous extends GenericSubsystem{
         {ACQ_ACQUIRE_IN_POSITION},
         {DRIVES_GO_FORWARD, 30},
         {DRIVES_DONE},
-        {SHOOTER_SET_PRESET},
-        {SHOOTER_IN_POSITION, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_IN_POSITION},
         {END}
     };
     
@@ -366,9 +366,11 @@ public class Autonomous extends GenericSubsystem{
                             
                             break;
                         case SHOOTER_SET_PRESET:
+                            log.logMessage("Setting Preset");
                             acq.setPreset(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_IN_POSITION:
+                            log.logMessage("Shooter in Position");
                             isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
                         case SHOOTER_DONE:
@@ -504,9 +506,10 @@ public class Autonomous extends GenericSubsystem{
     }
     
     private String smartChooseName = "Current Auto";
+    private String smartChooser = "Use SmartDashboard";
     private void sendSmartAuto(String autoName){
         SmartDashboard.putString(smartChooseName, autoName);
-        smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
+        smartAutoMode = SmartDashboard.getBoolean(smartChooser);
     }
 
     public void liveWindow() {
@@ -521,6 +524,6 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 7", new Integer(7));
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
-        SmartDashboard.putBoolean(smartChooseName, false);
+        SmartDashboard.putBoolean(smartChooser, false);
     }
 }
