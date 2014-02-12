@@ -255,6 +255,9 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private static final String WANTED_ANGLE_DISPLAY = "Wanted Angle";
     
+    /**
+     * The tolerance in degrees for pivoting.
+     */
     private static final double PIVOT_THRESHOLD                             = 1;
     
     /**
