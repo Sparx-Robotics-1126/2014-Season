@@ -358,7 +358,6 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case ACQ_AQUIRE_BALL:
                             log.logMessage("Auto Acquiring");
-                            System.out.println("Auto Acquiring");
                             acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
                         case ACQ_REVERSE:
