@@ -85,7 +85,6 @@ public class Vision extends GenericSubsystem {
         }
         
         if(!cameraResponding){
-            camera.
             log.logMessage("THE CAMERA HAS FAILING (SILLY PEOPLE)!!!!!!!!!!");
         }
     }
