@@ -54,6 +54,7 @@ public abstract class GenericSubsystem extends Thread {
      */
     public void run(){
         init();
+        liveWindow();
         while (true) {
             try {
                 if(!ds.isTest()){

@@ -217,12 +217,10 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder = 0.0;
-        
-    private double[] averageCycleTime;
     
-    private double startTime;
+    private double startTime = 0;
     
-    private double averageRunTime;
+    private double averageRunTime = 0;
     
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -413,14 +411,11 @@ public class Drives extends GenericSubsystem {
     }
     
     private void setAverageTime(){
-        averageCycleTime[averageCycleTime.length + 1] = (Timer.getFPGATimestamp() - startTime);
-        for (int i = 0; i < averageCycleTime.length; i++){
-            averageRunTime = averageRunTime + averageCycleTime[i];
-        }
+        averageRunTime = (averageRunTime+(Timer.getFPGATimestamp() - startTime))/2;
     }
     
     private double getAverageTime(){
-        return averageRunTime/averageCycleTime[averageCycleTime.length];
+        return averageRunTime;
     }
     
     /**

@@ -461,7 +461,7 @@ public class Autonomous extends GenericSubsystem{
     
     private String smartChooseName = "Current Auto";
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString(smartChooseName, autoName);
+        SmartDashboard.putString("Selected Auto Mode: ", autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
     }
 

@@ -79,6 +79,9 @@ public class Controls extends GenericSubsystem{
      */    
     private boolean lastHoldInPlaceStop                                 = false;
     
+    private double startTime = 0;
+    
+    private double averageRunTime = 0;
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -147,11 +150,7 @@ public class Controls extends GenericSubsystem{
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
     
-    private double[] averageCycleTime;
     
-    private double startTime;
-    
-    private double averageRunTime;
     /**
      * Creates a new Controls
      */
@@ -256,6 +255,7 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
+                    log.logMessage("Average Cycle Time: " + getAverageTime());
                 }
                 setAverageTime();
                 Thread.sleep(20);
@@ -272,14 +272,11 @@ public class Controls extends GenericSubsystem{
     }
     
     private void setAverageTime(){
-        averageCycleTime[averageCycleTime.length + 1] = (Timer.getFPGATimestamp() - startTime);
-        for (int i = 0; i < averageCycleTime.length; i++){
-            averageRunTime = averageRunTime + averageCycleTime[i];
-        }
+        averageRunTime = (averageRunTime+(Timer.getFPGATimestamp() - startTime))/2;
     }
     
     private double getAverageTime(){
-        return averageRunTime/averageCycleTime[averageCycleTime.length];
+        return averageRunTime;
     }
 
     public void liveWindow() {

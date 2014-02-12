@@ -52,6 +52,8 @@ public class Vision extends GenericSubsystem {
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
     private double startImageTime;
+    private boolean cameraResponding = false;
+    private int timeOutNumber = 0;
 
     private Vision() {
         super("Vision", Thread.MAX_PRIORITY);//TESTING
@@ -66,12 +68,26 @@ public class Vision extends GenericSubsystem {
         verticalTargets = new int[MAX_PARTICLES];
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
+        camera = AxisCamera.getInstance();// get an instance of the camera 
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        camera = AxisCamera.getInstance();// get an instance of the camera
+        while(!cameraResponding && timeOutNumber <= 30){
+            try {
+                Thread.sleep(1000);
+                camera.getImage();
+                cameraResponding = true;
+            } catch (Exception e){
+                timeOutNumber++;
+            }
+        }
+        
+        if(!cameraResponding){
+            camera.
+            log.logMessage("THE CAMERA HAS FAILING (SILLY PEOPLE)!!!!!!!!!!");
+        }
     }
     
     /**
@@ -80,7 +96,7 @@ public class Vision extends GenericSubsystem {
      * @throws Exception
      */
     public void execute() throws Exception {
-        while (!ds.isTest()) {
+        while (!ds.isTest() && cameraResponding) {
             getBestTarget();
             freeImage();
         }
