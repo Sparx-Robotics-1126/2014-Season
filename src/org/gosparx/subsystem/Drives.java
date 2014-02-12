@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
@@ -11,6 +12,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
+import org.gosparx.util.Logger;
 
 /**
  * The purpose of this class is to implement the drives subsystem.  This class 
@@ -60,7 +62,7 @@ public class Drives extends GenericSubsystem {
      * The time (seconds) we wait for the robot to shift before resuming driver 
      * control.
      */
-    private static final double SHIFT_TIME              = .005;//MAY NOT BE OPTIMUM IN ALL SITUATION
+    private static final double SHIFT_TIME              = .1;//MAY NOT BE OPTIMUM IN ALL SITUATION
     
     /**
      * The max speed (inches per second) that the robot can obtain.
@@ -70,12 +72,22 @@ public class Drives extends GenericSubsystem {
     /**
      * The accuracy in degrees for turning 
      */
-    private static final double TURNING_THRESHOLD                        =  1.5;
+    private static final double TURNING_THRESHOLD                        =  1;
     
     /**
      * The accuracy in inches for turning
      */
     private static final double DRIVING_THRESHOLD                         = 1;
+    
+    /**
+     * Max degrees that we need to turn, but we still scale.
+     */
+    private static final double TURNING_MAX = 45;
+    
+    /**
+     * The Y Intercept for the scaling formula.
+     */ 
+    private static final double Y_INTERCEPT = .2;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -99,6 +111,11 @@ public class Drives extends GenericSubsystem {
     private Talon leftRearDrives;
     
     /**
+     * This controls the third motor on the drive train, (may or may not exist)
+     */
+    private Talon leftBottomDrives;
+    
+    /**
      * This is the encoder on the left side of the robot.
      */
     private Encoder leftDrivesEncoder;
@@ -118,6 +135,11 @@ public class Drives extends GenericSubsystem {
      * This is controlling the right rear drives motor.
      */
     private Talon rightRearDrives;
+    
+    /**
+     * This controls the third motor on the drive train, (may or may not exist)
+     */
+    private Talon rightBottomDrives;
     
     /**
      * This is the encoder on the right side of the robot.
@@ -152,12 +174,6 @@ public class Drives extends GenericSubsystem {
     private double desiredAngle;
     
     /**
-     * Stores if the robot is currently turning.
-     */ 
-    private boolean isTurning;
-   
-    
-    /**
      * The relay that the compressor is on.
      */
     private Compressor compressor;
@@ -171,6 +187,11 @@ public class Drives extends GenericSubsystem {
      * The Gyro used for turning calculations
      */
     private Gyro gyro;
+    
+    /**
+     * The gyro analog channel
+     */
+    private AnalogChannel gyroAnalog;
     
     /**
      * Error to see if the gyro is responding. Used in gyroCheck();
@@ -217,6 +238,28 @@ public class Drives extends GenericSubsystem {
      * The average distance that the encoders has traveled since the last reset
      */
     private double averageDistEncoder                                   = 0.0;
+    
+    /**
+     * The degrees we still need to go when turning using the 
+     * State.FUNCT_TURNING.
+     */ 
+    private double degToGo;
+    
+    /**
+     * Number of loops turning must go through to determine accuracy.
+     */
+    private static int turnCompleteCounter = 3;
+    
+    /**
+     * Number of loop that turning has successfully done in threshold
+     */
+    private int turnLoopCounter = 0;
+    
+    /**
+     * The current state of the autofunctions. Can be any of the State.FUNCT 
+     * variables.
+     */ 
+    private int autoFunctionState;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -233,7 +276,7 @@ public class Drives extends GenericSubsystem {
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
-        super("Drives", Thread.MAX_PRIORITY); 
+        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY); 
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
@@ -246,6 +289,7 @@ public class Drives extends GenericSubsystem {
     public void init() {
         leftFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
         leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
+        leftBottomDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_BOTTOM_DRIVES_PWM);
         leftDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.LEFT_DRIVES_ENCODER_CHAN_1,IO.DEFAULT_SLOT,IO.LEFT_DRIVES_ENCODER_CHAN_2, false, EncodingType.k4X);
         leftDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         leftEncoderData = new EncoderData(leftDrivesEncoder, DIST_PER_TICK);
@@ -253,6 +297,7 @@ public class Drives extends GenericSubsystem {
         
         rightFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_FRONT_DRIVES_PWM);
         rightRearDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_REAR_DRIVES_PWM);
+        rightBottomDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_BOTTOM_DRIVES_PWM);
         rightDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_2, true, EncodingType.k4X);
         rightDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         rightEncoderData = new EncoderData(rightDrivesEncoder, DIST_PER_TICK);
@@ -263,11 +308,12 @@ public class Drives extends GenericSubsystem {
         shifter = new Solenoid(IO.DEFAULT_SLOT, IO.SHIFT_CHAN);
         shifter.set(LOW_GEAR);
  
-        gyro = new Gyro(IO.GYRO_ANALOG);
-        gyro.setPIDSourceParameter(PIDSource.PIDSourceParameter.kAngle);
-        gyro.setSensitivity(.0067);
+        gyroAnalog = new AnalogChannel(IO.DEFAULT_SLOT, IO.GYRO_ANALOG);
+        gyro = new Gyro(gyroAnalog);
+        gyro.setSensitivity(0.007);
         isGyroWorking = gyroCheck();
-        drivesState = State.LOW_GEAR;
+        drivesState = State.DRIVES_LOW_GEAR;
+        autoFunctionState = State.FUNCT_STANDBY;
     }
 
     /**
@@ -282,6 +328,7 @@ public class Drives extends GenericSubsystem {
         resetSensors();
         while(!ds.isTest()){
             currentAngle = gyro.getAngle();
+//            log.logMessage("GYRO ANGLE: " + currentAngle);
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
             leftCurrentSpeed = leftEncoderData.getSpeed();
@@ -293,63 +340,37 @@ public class Drives extends GenericSubsystem {
             double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
             
             averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
-            switch(drivesState){
-                case State.LOW_GEAR:
-                    if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
-                        needsToManuallyShiftUp = false;
-                        needsToManuallyShiftDown = false;
-                        log.logMessage("Up Shift!");
-                        shifter.set(!LOW_GEAR);
-                        drivesState = State.SHIFT_HIGH_GEAR;
-                        shiftTime = Timer.getFPGATimestamp();
-                    }
-                    break;
-                case State.HIGH_GEAR:
-                    if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
-                        needsToManuallyShiftUp = false;
-                        needsToManuallyShiftDown = false;
-                        log.logMessage("Down Shift!");
-                        shifter.set(LOW_GEAR);
-                        drivesState = State.SHIFT_LOW_GEAR;
-                        shiftTime = Timer.getFPGATimestamp();
-                    }
-                    break;
-                case State.SHIFT_LOW_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
-                        drivesState = State.LOW_GEAR;
-                    }
-                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
-                    break;
-                case State.SHIFT_HIGH_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
-                        drivesState = State.HIGH_GEAR;
-                    }
-                    setSpeed(MOTOR_SHIFTING_SPEED, MOTOR_SHIFTING_SPEED);
-                    break;
-                case State.TURNING:
+            
+            switch(autoFunctionState){
+                case State.FUNCT_TURNING:
+                    degToGo = desiredAngle - currentAngle;
                     if(isGyroWorking){
-                        if(desiredAngle - currentAngle > 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) + .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) + .20);
-                        }else if(desiredAngle - currentAngle < 0){
-                            leftMotorOutput = (.0044 * (desiredAngle - currentAngle)) - .20;
-                            rightMotorOutput = -((.0044 * (desiredAngle - currentAngle)) - .20);
+                        if(degToGo > 0){
+                            leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
+                            rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                        }else if(degToGo < 0){
+                            leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                            rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                         }
-                        if (Math.abs(desiredAngle - currentAngle) < TURNING_THRESHOLD) {
+                        if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == turnCompleteCounter) {
                             log.logMessage("Done Turning");
-                            isTurning = false;
                             leftMotorOutput = 0;
                             rightMotorOutput = 0;
                             startHoldPos();
+                        }else if(Math.abs(degToGo) < TURNING_THRESHOLD){
+                            turnLoopCounter++;
+                        }else{
+                            turnLoopCounter = 0;
                         }
+                        log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
                     }else{
-                        startHoldPos();
+                        autoFunctionState = State.FUNCT_HOLD_POS;
                     }    
                     if(ds.isOperatorControl() || ds.isTest()){
-                        drivesState = State.LOW_GEAR;
+                        autoFunctionState = State.DRIVES_LOW_GEAR;
                     }
                     break;
-                case State.DRIVE_STRAIGHT:
+                case State.FUNCT_DRIVE_STRAIGHT:
                     if(inchesToGo - averageDistEncoder > 0) {
                         setSpeed(30, 30);
                     }
@@ -363,13 +384,13 @@ public class Drives extends GenericSubsystem {
                         log.logMessage("Done Driving Straight.");
                         logDrivesInfo();
                         resetSensors();
-                        drivesState = State.HOLD_POS;
+                        autoFunctionState = State.FUNCT_HOLD_POS;
                     }
                     if(ds.isOperatorControl() || ds.isTest()){
-                        drivesState = State.LOW_GEAR;
+                        autoFunctionState = State.DRIVES_LOW_GEAR;
                     }
                     break;
-                case State.HOLD_POS:
+                case State.FUNCT_HOLD_POS:
                     averageDistEncoder = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
                     if(gyro.getAngle() > TURNING_THRESHOLD){
                         leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
@@ -388,20 +409,65 @@ public class Drives extends GenericSubsystem {
                         rightMotorOutput = 0;
                     }
                     break;
+                case State.FUNCT_STANDBY:
+                   break;
+                default:
+                    log.logMessage("UNKNOWN STATE: " + autoFunctionState);
+            }
+            
+            switch(drivesState){
+                case State.DRIVES_LOW_GEAR:
+                    if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
+                        needsToManuallyShiftUp = false;
+                        needsToManuallyShiftDown = false;
+                        log.logMessage("Up Shift!");
+                        shifter.set(!LOW_GEAR);
+                        drivesState = State.DRIVES_SHIFT_HIGH_GEAR;
+                        shiftTime = Timer.getFPGATimestamp();
+                    }
+                    break;
+                case State.DRIVES_HIGH_GEAR:
+                    if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
+                        needsToManuallyShiftUp = false;
+                        needsToManuallyShiftDown = false;
+                        log.logMessage("Down Shift!");
+                        shifter.set(LOW_GEAR);
+                        drivesState = State.DRIVES_SHIFT_LOW_GEAR;
+                        shiftTime = Timer.getFPGATimestamp();
+                    }
+                    break;
+                case State.DRIVES_SHIFT_LOW_GEAR:
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+                        drivesState = State.DRIVES_LOW_GEAR;
+                    }
+                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
+                    break;
+                case State.DRIVES_SHIFT_HIGH_GEAR:
+                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+                        drivesState = State.DRIVES_HIGH_GEAR;
+                    }
+                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
+                    break;
                 default:
                     log.logError("Unknown state for drives: " + drivesState);
+                    break;                   
             }
+            //LEFT MOTORS
             leftFrontDrives.set(leftMotorOutput);
             leftRearDrives.set(leftMotorOutput);
+            leftBottomDrives.set(leftMotorOutput);
+            
+            //RIGHT MOTORS
             rightFrontDrives.set(-rightMotorOutput);
             rightRearDrives.set(-rightMotorOutput);
+            rightBottomDrives.set(-rightMotorOutput);
             
             if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
                 lastLogTime = Timer.getFPGATimestamp();
                 logDrivesInfo();
             }
             Thread.sleep(10);
-        }
+        } 
     }
     
     /**
@@ -409,11 +475,11 @@ public class Drives extends GenericSubsystem {
      */
     private void logDrivesInfo(){
         log.logMessage("Gyro: " + gyro.getAngle());
-        log.logMessage("Gyro Voltage: " + IO.GYRO_ANALOG.getVoltage());
+        log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
-        log.logMessage("Drive State = " + State.getState(drivesState));
+        log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
     }
     
     /**
@@ -454,8 +520,7 @@ public class Drives extends GenericSubsystem {
     public void turn(double degrees){
         gyro.reset();
         desiredAngle = degrees;
-        isTurning = true;
-        drivesState = State.TURNING;
+        autoFunctionState = State.FUNCT_TURNING;
     }
     
     /**
@@ -464,7 +529,7 @@ public class Drives extends GenericSubsystem {
      *                 go backwards
      */
     public void driveStraight(double inches){
-        drivesState = State.DRIVE_STRAIGHT;
+        autoFunctionState = State.FUNCT_DRIVE_STRAIGHT;
         inchesToGo = inches;
         leftDrivesEncoder.reset();
         rightDrivesEncoder.reset();
@@ -505,13 +570,13 @@ public class Drives extends GenericSubsystem {
      */
     public void startHoldPos(){
         resetSensors();
-        drivesState = State.HOLD_POS;
+        autoFunctionState = State.FUNCT_HOLD_POS;
     }
     /**
      * Stops the holding of the position saved when startHoldPos() was called
      */
     public void stopHoldPos(){
-        drivesState = State.LOW_GEAR;
+        autoFunctionState = State.FUNCT_STANDBY;
     }
     
     /**
@@ -540,9 +605,10 @@ public class Drives extends GenericSubsystem {
     }
     
     private boolean gyroCheck(){
-        if(IO.GYRO_ANALOG.getVoltage() > GYRO_ERROR){
+        if(gyroAnalog.getVoltage() > GYRO_ERROR){
            return true;
         }else{
+            log.logMessage("NO GYRO STUPID");
             return false;
         }
     }
@@ -551,7 +617,7 @@ public class Drives extends GenericSubsystem {
      * Returns if the last command is done
      */
     public boolean isLastCommandDone() {
-        return drivesState == State.HOLD_POS;
+        return autoFunctionState == State.FUNCT_HOLD_POS;
     }
 
     public void liveWindow() {
@@ -566,30 +632,33 @@ public class Drives extends GenericSubsystem {
     }
     
     private static class State{
-        static final int LOW_GEAR           = 1;
-        static final int SHIFT_LOW_GEAR     = 2;
-        static final int HIGH_GEAR          = 4;
-        static final int SHIFT_HIGH_GEAR    = 5;
-        static final int TURNING            = 6;
-        static final int DRIVE_STRAIGHT     = 7;
-        static final int HOLD_POS           = 8;
+        static final int DRIVES_LOW_GEAR           = 1;
+        static final int DRIVES_SHIFT_LOW_GEAR     = 2;
+        static final int DRIVES_HIGH_GEAR          = 4;
+        static final int DRIVES_SHIFT_HIGH_GEAR    = 5;
+        static final int FUNCT_TURNING            = 6;
+        static final int FUNCT_DRIVE_STRAIGHT     = 7;
+        static final int FUNCT_HOLD_POS           = 8;
+        static final int FUNCT_STANDBY            = 9;
         
         public static String getState(int state){
             switch(state){
-                case LOW_GEAR:
+                case DRIVES_LOW_GEAR:
                     return "Low Gear";
-                case SHIFT_LOW_GEAR:
+                case DRIVES_SHIFT_LOW_GEAR:
                     return "Shift Low Gear";
-                case HIGH_GEAR:
+                case DRIVES_HIGH_GEAR:
                     return "High Gear";
-                case SHIFT_HIGH_GEAR:
+                case DRIVES_SHIFT_HIGH_GEAR:
                     return "Shift High Gear";
-                case TURNING:
+                case FUNCT_TURNING:
                     return "Turning";
-                case DRIVE_STRAIGHT:
+                case FUNCT_DRIVE_STRAIGHT:
                     return "Drive Straight";
-                case HOLD_POS:
+                case FUNCT_HOLD_POS:
                     return "Holding current Position";
+                case FUNCT_STANDBY:
+                    return "Standby";
         }
             return "UNKOWN MODE";
         }
