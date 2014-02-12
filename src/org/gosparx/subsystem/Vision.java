@@ -54,7 +54,7 @@ public class Vision extends GenericSubsystem {
     private double startImageTime;
 
     private Vision() {
-        super("Vision", Thread.NORM_PRIORITY);
+        super("Vision", Thread.MAX_PRIORITY);//TESTING
     }
 
     /**
@@ -71,7 +71,7 @@ public class Vision extends GenericSubsystem {
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        camera = AxisCamera.getInstance();  // get an instance of the camera
+        camera = AxisCamera.getInstance();// get an instance of the camera
     }
     
     /**

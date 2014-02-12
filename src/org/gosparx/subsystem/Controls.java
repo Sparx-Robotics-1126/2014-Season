@@ -146,6 +146,12 @@ public class Controls extends GenericSubsystem{
     private double driverRightZAxis;
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
+    
+    private double[] averageCycleTime;
+    
+    private double startTime;
+    
+    private double averageRunTime;
     /**
      * Creates a new Controls
      */
@@ -181,6 +187,7 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         while(!ds.isTest()){
+            startTime = Timer.getFPGATimestamp();
             if(ds.isEnabled() && ds.isOperatorControl()){
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
@@ -250,6 +257,7 @@ public class Controls extends GenericSubsystem{
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
                 }
+                setAverageTime();
                 Thread.sleep(20);
             }
         }
@@ -261,6 +269,17 @@ public class Controls extends GenericSubsystem{
      */
     private double getSpeed(double joystickValue){
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
+    }
+    
+    private void setAverageTime(){
+        averageCycleTime[averageCycleTime.length + 1] = (Timer.getFPGATimestamp() - startTime);
+        for (int i = 0; i < averageCycleTime.length; i++){
+            averageRunTime = averageRunTime + averageCycleTime[i];
+        }
+    }
+    
+    private double getAverageTime(){
+        return averageRunTime/averageCycleTime[averageCycleTime.length];
     }
 
     public void liveWindow() {

@@ -216,8 +216,14 @@ public class Drives extends GenericSubsystem {
     /**
      * The average distance that the encoders has traveled since the last reset
      */
-    private double averageDistEncoder                                   = 0.0;
+    private double averageDistEncoder = 0.0;
         
+    private double[] averageCycleTime;
+    
+    private double startTime;
+    
+    private double averageRunTime;
+    
     /**
      * Look to see if there is a drive class, if not it creates one
      * @return the Drives Class 
@@ -281,6 +287,7 @@ public class Drives extends GenericSubsystem {
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
         while(!ds.isTest()){
+            startTime = Timer.getFPGATimestamp();
             currentAngle = gyro.getAngle();
             leftEncoderData.calculateSpeed();
             rightEncoderData.calculateSpeed();
@@ -400,14 +407,27 @@ public class Drives extends GenericSubsystem {
                 lastLogTime = Timer.getFPGATimestamp();
                 logDrivesInfo();
             }
+            setAverageTime();
             Thread.sleep(10);
         }
+    }
+    
+    private void setAverageTime(){
+        averageCycleTime[averageCycleTime.length + 1] = (Timer.getFPGATimestamp() - startTime);
+        for (int i = 0; i < averageCycleTime.length; i++){
+            averageRunTime = averageRunTime + averageCycleTime[i];
+        }
+    }
+    
+    private double getAverageTime(){
+        return averageRunTime/averageCycleTime[averageCycleTime.length];
     }
     
     /**
      * Logs info about the drives subsystem
      */
     private void logDrivesInfo(){
+        log.logMessage("Average Travel Time: " + getAverageTime());
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + IO.GYRO_ANALOG.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
