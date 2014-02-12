@@ -248,12 +248,14 @@ public class Acquisitions extends GenericSubsystem{
     /**    
      * The group to display the ready to shoot rectangle on the livewindow under.
      */ 
-    private static final String readyToShootDisplay = "Ready To Shoot";
+    private static final String READY_TO_SHOOT_DISPLAY = "Ready To Shoot";
     
     /**
      * The group to put the wanted angle meter on the livewindow under.
      */ 
-    private static final String wantedAngleDisplsy = "Wanted Angle";
+    private static final String WANTED_ANGLE_DISPLAY = "Wanted Angle";
+    
+    private static final double PIVOT_THRESHOLD                             = 1;
     
     /**
      * 
@@ -330,9 +332,11 @@ public class Acquisitions extends GenericSubsystem{
                         isEncoderDataSet = true;
                         rotateEncoderData.reset();
                         acquisitionState = AcqState.SAFE_STATE;
-                    }else if(wantedShooterAngle >= rotateEncoderData.getDistance() && isEncoderDataSet){
+                    }else if(Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet){
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
+                    }else if(Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) < rotateEncoderData.getDistance() && isEncoderDataSet){
+                        acquisitionState = AcqState.ROTATE_DOWN;
                     }else{
                         if(rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE){
                             if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
@@ -359,9 +363,11 @@ public class Acquisitions extends GenericSubsystem{
                     if(wantedShooterAngle == DOWN_POSITION && lowerLimit.get()){//limit Switch reads false when touched
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
-                    }else if(wantedShooterAngle <= rotateEncoderData.getDistance()){
+                    }else if(Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()){
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
+                    }else if(Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) >= rotateEncoderData.getDistance()){
+                        acquisitionState = AcqState.ROTATE_UP;
                     }else{
                         if(rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE){
                             rotationSpeed = -0.9;//MAY WANT TO RAMP
@@ -596,8 +602,8 @@ public class Acquisitions extends GenericSubsystem{
      * Update the info on the smart dashboard.
      */ 
     private void updateSmartDashboard(){
-        SmartDashboard.putBoolean(readyToShootDisplay, readyToShoot());
-        SmartDashboard.putNumber(wantedAngleDisplsy, wantedShooterAngle);
+        SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, readyToShoot());
+        SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, wantedShooterAngle);
     }
 
     
@@ -619,8 +625,8 @@ public class Acquisitions extends GenericSubsystem{
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
         LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
-        SmartDashboard.putBoolean(readyToShootDisplay, false);
-         SmartDashboard.putNumber(wantedAngleDisplsy, 0);
+        SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, false);
+         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
     }
     
     /**
