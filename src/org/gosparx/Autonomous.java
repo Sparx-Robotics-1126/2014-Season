@@ -164,8 +164,9 @@ public class Autonomous extends GenericSubsystem{
      */
     private static final String AUTO_SQUARE_NAME = "Auto Square";
     private static final int[][] autoSquare = {
-        {LOOP, 4*2},
-        {DRIVES_GO_FORWARD, 12*4},
+        {DRIVES_DONE},
+        {LOOP, 4},
+        {DRIVES_GO_FORWARD, 12},
         {DRIVES_DONE},
         {DRIVES_TURN_RIGHT, 90},
         {DRIVES_DONE},
@@ -191,6 +192,7 @@ public class Autonomous extends GenericSubsystem{
      */
     private static final String TURN_90_NAME = "Turn 90";
     private static final int[][] turn90 = {
+        {DRIVES_DONE},
         {DRIVES_TURN_LEFT, 90},
         {DRIVES_DONE},
         {END}
@@ -295,6 +297,7 @@ public class Autonomous extends GenericSubsystem{
      */
     private void runAutonomous(){
         int start = 0, finished = currentAutonomous.length;
+        System.out.println("************* " + finished + " *************************");
             while(ds.isAutonomous() &&  ds.isEnabled()){
                 for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
@@ -358,7 +361,7 @@ public class Autonomous extends GenericSubsystem{
                             visionHotGoal = vision.isHotGoal();
                             break;
                         case NEXT:
-                            if(loopTime > 0){
+                            if(loopTime > 1){
                                 i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }

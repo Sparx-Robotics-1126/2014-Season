@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
@@ -44,6 +40,13 @@ public class Controls extends GenericSubsystem{
     private Drives drives;
     
     /**
+     * The factor to divide the previous + the current joystick Y values. Used 
+     * to slow down the drives to a complete stop so that they do not flip the 
+     * robot on a sudden stop
+     */ 
+    private static final double SLOW_DOWN_RAMP = 1.35;
+    
+    /**
      * The dead zone for the Driver joysticks. This is the zone in which the    
      * drives will be set to 0.
      */ 
@@ -70,14 +73,29 @@ public class Controls extends GenericSubsystem{
     private boolean lastShiftDown                                       = false;
     
     /**
-     * The last state of the hold in place start button
-     */ 
-    private boolean lastHoldInPlaceStart                                = false;
+     * The last state of the hold in place button
+     */
+    private boolean lastHoldInPlace                                     = false;
     
     /**
-     * The last state of the hold in place stop button
-     */    
-    private boolean lastHoldInPlaceStop                                 = false;
+     * The last Y value of the left Joystick
+     */ 
+    private double lastLeftJoyYValue                                      = 0.0;
+    
+    /**
+     * The last Y value of the right Joystick
+     */ 
+    private double lastRightJoyYValue                                     = 0.0;
+    
+    /**
+     * The left speed to set the drives
+     */ 
+    private double leftSpeedToSet;
+    
+    /**
+     * The right speed to set the drives
+     */ 
+    private double rightSpeedToSet;
     
     private double startTime = 0;
     
@@ -187,12 +205,13 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         while(!ds.isTest()){
             startTime = Timer.getFPGATimestamp();
-            if(ds.isEnabled() && ds.isOperatorControl()){
+            if(ds.isEnabled() && ds.isOperatorControl()){                
+                lastLeftJoyYValue = driverLeftYAxis;
+                lastRightJoyYValue = driverRightYAxis;
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
-                lastHoldInPlaceStart = opStart;
-                lastHoldInPlaceStop = opSelect;
+                lastHoldInPlace = driverRightTopButton;
                 opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
@@ -221,13 +240,24 @@ public class Controls extends GenericSubsystem{
                 driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
                 driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
                 driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+                
                 if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                     driverLeftYAxis = 0;
                 }
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-                drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
+                
+                if(driverRightTopButton != lastHoldInPlace){
+                    if(driverRightTopButton){
+                        drives.startHoldPos();
+                    }else{
+                        drives.stopHoldPos();
+                    }
+                }
+                leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
+                rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
+                drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
                 if(driverLeftTopButton && !lastShiftOverrideState){
                     shiftingOverride = !shiftingOverride;
                     log.logMessage("Toggled manual shifting");
@@ -244,18 +274,15 @@ public class Controls extends GenericSubsystem{
                         drives.manualShiftUp();
                     }
                 }
-                if(!lastHoldInPlaceStart && opStart){
-                    drives.startHoldPos();
-                }else if(!lastHoldInPlaceStop && opSelect){
-                    drives.stopHoldPos();
-                }
+                
                 drives.setManualShifting(shiftingOverride);
                 
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
-                    log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
+                    log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
                     log.logMessage("Average Cycle Time: " + getAverageTime());
+                    log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
                 }
                 setAverageTime();
                 Thread.sleep(20);
@@ -265,9 +292,16 @@ public class Controls extends GenericSubsystem{
     /**
      * Edit this method to change how the joystick values translate into speed
      * @param joystickValue - the joystick value to convert to speed
+     * @param lastValue - the last value of the joystick
      * @return the speed desired after the joystickValue is applied to the formula
      */
-    private double getSpeed(double joystickValue){
+    private double getSpeed(double joystickValue, double lastValue){
+        if(joystickValue > lastValue){
+            joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
+        }
+        if(Math.abs(joystickValue) < JOYSTICK_DEADZONE){
+            joystickValue = 0;
+        }
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
     }
     

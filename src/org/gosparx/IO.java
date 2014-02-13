@@ -1,7 +1,5 @@
 package org.gosparx;
 
-import edu.wpi.first.wpilibj.AnalogChannel;
-
 /**
  * The purpose of this class is to have all the electrical configuration in one 
  * place.
@@ -16,8 +14,10 @@ public class IO {
     // Drives PWM Slots
     public static final int LEFT_FRONT_DRIVES_PWM       = 4;
     public static final int LEFT_REAR_DRIVES_PWM        = 5;
+    public static final int LEFT_BOTTOM_DRIVES_PWM      = 6;
     public static final int RIGHT_FRONT_DRIVES_PWM      = 7;
     public static final int RIGHT_REAR_DRIVES_PWM       = 8;
+    public static final int RIGHT_BOTTOM_DRIVES_PWM     = 9;
     
     // Drives Encoder Slots
     public static final int LEFT_DRIVES_ENCODER_CHAN_1  = 1;
@@ -29,7 +29,7 @@ public class IO {
     public static final int SHIFT_CHAN                  = 1;
     
     //Drives Gyro slot
-    public static final AnalogChannel GYRO_ANALOG       = new AnalogChannel(1);
+    public static final int GYRO_ANALOG                 = 1;
     
     //Drives Booleans
     public static final boolean DRIVES_TURN_LEFT        = true;
