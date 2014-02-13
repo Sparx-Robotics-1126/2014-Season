@@ -239,9 +239,22 @@ public class Drives extends GenericSubsystem {
      */
     private double averageDistEncoder = 0.0;
     
+    /**
+     * The time (in seconds )at which the thread started
+     */
     private double startTime = 0;
     
-    private double averageRunTime = 0;
+    /**
+     * The total amount of time that the thread has run.
+     * This is used to calculate the average time the thread takes to run
+     */
+    private double totalRunTime = 0;
+    
+    /**
+     *The amount of times that the average time has run.
+     * Used to calculate average
+     */
+    private int numberOfAverageTimes = 0;
     
     /**
      * The degrees we still need to go when turning using the 
@@ -477,11 +490,12 @@ public class Drives extends GenericSubsystem {
     }
     
     private void setAverageTime(){
-        averageRunTime = (averageRunTime+(Timer.getFPGATimestamp() - startTime))/2;
+        totalRunTime = totalRunTime + (Timer.getFPGATimestamp() - startTime);
+        numberOfAverageTimes++;
     }
     
     private double getAverageTime(){
-        return averageRunTime;
+        return totalRunTime/numberOfAverageTimes;
     }
     
     /**

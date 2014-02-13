@@ -97,9 +97,23 @@ public class Controls extends GenericSubsystem{
      */ 
     private double rightSpeedToSet;
     
+    /**
+     * The time (in seconds )at which the thread started
+     */
     private double startTime = 0;
     
-    private double averageRunTime = 0;
+    /**
+     * The total amount of time that the thread has run.
+     * This is used to calculate the average time the thread takes to run
+     */
+    private double totalRunTime = 0;
+    
+    /**
+     *The amount of times that the average time has run.
+     * Used to calculate average
+     */
+    private int numberOfAverageTimes = 0;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -306,11 +320,12 @@ public class Controls extends GenericSubsystem{
     }
     
     private void setAverageTime(){
-        averageRunTime = (averageRunTime+(Timer.getFPGATimestamp() - startTime))/2;
+        totalRunTime = totalRunTime + (Timer.getFPGATimestamp() - startTime);
+        numberOfAverageTimes++;
     }
     
     private double getAverageTime(){
-        return averageRunTime;
+        return totalRunTime/numberOfAverageTimes;
     }
 
     public void liveWindow() {
