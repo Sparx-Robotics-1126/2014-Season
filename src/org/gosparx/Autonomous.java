@@ -357,22 +357,6 @@ public class Autonomous extends GenericSubsystem{
                         case VISION_HOT_TARGET:
                             visionHotGoal = vision.isHotGoal();
                             break;
-                        case DRIVES_TRACK_TARGET:
-                            log.logMessage("Drives Tracking Target");
-                            if(Math.abs(visionAngle) > 1 && vision.getLastImageTime() <= 0.9){
-                                log.logMessage("Distance: " + visionDistance + "  Angle: " + visionAngle);
-                                drives.turn(visionAngle);
-                            }
-                            isDoneDrives();
-//                            if(visionDistance > 12*12){
-//                                log.logMessage("TOO FAR AWAY!!!");
-//                                drives.driveStraight(5);
-//                            }else if(visionDistance < 10*12){
-//                                log.logMessage("TOO CLOSE!!!");
-//                                drives.driveStraight(-5);
-//                            }
-//                            isDoneDrives();
-                            break;
                         case NEXT:
                             if(loopTime > 0){
                                 i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop

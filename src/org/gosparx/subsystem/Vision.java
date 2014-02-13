@@ -278,7 +278,6 @@ public class Vision extends GenericSubsystem {
         } catch (NIVisionException ex) {
             log.logError("Issue freeing the images from the camera: " + ex.getMessage());
         }
-        log.logMessage("VISION TIME: " + (Timer.getFPGATimestamp() - startImageTime));
     }
 
     /**
