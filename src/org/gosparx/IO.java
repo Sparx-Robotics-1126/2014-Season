@@ -74,7 +74,7 @@ public class IO {
     
     public static final int ACQ_BALL_DETECTOR           = 12;
     
-    public static final int LATCH_SWITCH_CHAN           = 11;
+    public static final int LATCH_LIMIT_SWITCH_CHAN     = 11;
     
     public static final int SHOOTER_ACQ_MODE_CHAN       = 9;
     

@@ -154,6 +154,29 @@ public class Controls extends GenericSubsystem{
     private static final int TRIM_ANGLE                                 = 2;
     
     //********************************************************************
+    //********************AIRFLO Controller Mapping***********************
+    //********************************************************************
+    public static final int AIRFLO_CROSS = 1;
+    public static final int AIRFLO_CIRCLE = 2;
+    public static final int AIRFLO_SQUARE = 3;
+    public static final int AIRFLO_TRIANGLE = 4;
+    public static final int AIRFLO_LONE = 5;
+    public static final int AIRFLO_LTWO = 7;
+    public static final int AIRFLO_RONE = 6;
+    public static final int AIRFLO_RTWO = 8;
+    public static final int AIRFLO_SELECT = 9;
+    public static final int AIRFLO_START = 10;
+    public static final int AIRFLO_ANALOG = 11;
+    public static final int AIRFLO_L3 = 12;
+    public static final int AIRFLO_R3 = 13;
+    public static final int AIRFLO_RIGHT_Y = 3;
+    public static final int AIRFLO_RIGHT_X = 4;
+    public static final int AIRFLO_LEFT_Y = 2;
+    public static final int AIRFLO_LEFT_X = 1;
+    public static final int AIRFLO_D_PAD_Y = 6;//UP - NEGATIVE
+    public static final int AIRFLO_D_PAD_X = 5;//LEFT - NEGATIVE 
+    
+    //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
     private static final int LEFT_X_AXIS = 1;
@@ -272,24 +295,24 @@ public class Controls extends GenericSubsystem{
                 lastTrussMode = opDPadYAxis;
                 lastAcquireMode = opDPadYAxis;
                 lastReleaseMode = opDPadXAxis;
-                opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
-                opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
-                opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
-                opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
-                opDPadXAxis = opJoy.getRawAxis(DPAD_X_AXIS);
-                opDPadYAxis = opJoy.getRawAxis(DPAD_Y_AXIS);
-                opTriangle = opJoy.getRawButton(TRIANGLE);
-                opCircle = opJoy.getRawButton(CIRCLE);
-                opSquare = opJoy.getRawButton(SQUARE);
-                opCross = opJoy.getRawButton(CROSS);
-                opStart = opJoy.getRawButton(START);
-                opSelect = opJoy.getRawButton(SELECT);
-                opL1 = opJoy.getRawButton(LONE);
-                opL2 = opJoy.getRawButton(LTWO);
-                opL3 = opJoy.getRawButton(L3);
-                opR1 = opJoy.getRawButton(RONE);
-                opR2 = opJoy.getRawButton(RTWO);
-                opR3 = opJoy.getRawButton(R3);
+                opLeftXAxis = opJoy.getRawAxis(AIRFLO_LEFT_X);
+                opLeftYAxis = opJoy.getRawAxis(AIRFLO_LEFT_Y);
+                opRightXAxis = opJoy.getRawAxis(AIRFLO_RIGHT_X);
+                opRightYAxis = opJoy.getRawAxis(AIRFLO_RIGHT_Y);
+                opDPadXAxis = opJoy.getRawAxis(AIRFLO_D_PAD_X);
+                opDPadYAxis = opJoy.getRawAxis(AIRFLO_D_PAD_Y);
+                opTriangle = opJoy.getRawButton(AIRFLO_TRIANGLE);
+                opCircle = opJoy.getRawButton(AIRFLO_CIRCLE);
+                opSquare = opJoy.getRawButton(AIRFLO_SQUARE);
+                opCross = opJoy.getRawButton(AIRFLO_CROSS);
+                opStart = opJoy.getRawButton(AIRFLO_START);
+                opSelect = opJoy.getRawButton(AIRFLO_SELECT);
+                opL1 = opJoy.getRawButton(AIRFLO_LONE);
+                opL2 = opJoy.getRawButton(AIRFLO_LTWO);
+                opL3 = opJoy.getRawButton(AIRFLO_L3);
+                opR1 = opJoy.getRawButton(AIRFLO_RONE);
+                opR2 = opJoy.getRawButton(AIRFLO_RTWO);
+                opR3 = opJoy.getRawButton(AIRFLO_R3);
                 driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
                 driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
                 driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
@@ -367,6 +390,12 @@ public class Controls extends GenericSubsystem{
                     }else{
                         acq.addOffset(-2);
                     }
+                }
+                
+                if(opR1){
+                    shooter.setMode(Shooter.State.SET_HOME);
+                }else if(opR3){
+                    shooter.setMode(Shooter.State.STANDBY);
                 }
                 
                 if(opR2 && !lastShoot){
