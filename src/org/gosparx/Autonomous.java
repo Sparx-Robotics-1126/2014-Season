@@ -406,12 +406,10 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        if(!ds.isTest()){
-            if(ds.isAutonomous() && ds.isEnabled()){
-                auto.runAutonomous();
-            }else{
-                auto.getAutoMode();
-            }
+        if(ds.isAutonomous() && ds.isEnabled()){
+            auto.runAutonomous();
+        }else{
+            auto.getAutoMode();
         }
     }
     
@@ -468,5 +466,9 @@ public class Autonomous extends GenericSubsystem{
 
     public int sleepTime() {
         return 20;
+    }
+
+    public void logInfo() {
+        
     }
 }

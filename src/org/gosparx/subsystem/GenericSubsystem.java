@@ -37,10 +37,19 @@ public abstract class GenericSubsystem extends Thread {
      */
     private final static int RING_LENGTH = 10;
     
+    /**
+     * The ring buffer for average run times.
+     */ 
     private double[] ringBuffer = new double[RING_LENGTH];
     
+    /**
+     * The starting location for the ring buffer.
+     */ 
     private int ringLoc = 0;
     
+    /**
+     * The start time for the current loop. Used in average runtime calculations.
+     */ 
     private double startTime;
     
     
@@ -74,6 +83,10 @@ public abstract class GenericSubsystem extends Thread {
                     startTime = Timer.getFPGATimestamp();
                     execute();
                     addRunTime(Timer.getFPGATimestamp() - startTime);
+                    if(Timer.getFPGATimestamp() - lastLogTime >= LOG_EVERY){
+                        logInfo();
+                        lastLogTime = Timer.getFPGATimestamp();
+                    }
                 }
                 Thread.sleep(sleepTime());
             } catch (Throwable e) {
@@ -112,12 +125,20 @@ public abstract class GenericSubsystem extends Thread {
     
     public  abstract void liveWindow();
     
+    /**
+     * Add the runTime to the ring buffer and increment the ring buffer.
+     * @param runTime - The last runtime in seconds.
+     */ 
     protected void addRunTime(double runTime){
         ringBuffer[ringLoc] = runTime;
         ringLoc ++;
         ringLoc %= RING_LENGTH;
     }
     
+    /**
+     * Returns the average runtime of all of the runtimes in the ring buffer.
+     * @return - the average runtime off all of the runtimes in the ring buffer.
+     */ 
     protected double getAverageRuntime(){
         double total = 0.0;
         for(int i = 0; i < RING_LENGTH; i++){
@@ -126,6 +147,14 @@ public abstract class GenericSubsystem extends Thread {
         return total/RING_LENGTH;
     }    
     
+    /**
+     * @return The time in ms to sleep for after each loop
+     */ 
     public abstract int sleepTime();
+    
+    /**
+     * Log all info about the subsystem.
+     */ 
+    public abstract void logInfo();
     
 }

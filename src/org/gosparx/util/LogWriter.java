@@ -157,4 +157,7 @@ public class LogWriter extends GenericSubsystem{
         return 50;
     }
 
+    public void logInfo() {
+        
+    }
 }

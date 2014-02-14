@@ -54,6 +54,8 @@ public class Vision extends GenericSubsystem {
     private double startImageTime;
     private boolean cameraResponding = false;
     private int timeOutNumber = 0;
+    
+    private int boundingRectHeight;
 
     private Vision() {
         super("Vision", Thread.MAX_PRIORITY);//TESTING
@@ -95,7 +97,7 @@ public class Vision extends GenericSubsystem {
      * @throws Exception
      */
     public void execute() throws Exception {
-        if(!ds.isTest() && cameraResponding) {
+        if(cameraResponding) {
             getBestTarget();
             freeImage();
         }
@@ -308,12 +310,8 @@ public class Vision extends GenericSubsystem {
         //using the smaller of the estimated rectangle long side and the bounding rectangle height results in better performance
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
+        boundingRectHeight = report.boundingRectHeight;
         targetHeight = 17;//32
-        if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
-                lastLogTime = Timer.getFPGATimestamp();
-                log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
-                log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
-        }
         return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
     }
    
@@ -460,6 +458,11 @@ public class Vision extends GenericSubsystem {
      */
     public double getLastImageTime(){
         return (Timer.getFPGATimestamp() - startImageTime);
+    }
+    
+    public void logInfo(){
+        log.logMessage("Dist: " + (-0.0181818 * (boundingRectHeight) + 25.090909) + " Report: " + boundingRectHeight);
+        log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
     }
     
 }
