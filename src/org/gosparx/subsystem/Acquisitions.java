@@ -662,6 +662,10 @@ public class Acquisitions extends GenericSubsystem{
         public static final int MIDDLE_SHOOTER_PRESET = 21;
         public static final int FAR_SHOOTER_PRESET = 22;
         
+        /**
+         * @param state - the state to get the string version of
+         * @return A string version of the state.
+         */
         public static String getStateName(int state){
             switch(state){
                 case ROTATE_UP:
