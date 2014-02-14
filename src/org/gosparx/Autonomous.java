@@ -406,8 +406,7 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        while(!ds.isTest()){
-            Thread.sleep(20);
+        if(!ds.isTest()){
             if(ds.isAutonomous() && ds.isEnabled()){
                 auto.runAutonomous();
             }else{
@@ -465,5 +464,9 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
         SmartDashboard.putBoolean(smartChooseName, false);
+    }
+
+    public int sleepTime() {
+        return 20;
     }
 }

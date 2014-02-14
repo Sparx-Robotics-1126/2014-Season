@@ -95,7 +95,7 @@ public class Vision extends GenericSubsystem {
      * @throws Exception
      */
     public void execute() throws Exception {
-        while (!ds.isTest() && cameraResponding) {
+        if(!ds.isTest() && cameraResponding) {
             getBestTarget();
             freeImage();
         }
@@ -103,6 +103,10 @@ public class Vision extends GenericSubsystem {
 
     public void liveWindow() {
         
+    }
+
+    public int sleepTime() {
+        return 50;
     }
 
     /**
@@ -308,6 +312,7 @@ public class Vision extends GenericSubsystem {
         if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
                 lastLogTime = Timer.getFPGATimestamp();
                 log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
+                log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
         }
         return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
     }

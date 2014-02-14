@@ -217,7 +217,7 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(!ds.isTest()){
+        if(!ds.isTest()){
             startTime = Timer.getFPGATimestamp();
             if(ds.isEnabled() && ds.isOperatorControl()){                
                 lastLeftJoyYValue = driverLeftYAxis;
@@ -295,11 +295,9 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
                     log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
-                    log.logMessage("Average Cycle Time: " + getAverageTime());
                     log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
+                    log.logMessage("Average Runtime: " + getAverageRuntime() + " sec");
                 }
-                setAverageTime();
-                Thread.sleep(20);
             }
         }
     }
@@ -318,15 +316,6 @@ public class Controls extends GenericSubsystem{
         }
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
     }
-    
-    private void setAverageTime(){
-        totalRunTime = totalRunTime + (Timer.getFPGATimestamp() - startTime);
-        numberOfAverageTimes++;
-    }
-    
-    private double getAverageTime(){
-        return totalRunTime/numberOfAverageTimes;
-    }
 
     public void liveWindow() {
         
@@ -334,5 +323,9 @@ public class Controls extends GenericSubsystem{
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", ds.getMatchTime());
+    }
+
+    public int sleepTime(){
+        return 20;
     }
 }

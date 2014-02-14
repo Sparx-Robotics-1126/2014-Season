@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import org.gosparx.util.Logger;
 
 /**
@@ -32,6 +33,18 @@ public abstract class GenericSubsystem extends Thread {
     protected double lastLogTime;
     
     /**
+     * The number of times stored for the average times.
+     */
+    private final static int RING_LENGTH = 10;
+    
+    private double[] ringBuffer = new double[RING_LENGTH];
+    
+    private int ringLoc = 0;
+    
+    private double startTime;
+    
+    
+    /**
      * This creates a generic subsystem.
      *
      * @param nameOfSubsystem A debugging name for the subsystem. Use a constant
@@ -58,9 +71,11 @@ public abstract class GenericSubsystem extends Thread {
         while (true) {
             try {
                 if(!ds.isTest()){
-                    execute();   
+                    startTime = Timer.getFPGATimestamp();
+                    execute();
+                    addRunTime(Timer.getFPGATimestamp() - startTime);
                 }
-                Thread.sleep(10);
+                Thread.sleep(sleepTime());
             } catch (Throwable e) {
                 log.logError("Uncaught Exception: " + e.getMessage());
                 e.printStackTrace();
@@ -96,5 +111,21 @@ public abstract class GenericSubsystem extends Thread {
     }
     
     public  abstract void liveWindow();
+    
+    protected void addRunTime(double runTime){
+        ringBuffer[ringLoc] = runTime;
+        ringLoc ++;
+        ringLoc %= RING_LENGTH;
+    }
+    
+    protected double getAverageRuntime(){
+        double total = 0.0;
+        for(int i = 0; i < RING_LENGTH; i++){
+            total += ringBuffer[i];
+        }
+        return total/RING_LENGTH;
+    }    
+    
+    public abstract int sleepTime();
     
 }

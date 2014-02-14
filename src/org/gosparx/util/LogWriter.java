@@ -117,7 +117,7 @@ public class LogWriter extends GenericSubsystem{
         String message, info;
         LogMessage logMessage;
         int level;
-        while (true) {
+        if(true){
             synchronized(messagesToLog){
                 if(messagesToLog.isEmpty())
                     messagesToLog.wait();
@@ -131,7 +131,6 @@ public class LogWriter extends GenericSubsystem{
             String toWrite = info + message + "\n";
             dos.write(toWrite.getBytes());
             System.out.print(toWrite);
-            Thread.sleep(50);
             if(level == LEVEL_ERROR){
                 prevMessages[0] = prevMessages[1];
                 prevMessages[1] = prevMessages[2];
@@ -152,6 +151,10 @@ public class LogWriter extends GenericSubsystem{
 
     public void liveWindow() {
        
+    }
+
+    public int sleepTime() {
+        return 50;
     }
 
 }

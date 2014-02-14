@@ -343,7 +343,7 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
-        while(!ds.isTest()){
+        if(!ds.isTest()){
             startTime = Timer.getFPGATimestamp();
             currentAngle = gyro.getAngle();
 //            log.logMessage("GYRO ANGLE: " + currentAngle);
@@ -484,31 +484,20 @@ public class Drives extends GenericSubsystem {
                 lastLogTime = Timer.getFPGATimestamp();
                 logDrivesInfo();
             }
-            setAverageTime();
-            Thread.sleep(10);
         } 
-    }
-    
-    private void setAverageTime(){
-        totalRunTime = totalRunTime + (Timer.getFPGATimestamp() - startTime);
-        numberOfAverageTimes++;
-    }
-    
-    private double getAverageTime(){
-        return totalRunTime/numberOfAverageTimes;
     }
     
     /**
      * Logs info about the drives subsystem
      */
     private void logDrivesInfo(){
-        log.logMessage("Average Travel Time: " + getAverageTime());
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
         log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
+        log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
     }
     
     /**
@@ -658,6 +647,10 @@ public class Drives extends GenericSubsystem {
         LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
         LiveWindow.addActuator(subsystemName, "Shifting", shifter);
         LiveWindow.addSensor(subsystemName, "GYRO", gyro);
+    }
+
+    public int sleepTime(){
+        return 10;
     }
     
     private static class State{
