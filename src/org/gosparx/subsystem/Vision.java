@@ -58,7 +58,7 @@ public class Vision extends GenericSubsystem {
     private int boundingRectHeight;
 
     private Vision() {
-        super("Vision", Thread.MAX_PRIORITY);//TESTING
+        super("Vision", Thread.MIN_PRIORITY);
     }
 
     /**
