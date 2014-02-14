@@ -240,23 +240,6 @@ public class Drives extends GenericSubsystem {
     private double averageDistEncoder = 0.0;
     
     /**
-     * The time (in seconds )at which the thread started
-     */
-    private double startTime = 0;
-    
-    /**
-     * The total amount of time that the thread has run.
-     * This is used to calculate the average time the thread takes to run
-     */
-    private double totalRunTime = 0;
-    
-    /**
-     *The amount of times that the average time has run.
-     * Used to calculate average
-     */
-    private int numberOfAverageTimes = 0;
-    
-    /**
      * The degrees we still need to go when turning using the 
      * State.FUNCT_TURNING.
      */ 
@@ -343,7 +326,6 @@ public class Drives extends GenericSubsystem {
         double leftMotorOutput = 0, rightMotorOutput = 0;
         shiftTime = Timer.getFPGATimestamp();
         resetSensors();
-        startTime = Timer.getFPGATimestamp();
         currentAngle = gyro.getAngle();
         leftEncoderData.calculateSpeed();
         rightEncoderData.calculateSpeed();

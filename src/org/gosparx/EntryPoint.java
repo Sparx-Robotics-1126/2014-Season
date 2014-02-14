@@ -42,7 +42,8 @@ public class EntryPoint extends SimpleRobot {
      * starts.
      */
     public void robotInit(){
-        //TODO: Log init starting
+        logger = new Logger("Robot State");
+        logger.logMessage("Robot init started");
         subsystems = new GenericSubsystem[5];
         subsystems[0] = LogWriter.getInstance();
         subsystems[1] = Drives.getInstance();
@@ -50,10 +51,10 @@ public class EntryPoint extends SimpleRobot {
         subsystems[3] = Autonomous.getInstance();
 //        subsystems[4] = Vision.getInstance();
         auto = Autonomous.getInstance();
-        logger = new Logger("Robot State");
         for (int i = 0; i < subsystems.length; i++) {
             subsystems[i].start();
         }
+        logger.logMessage("Robot init ended");
     }
     
     /**

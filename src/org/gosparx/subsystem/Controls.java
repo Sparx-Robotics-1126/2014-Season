@@ -97,23 +97,6 @@ public class Controls extends GenericSubsystem{
      */ 
     private double rightSpeedToSet;
     
-    /**
-     * The time (in seconds )at which the thread started
-     */
-    private double startTime = 0;
-    
-    /**
-     * The total amount of time that the thread has run.
-     * This is used to calculate the average time the thread takes to run
-     */
-    private double totalRunTime = 0;
-    
-    /**
-     *The amount of times that the average time has run.
-     * Used to calculate average
-     */
-    private int numberOfAverageTimes = 0;
-    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -217,7 +200,6 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        startTime = Timer.getFPGATimestamp();
         if(ds.isEnabled() && ds.isOperatorControl()){                
             lastLeftJoyYValue = driverLeftYAxis;
             lastRightJoyYValue = driverRightYAxis;

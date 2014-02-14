@@ -468,6 +468,9 @@ public class Autonomous extends GenericSubsystem{
         return 20;
     }
 
+    /**
+     * No regular info to log about autonomous.
+     */ 
     public void logInfo() {
         
     }
