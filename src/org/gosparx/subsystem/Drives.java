@@ -276,7 +276,7 @@ public class Drives extends GenericSubsystem {
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
-        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY); 
+        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY);//This may be changed to max 
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
