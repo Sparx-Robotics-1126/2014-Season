@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.gosparx.Autonomous;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 import org.gosparx.util.Logger;

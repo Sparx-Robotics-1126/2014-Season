@@ -287,7 +287,6 @@ public class Drives extends GenericSubsystem {
      * {@link GenericSubsystem#init() here}.
      */
     public void init() {
-        log.logMessage("DRIVES IS STARTING");
         leftFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
         leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
         leftBottomDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_BOTTOM_DRIVES_PWM);
@@ -315,7 +314,6 @@ public class Drives extends GenericSubsystem {
         isGyroWorking = gyroCheck();
         drivesState = State.DRIVES_LOW_GEAR;
         autoFunctionState = State.FUNCT_STANDBY;
-        log.logMessage("DRIVES INIT HAS ENDED");
     }
 
     /**
