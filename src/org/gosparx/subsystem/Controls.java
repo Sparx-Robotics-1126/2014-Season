@@ -288,22 +288,22 @@ public class Controls extends GenericSubsystem{
                 driverRightYAxis = 0;
             }
 
-                drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
-                if(lastHoldInPlaceStart && driverRightTopButton){
-                    drives.startHoldPos();
-                }else{
-                    drives.stopHoldPos();
-                }
+            drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
+            if(lastHoldInPlaceStart && driverRightTopButton){
+                drives.startHoldPos();
+            }else{
+                drives.stopHoldPos();
             }
             leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
             rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
             drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
-                if(driverLeftTrigger && driverLeftTopButton){
+            if(driverLeftTrigger && driverLeftTopButton){
                 shiftingOverride = !shiftingOverride;
-                }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
+            }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
                     drives.manualShiftUp();
-                }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
+            }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
                     drives.manualShiftDown();
+            }
             drives.setManualShifting(shiftingOverride);
         }
     }
