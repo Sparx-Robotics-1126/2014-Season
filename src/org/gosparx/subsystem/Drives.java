@@ -262,7 +262,10 @@ public class Drives extends GenericSubsystem {
      */ 
     private int autoFunctionState;
     
-    
+    /**
+     * The name of the SmartDashboard variable.
+     * Is used to send and get variables from the smartdashboard
+     */
     private String smartAutoShiftingName = "Auto Shifting";
         
     /**
@@ -471,6 +474,7 @@ public class Drives extends GenericSubsystem {
                 logDrivesInfo();
             }
             Thread.sleep(10);
+            updatedSmartDashboard();
         } 
     }
     
