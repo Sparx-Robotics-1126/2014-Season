@@ -461,7 +461,7 @@ public class Drives extends GenericSubsystem {
         rightFrontDrives.set(-rightMotorOutput);
         rightRearDrives.set(-rightMotorOutput);
         rightBottomDrives.set(-rightMotorOutput);   
-            updatedSmartDashboard();
+        updatedSmartDashboard();
     }
     
     /**
