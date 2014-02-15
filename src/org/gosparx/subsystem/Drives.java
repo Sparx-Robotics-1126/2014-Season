@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 import org.gosparx.util.Logger;
@@ -237,7 +238,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The average distance that the encoders has traveled since the last reset
      */
-    private double averageDistEncoder                                   = 0.0;
+    private double averageDistEncoder = 0.0;
     
     /**
      * The degrees we still need to go when turning using the 
@@ -260,6 +261,12 @@ public class Drives extends GenericSubsystem {
      * variables.
      */ 
     private int autoFunctionState;
+    
+    /**
+     * The name of the SmartDashboard variable.
+     * Is used to send and get variables from the smartdashboard
+     */
+    private String smartAutoShiftingName = "Auto Shifting";
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -332,160 +339,148 @@ public class Drives extends GenericSubsystem {
             leftFrontDrives.set(0);
             leftRearDrives.set(0);
         }
-        while(!ds.isTest()){
-            currentAngle = gyro.getAngle();
-//            log.logMessage("GYRO ANGLE: " + currentAngle);
-            leftEncoderData.calculateSpeed();
-            rightEncoderData.calculateSpeed();
-            leftCurrentSpeed = leftEncoderData.getSpeed();
-            rightCurrentSpeed = rightEncoderData.getSpeed();
-            
-            leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
-            rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
-            
-            double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
-            
-            averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
-            
-            switch(autoFunctionState){
-                case State.FUNCT_TURNING:
-                    degToGo = desiredAngle - currentAngle;
-                    if(isGyroWorking){
-                        if(degToGo > 0){
-                            leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
-                            rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
-                        }else if(degToGo < 0){
-                            leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
-                            rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
-                        }
-                        if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == turnCompleteCounter) {
-                            log.logMessage("Done Turning");
-                            leftMotorOutput = 0;
-                            rightMotorOutput = 0;
-                            startHoldPos();
-                        }else if(Math.abs(degToGo) < TURNING_THRESHOLD){
-                            turnLoopCounter++;
-                        }else{
-                            turnLoopCounter = 0;
-                        }
-                        log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
+        currentAngle = gyro.getAngle();
+        leftEncoderData.calculateSpeed();
+        rightEncoderData.calculateSpeed();
+        leftCurrentSpeed = leftEncoderData.getSpeed();
+        rightCurrentSpeed = rightEncoderData.getSpeed();
+        leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
+        rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
+        double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
+        averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
+        switch(autoFunctionState){
+            case State.FUNCT_TURNING:
+                degToGo = desiredAngle - currentAngle;
+                if(isGyroWorking){
+                    if(degToGo > 0){
+                        leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
+                        rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                    }else if(degToGo < 0){
+                        leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                        rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
+                    }
+                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == turnCompleteCounter) {
+                        log.logMessage("Done Turning");
+                        leftMotorOutput = 0;
+                        rightMotorOutput = 0;
+                        startHoldPos();
+                    }else if(Math.abs(degToGo) < TURNING_THRESHOLD){
+                        turnLoopCounter++;
                     }else{
-                        autoFunctionState = State.FUNCT_HOLD_POS;
-                    }    
-                    if(ds.isOperatorControl() || ds.isTest()){
-                        autoFunctionState = State.DRIVES_LOW_GEAR;
+                        turnLoopCounter = 0;
                     }
-                    break;
-                case State.FUNCT_DRIVE_STRAIGHT:
-                    if(inchesToGo - averageDistEncoder > 0) {
-                        setSpeed(30, 30);
-                    }
-                    if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
-                        leftMotorOutput = 0;
-                    }
-                    if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
-                        rightMotorOutput = 0;
-                    }
-                    if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
-                        log.logMessage("Done Driving Straight.");
-                        logDrivesInfo();
-                        resetSensors();
-                        autoFunctionState = State.FUNCT_HOLD_POS;
-                    }
-                    if(ds.isOperatorControl() || ds.isTest()){
-                        autoFunctionState = State.DRIVES_LOW_GEAR;
-                    }
-                    break;
-                case State.FUNCT_HOLD_POS:
-                    averageDistEncoder = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
-                    if(gyro.getAngle() > TURNING_THRESHOLD){
-                        leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
-                        rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
-                    } else if(gyro.getAngle() < -TURNING_THRESHOLD){
-                        leftMotorOutput = -((.0048 * (gyro.getAngle())) - .15);
-                        rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
-                    } else if(averageDistEncoder > DRIVING_THRESHOLD) {
-                        leftMotorOutput = -(.002 * averageDistEncoder + .25);
-                        rightMotorOutput = -(.002 * averageDistEncoder + .25);
-                    } else if(averageDistEncoder < -DRIVING_THRESHOLD){
-                        leftMotorOutput = -(.002 * averageDistEncoder - .25);
-                        rightMotorOutput = -(.002 * averageDistEncoder - .25);
-                    } else{
-                        leftMotorOutput = 0;
-                        rightMotorOutput = 0;
-                    }
-                    break;
-                case State.FUNCT_STANDBY:
-                   break;
-                default:
-                    log.logMessage("UNKNOWN STATE: " + autoFunctionState);
-            }
-            
-            switch(drivesState){
-                case State.DRIVES_LOW_GEAR:
-                    if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
-                        needsToManuallyShiftUp = false;
-                        needsToManuallyShiftDown = false;
-                        log.logMessage("Up Shift!");
-                        shifter.set(!LOW_GEAR);
-                        drivesState = State.DRIVES_SHIFT_HIGH_GEAR;
-                        shiftTime = Timer.getFPGATimestamp();
-                    }
-                    break;
-                case State.DRIVES_HIGH_GEAR:
-                    if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
-                        needsToManuallyShiftUp = false;
-                        needsToManuallyShiftDown = false;
-                        log.logMessage("Down Shift!");
-                        shifter.set(LOW_GEAR);
-                        drivesState = State.DRIVES_SHIFT_LOW_GEAR;
-                        shiftTime = Timer.getFPGATimestamp();
-                    }
-                    break;
-                case State.DRIVES_SHIFT_LOW_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
-                        drivesState = State.DRIVES_LOW_GEAR;
-                    }
-                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
-                    break;
-                case State.DRIVES_SHIFT_HIGH_GEAR:
-                    if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
-                        drivesState = State.DRIVES_HIGH_GEAR;
-                    }
-                    setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
-                    break;
-                default:
-                    log.logError("Unknown state for drives: " + drivesState);
-                    break;                   
-            }
-            //LEFT MOTORS
-            leftFrontDrives.set(leftMotorOutput);
-            leftRearDrives.set(leftMotorOutput);
-            leftBottomDrives.set(leftMotorOutput);
-            
-            //RIGHT MOTORS
-            rightFrontDrives.set(-rightMotorOutput);
-            rightRearDrives.set(-rightMotorOutput);
-            rightBottomDrives.set(-rightMotorOutput);
-            
-            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
-                lastLogTime = Timer.getFPGATimestamp();
-                logDrivesInfo();
-            }
-            Thread.sleep(10);
-        } 
+                    log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
+                }else{
+                    autoFunctionState = State.FUNCT_HOLD_POS;
+                }    
+                if(ds.isOperatorControl() || ds.isTest()){
+                    autoFunctionState = State.DRIVES_LOW_GEAR;
+                }
+                break;
+            case State.FUNCT_DRIVE_STRAIGHT:
+                if(inchesToGo - averageDistEncoder > 0) {
+                    setSpeed(30, 30);
+                }
+                if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                    leftMotorOutput = 0;
+                }
+                if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                    rightMotorOutput = 0;
+                }
+                if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                    log.logMessage("Done Driving Straight.");
+                    resetSensors();
+                    autoFunctionState = State.FUNCT_HOLD_POS;
+                }
+                if(ds.isOperatorControl() || ds.isTest()){
+                    autoFunctionState = State.DRIVES_LOW_GEAR;
+                }
+                break;
+            case State.FUNCT_HOLD_POS:
+                averageDistEncoder = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
+                if(gyro.getAngle() > TURNING_THRESHOLD){
+                    leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
+                    rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
+                } else if(gyro.getAngle() < -TURNING_THRESHOLD){
+                    leftMotorOutput = -((.0048 * (gyro.getAngle())) - .15);
+                    rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
+                } else if(averageDistEncoder > DRIVING_THRESHOLD) {
+                    leftMotorOutput = -(.002 * averageDistEncoder + .25);
+                    rightMotorOutput = -(.002 * averageDistEncoder + .25);
+                } else if(averageDistEncoder < -DRIVING_THRESHOLD){
+                    leftMotorOutput = -(.002 * averageDistEncoder - .25);
+                    rightMotorOutput = -(.002 * averageDistEncoder - .25);
+                } else{
+                    leftMotorOutput = 0;
+                    rightMotorOutput = 0;
+                }
+                break;
+            case State.FUNCT_STANDBY:
+               break;
+            default:
+                log.logMessage("UNKNOWN STATE: " + autoFunctionState);
+        }
+
+        switch(drivesState){
+            case State.DRIVES_LOW_GEAR:
+                if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
+                    needsToManuallyShiftUp = false;
+                    needsToManuallyShiftDown = false;
+                    log.logMessage("Up Shift!");
+                    shifter.set(!LOW_GEAR);
+                    drivesState = State.DRIVES_SHIFT_HIGH_GEAR;
+                    shiftTime = Timer.getFPGATimestamp();
+                }
+                break;
+            case State.DRIVES_HIGH_GEAR:
+                if((averageSpeed < DOWN_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftDown && manualShifting)){
+                    needsToManuallyShiftUp = false;
+                    needsToManuallyShiftDown = false;
+                    log.logMessage("Down Shift!");
+                    shifter.set(LOW_GEAR);
+                    drivesState = State.DRIVES_SHIFT_LOW_GEAR;
+                    shiftTime = Timer.getFPGATimestamp();
+                }
+                break;
+            case State.DRIVES_SHIFT_LOW_GEAR:
+                if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+                    drivesState = State.DRIVES_LOW_GEAR;
+                }
+                setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
+                break;
+            case State.DRIVES_SHIFT_HIGH_GEAR:
+                if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
+                    drivesState = State.DRIVES_HIGH_GEAR;
+                }
+                setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
+                break;
+            default:
+                log.logError("Unknown state for drives: " + drivesState);
+                break;                   
+        }
+        //LEFT MOTORS
+        leftFrontDrives.set(leftMotorOutput);
+        leftRearDrives.set(leftMotorOutput);
+        leftBottomDrives.set(leftMotorOutput);
+
+        //RIGHT MOTORS
+        rightFrontDrives.set(-rightMotorOutput);
+        rightRearDrives.set(-rightMotorOutput);
+        rightBottomDrives.set(-rightMotorOutput);   
+        updatedSmartDashboard();
     }
     
     /**
      * Logs info about the drives subsystem
      */
-    private void logDrivesInfo(){
+    public void logInfo(){
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
         log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
+        log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
     }
     
     /**
@@ -625,6 +620,10 @@ public class Drives extends GenericSubsystem {
     public boolean isLastCommandDone() {
         return autoFunctionState == State.FUNCT_HOLD_POS;
     }
+    
+    private void updatedSmartDashboard(){
+        SmartDashboard.putBoolean(smartAutoShiftingName, !manualShifting);
+    }
 
     public void liveWindow() {
         LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
@@ -635,6 +634,11 @@ public class Drives extends GenericSubsystem {
         LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
         LiveWindow.addActuator(subsystemName, "Shifting", shifter);
         LiveWindow.addSensor(subsystemName, "GYRO", gyro);
+        SmartDashboard.putBoolean(smartAutoShiftingName, true);
+    }
+
+    public int sleepTime(){
+        return 10;
     }
     
     private static class State{

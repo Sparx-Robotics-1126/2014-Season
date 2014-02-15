@@ -9,6 +9,7 @@ package org.gosparx;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.SimpleRobot;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.subsystem.Acquisitions;
@@ -43,7 +44,7 @@ public class EntryPoint extends SimpleRobot {
      * starts.
      */
     public void robotInit(){
-        //TODO: Log init starting
+        logger = new Logger("Robot State");
         GenericSubsystem subsystems[][]= {
                 {LogWriter.getInstance()},
                 {Drives.getInstance()},
@@ -57,10 +58,9 @@ public class EntryPoint extends SimpleRobot {
         logger = new Logger("Robot State");
         auto = Autonomous.getInstance();
         for (int i = 0; i < subsystems.length; i++) {
-            subsystems[i][0].init();
-            subsystems[i][0].liveWindow();
             subsystems[i][0].start();
         }
+        logger.logMessage("Robot init ended");
     }
     
     /**
@@ -86,6 +86,7 @@ public class EntryPoint extends SimpleRobot {
      */
     public void disabled(){
         logger.logMessage("Switched to Disabled");
+        auto.runAuto(false);
     }
     
     /**

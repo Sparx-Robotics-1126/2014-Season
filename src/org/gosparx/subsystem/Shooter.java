@@ -256,12 +256,6 @@ public class Shooter extends GenericSubsystem{
             }else{
                 winchMotorPWM.set(wantedWinchSpeed);
             }
-            if(Timer.getFPGATimestamp() - lastLogTime > LOG_EVERY){
-                log.logMessage("Current State: " + State.getState(shooterState));
-                log.logMessage("Pot Dist: " + potData.getInches() + " Pot Voltage: " + winchPot.get());
-                log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
-                lastLogTime = Timer.getFPGATimestamp();
-            }
         }
     }
     
@@ -301,6 +295,16 @@ public class Shooter extends GenericSubsystem{
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
         
+    }
+
+    public int sleepTime() {
+        return 50;
+    }
+
+    public void logInfo() {
+        log.logMessage("Current State: " + State.getState(shooterState));
+        log.logMessage("Pot Dist: " + potData.getInches() + " Pot Voltage: " + winchPot.get());
+        log.logMessage("Wanted Winch Speed: " + wantedWinchSpeed);
     }
     
     /**

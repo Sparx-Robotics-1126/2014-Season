@@ -1,6 +1,7 @@
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.Relay;
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
@@ -53,6 +54,17 @@ public class Vision extends GenericSubsystem {
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
+    
+    private double degrees = 0.0;
+    private static final int TARGET_HEIGHT_INCHES = 32;
+    public int cameraVerticalCount = 0;
+    private double pixelsToInches = 0;
+    private static final int CENTER_OF_CAMERA = 160;
+    private double startImageTime;
+    private boolean cameraResponding = false;
+    private int timeOutNumber = 0;
+    
+    private int boundingRectHeight;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -65,24 +77,41 @@ public class Vision extends GenericSubsystem {
         target = new TargetReport();
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
-        camera = AxisCamera.getInstance();  // get an instance of the camera
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
         cameraLights = new Relay(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
         cameraLights.set(Relay.Value.kOn);
+        camera = AxisCamera.getInstance();// get an instance of the camera 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        while(!cameraResponding && timeOutNumber <= 30){
+            try {
+                Thread.sleep(1000);
+                camera.getImage();
+                cameraResponding = true;
+            } catch (Exception e){
+                timeOutNumber++;
+            }
+        }
+        
+        if(!cameraResponding){
+            log.logMessage("THE CAMERA HAS FAILING (SILLY PEOPLE)!!!!!!!!!!");
+        }
     }
-
+    
     /**
      * Runs all the systems
      *
      * @throws Exception
      */
     public void execute() throws Exception {
-        while (!ds.isTest()) {
+        if(cameraResponding) {
             if(needImage){
                 getBestTarget();
                 freeImage();
-                sleep(20);
             }else{
                 sleep(20);
             }
@@ -99,6 +128,10 @@ public class Vision extends GenericSubsystem {
 
     public void liveWindow() {
         
+    }
+
+    public int sleepTime() {
+        return 50;
     }
 
     /**
@@ -125,8 +158,9 @@ public class Vision extends GenericSubsystem {
         double tapeWidthScore;
         double verticalScore;
         double verticalPeremeter;
-        double horizonalPeremeter;
+        double horizontalPeremeter;
         double location;
+        double verticalWidth;
     };
 
     /**
@@ -148,9 +182,10 @@ public class Vision extends GenericSubsystem {
      * @throws NIVisionException
      */
     private void getImage() throws NIVisionException {
+        startImageTime = Timer.getFPGATimestamp();
         image = null;
         try {
-            image = camera.getImage(); // comment if using stored images
+            image = camera.getImage();
         } catch (Exception e){
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
@@ -204,7 +239,7 @@ public class Vision extends GenericSubsystem {
             ParticleAnalysisReport verticalReport = filteredImage.getParticleAnalysisReport(verticalTargets[i]);
             for (int j = 0; j < horizontalTargetCount; j++) {
                 ParticleAnalysisReport horizontalReport = filteredImage.getParticleAnalysisReport(horizontalTargets[j]);
-                double horizWidth, horizHeight, vertWidth, vertPerimeter, horizPerimeter, leftScore, rightScore, tapeWidthScore, verticalScore, total;
+                double horizWidth, horizHeight, vertWidth, vertPerimeter, horizPerimeter, leftScore, rightScore, tapeWidthScore, verticalScore, total, location;
 
                 //Measure equivalent rectangle sides for use in score calculation
                 horizWidth = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_EQUIVALENT_RECT_LONG_SIDE);
@@ -212,10 +247,12 @@ public class Vision extends GenericSubsystem {
                 horizHeight = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_EQUIVALENT_RECT_SHORT_SIDE);
                 vertPerimeter = NIVision.MeasureParticle(filteredImage.image, verticalTargets[i], false, MeasurementType.IMAQ_MT_CONVEX_HULL_PERIMETER);
                 horizPerimeter = NIVision.MeasureParticle(filteredImage.image, horizontalTargets[j], false, MeasurementType.IMAQ_MT_CONVEX_HULL_PERIMETER);
+                location = 180 - NIVision.MeasureParticle(filteredImage.image, verticalTargets[i], false, MeasurementType.IMAQ_MT_FIRST_PIXEL_X);
 
                 //Determine if the horizontal target is in the expected location to the left of the vertical target
                 leftScore = ratioToScore(1.2 * (verticalReport.boundingRectLeft - horizontalReport.center_mass_x) / horizWidth);
                 imageLocation = verticalReport.center_mass_x;
+                cameraVerticalCount = verticalReport.boundingRectHeight;
                 //Determine if the horizontal target is in the expected location to the right of the  vertical target
                 rightScore = ratioToScore(1.2 * (horizontalReport.center_mass_x - verticalReport.boundingRectLeft - verticalReport.boundingRectWidth) / horizWidth);
                 //Determine if the width of the tape on the two targets appears to be the same
@@ -235,7 +272,9 @@ public class Vision extends GenericSubsystem {
                     target.tapeWidthScore = tapeWidthScore;
                     target.verticalScore = verticalScore;
                     target.verticalPeremeter = vertPerimeter;
-                    target.horizonalPeremeter = horizPerimeter;
+                    target.horizontalPeremeter = horizPerimeter;
+                    target.verticalWidth = vertWidth;
+                    target.location = location;
                 }
             }
             //Determine if the best target is a Hot target
@@ -246,9 +285,9 @@ public class Vision extends GenericSubsystem {
                                     //Information about the target is contained in the "target" structure
             //To get measurement information such as sizes or locations use the
             //horizontal or vertical index to get the particle report as shown below
-            ParticleAnalysisReport distanceReport = filteredImage.getParticleAnalysisReport(target.verticalIndex);
+            ParticleAnalysisReport distanceReport  = filteredImage.getParticleAnalysisReport(target.verticalIndex);
             double distance = computeDistance(filteredImage, distanceReport, target.verticalIndex);
-            imageDistance = distance;
+            imageDistance = distance * 12;
             if (target.Hot) {
                 imageHotGoal = true;
             } else {
@@ -282,6 +321,9 @@ public class Vision extends GenericSubsystem {
      * @param outer True if the particle should be treated as an outer target,
      * false to treat it as a center target
      * @return The estimated distance to the target in Inches.
+     * The equation takes the total amount of pixels of the image (240) and then multiplies if by the height
+     * of the projected image. This is then divided by the actual height of the target. (multiplied by 12 for the feet to become inches, 
+     * then it is multiplied by the field of view of the camera). This creates an imaginary triangle from which it is possible to determine distance. 
      */
     private double computeDistance(BinaryImage image, ParticleAnalysisReport report, int particleNumber) throws NIVisionException {
         double rectLong, height;
@@ -291,14 +333,11 @@ public class Vision extends GenericSubsystem {
         //using the smaller of the estimated rectangle long side and the bounding rectangle height results in better performance
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
+        boundingRectHeight = report.boundingRectHeight;
         targetHeight = 17;//32
-        if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
-                lastLogTime = Timer.getFPGATimestamp();
-                log.logMessage("Dist: " + (-0.0181818 * (report.boundingRectHeight) + 25.090909) + " Report: " + report.boundingRectHeight);
-        }
-        return (-0.0181818 * (report.boundingRectHeight) + 25.090909); 
+        return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
     }
-
+   
     /**
      * Computes a score (0-100) comparing the aspect ratio to the ideal aspect
      * ratio for the target. This method uses the equivalent rectangle sides to
@@ -422,7 +461,31 @@ public class Vision extends GenericSubsystem {
      * @return location - the location of the best target. 180 is middle 0 is
      * right 360 is left
      */
-    public int getLocation() {
+    private int getLocation() {
         return imageLocation;
     }
+    
+    /**
+     * The degrees are found by making an imaginary triangle. We already know the distance and the location of the center of the target.
+     * First, the inverse sin is 
+     * @return the angle from camera to target in degrees 
+     */
+    public double getDegrees(){
+        pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(imageDistance)));
+        return degrees;
+    }
+     
+    /**
+     * Allows for the getDegrees and getDistance methods to return there updated value
+     */
+    public double getLastImageTime(){
+        return (Timer.getFPGATimestamp() - startImageTime);
+    }
+    
+    public void logInfo(){
+        log.logMessage("Dist: " + (-0.0181818 * (boundingRectHeight) + 25.090909) + " Report: " + boundingRectHeight);
+        log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
+    }
+    
 }

@@ -9,6 +9,7 @@ import org.gosparx.subsystem.Acquisitions;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
+import org.gosparx.util.Logger;
 
 
 public class Autonomous extends GenericSubsystem{
@@ -55,18 +56,23 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Distance from camera to target (closest one)
      */
-    private double visionDistance = 0;
+    private double visionDistance = 0.0;
     
     /**
      * The angle from the camera to the target (closest one)
      */
-    private int visionAngle = 0;
+    private double visionAngle = 0.0;
     
     /**
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
     
+    /**
+     * This is the number of the command that is running
+     */
+    private int i = 0;
+
     /**
      * If true than smartDashboard decides the auto mode.
      * Is set by the smart dashboard
@@ -230,7 +236,7 @@ public class Autonomous extends GenericSubsystem{
      * Autonomous Constructor
      */
     private Autonomous(){
-        super("Autonomous", GenericSubsystem.NORM_PRIORITY);       
+        super(Logger.SUB_AUTONOMOUS, GenericSubsystem.NORM_PRIORITY);   
     }
     
     /**
@@ -391,35 +397,25 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
+                            log.logMessage("Vision getting Distance");
                             break;
                         case VISION_ANGLE:
-                            visionAngle = vision.getLocation();
+                            visionAngle = vision.getDegrees();
+                            log.logMessage("Vision getting Degrees");
                             break;
                         case VISION_HOT_TARGET:
                             visionHotGoal = vision.isHotGoal();
                             break;
-                        case DRIVES_TRACK_TARGET:
-                            System.out.println("Distance: " + visionDistance + "  Location: " + visionAngle);
-                            if(visionAngle > 190){
-                                drives.setSpeed(5, -5);
-                            }else if(visionAngle < 170){
-                                drives.setSpeed(-5, 5);
-                            }else if(visionDistance > 20){
-                                drives.setSpeed(5, 5);
-                            }else if(visionDistance < 15){
-                                drives.setSpeed(-5, -5);
-                            }else{
-                                drives.setSpeed(0, 0);
-                            }
-                            break;
                         case NEXT:
                             if(loopTime > 1){
-                                i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
+                                i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
+                            log.logMessage("Next Loop");
                             break;
                         case LOOP:
                             loopTime = currentAutonomous[i][1];
+                            log.logMessage("Setting Loop to " + currentAutonomous[i][1] + " loops");
                             break;
                         case WAIT:
                             try {
@@ -430,6 +426,7 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case END:
                             runAutonomous = false;
+                            log.logMessage("Auto has stopped ****************");
                             break;
                         default:
                             log.logMessage("No case statement: " + currentAutonomous[i]);
@@ -460,13 +457,10 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        while(!ds.isTest()){
-            Thread.sleep(20);
-            if(ds.isAutonomous() && ds.isEnabled()){
-                auto.runAutonomous();
-            }else{
-                auto.getAutoMode();
-            }
+        if(ds.isAutonomous() && ds.isEnabled()){
+            auto.runAutonomous();
+        }else{
+            auto.getAutoMode();
         }
     }
     
@@ -537,7 +531,7 @@ public class Autonomous extends GenericSubsystem{
      * @param autoName - the name of the current autonomous mode
      */ 
     private void sendSmartAuto(String autoName){
-        SmartDashboard.putString(smartChooseName, autoName);
+        SmartDashboard.putString("Selected Auto Mode: ", autoName);
         smartAutoMode = SmartDashboard.getBoolean(smartChooser);
     }
 
@@ -557,5 +551,16 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
         SmartDashboard.putBoolean(smartChooser, false);
+    }
+
+    public int sleepTime() {
+        return 20;
+    }
+
+    /**
+     * No regular info to log about autonomous.
+     */ 
+    public void logInfo() {
+        
     }
 }

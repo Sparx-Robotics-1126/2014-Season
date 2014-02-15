@@ -330,7 +330,7 @@ public class Acquisitions extends GenericSubsystem{
                 acqRollerPWM.set(0);
             }
         }
-        while(!ds.isTest()){//motors can't be given values during test mode, OR IT DOSEN'T WORK
+        
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             isBallInRollers = !ballDetector.get();
             switch(acquisitionState){                
@@ -437,15 +437,9 @@ public class Acquisitions extends GenericSubsystem{
                     wantedAcqSpeed = 0;
                     break;
             }
-             
             setPivotMotor(rotationSpeed);
             setAcquiringMotor(wantedAcqSpeed);
-            if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime && ds.isEnabled()){
-                lastLogTime = Timer.getFPGATimestamp();
-                logFile();
-            }
         updateSmartDashboard();
-        }
     }
     
     /**
@@ -475,7 +469,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Logs relevant info
      */ 
-    private void logFile(){
+    public void logInfo(){
         rotateEncoderData.calculateSpeed();
        log.logMessage("State: " + AcqState.getStateName(acquisitionState));
        log.logMessage("Wanted State: " + AcqState.getStateName(wantedState));
@@ -635,6 +629,10 @@ public class Acquisitions extends GenericSubsystem{
         LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, false);
          SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
+    }
+
+    public int sleepTime() {
+        return 20;
     }
     
     /**
