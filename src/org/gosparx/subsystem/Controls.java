@@ -170,6 +170,8 @@ public class Controls extends GenericSubsystem{
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
     private boolean lastDriverRightTrigger;
+    private boolean lastDriverLeftTopButton;
+    private boolean lastDriverLeftTrigger;
     /**
      * Creates a new Controls
      */
@@ -210,8 +212,10 @@ public class Controls extends GenericSubsystem{
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
                 lastHoldInPlaceStart = driverRightTopButton;
-                lastDriverRightTrigger = driverRightTrigger; 
-               opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
+                lastDriverRightTrigger = driverRightTrigger;
+                lastDriverLeftTopButton = driverLeftTopButton;
+                lastDriverLeftTrigger = driverLeftTrigger;
+                opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
                 opLeftYAxis = opJoy.getRawAxis(LOGI_LEFT_Y_AXIS);
                 opRightXAxis = opJoy.getRawAxis(LOGI_RIGHT_X_AXIS);
                 opRightYAxis = opJoy.getRawAxis(LOGI_RIGHT_Y_AXIS);
@@ -247,29 +251,19 @@ public class Controls extends GenericSubsystem{
                 }
                 drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
                 drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
-                //if(driverLeftTopButton && !lastShiftOverrideState){
-                //   shiftingOverride = !shiftingOverride;
-                //    log.logMessage("Toggled manual shifting");
-                //}
-                //if(driverLeftTrigger && !shiftingOverride){
-                //    drives.forceLowGear(true);
-                //}else{
-                //    drives.forceLowGear(false);
-                ///}
-                //if(shiftingOverride){
-                //    if(driverLeftTrigger && !lastShiftDown){
-                //      drives.manualShiftDown();
-                //   }else if(driverRightTrigger && !lastShiftUp){
-                //       drives.manualShiftUp();
-                //   }
-                //}
                 if(lastHoldInPlaceStart && driverRightTopButton){
                     drives.startHoldPos();
                 }else{
                     drives.stopHoldPos();
                 }
-                //drives.setManualShifting(shiftingOverride);
-                
+                if(driverLeftTrigger && driverLeftTopButton){
+                    shiftingOverride = !shiftingOverride;
+                }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
+                    drives.manualShiftUp();
+                }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
+                    drives.manualShiftDown();
+                }
+                drives.setManualShifting(shiftingOverride);
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
