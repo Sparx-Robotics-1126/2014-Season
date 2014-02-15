@@ -350,7 +350,7 @@ public class Acquisitions extends GenericSubsystem{
                             rotationSpeed -= -.05;
                         }
                     } else {
-                        rotationSpeed = 0.3;
+                        rotationSpeed = 0.4;
                     }
                 }
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance()
@@ -373,9 +373,9 @@ public class Acquisitions extends GenericSubsystem{
                     acquisitionState = wantedState;
                 } else {
                     if (rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE) {
-                        rotationSpeed = -0.9;//MAY WANT TO RAMP
+                        rotationSpeed = -0.2;//MAY WANT TO RAMP
                     } else {
-                        rotationSpeed = -0.45;
+                        rotationSpeed = -0.1;
                     }
                 }
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()
