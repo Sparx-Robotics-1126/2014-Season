@@ -139,7 +139,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Degrees per second
      */
-    private final static double ROTATE_UP_SPEED = -80;
+    private final static double ROTATE_UP_SPEED = 80;
     
     /**
      * The angle at which it is legal for the acquisition rollers to extend 
@@ -163,17 +163,17 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 20;
+    private final static int CLOSE_SHOOTER_PRESET = 30;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 30;
+   private final static int MID_SHOOTER_PRESET = 40;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 45;
+   private final static int FAR_SHOOTER_PRESET = 52;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -268,18 +268,18 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The motor output to start pivoting up at. 
      */ 
-    private static final double PIVOT_UP_START_POWER                        = .4;
+    private static final double PIVOT_UP_START_POWER                        = .2;
     
     /**
      * The motor output to start pivoting the motor down at. It will go at this
      * power until it reaches CLOSE_TO_ACQUIRING.
      */ 
-    private static final double PIVOT_DOWN_START_POWER                      = -.2;
+    private static final double PIVOT_DOWN_START_POWER                      = -.25;
     
     /**
      * The motor output when we are CLOSE_TO_ACQUIRING.
      */ 
-    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.1;
+    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
     
     /**
      * 
@@ -321,7 +321,7 @@ public class Acquisitions extends GenericSubsystem{
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.DEFAULT_SLOT, IO.ACQ_BALL_DETECTOR);
         upperLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_SAFE_MODE_CHAN);
-        rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2);
+        rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2, false);
         rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
         rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
         rotateEncoderData.reset();
@@ -361,9 +361,9 @@ public class Acquisitions extends GenericSubsystem{
                 } else {
                     if (rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE) {
                         if (rotateEncoderData.getSpeed() < ROTATE_UP_SPEED) {
-                            rotationSpeed += -.05;
+                            rotationSpeed += .05;
                         } else {
-                            rotationSpeed -= -.05;
+                            rotationSpeed -= .05;
                         }
                     } else {
                         rotationSpeed = PIVOT_UP_START_POWER;
@@ -412,6 +412,7 @@ public class Acquisitions extends GenericSubsystem{
                 acquisitionState = AcqState.ROTATE_UP;
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
+                rotationSpeed = 0.1;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
@@ -425,19 +426,21 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 break;
             case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
-                wantedAcqSpeed = 0;
                 acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
                 break;
             case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rolls right on out
+                wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/50;   
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 break;
@@ -506,7 +509,7 @@ public class Acquisitions extends GenericSubsystem{
                         acquisitionState = AcqState.ROTATE_UP;
                         break;
                     case AcqState.READY_TO_SHOOT:
-                        setPreset(AcqState.MIDDLE_SHOOTER_PRESET);
+                        setPreset(AcqState.FAR_SHOOTER_PRESET);
                         break;
                     case AcqState.EJECT_BALL:
                         wantedShooterAngle = DOWN_POSITION;//Acquiring
@@ -638,6 +641,7 @@ public class Acquisitions extends GenericSubsystem{
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
         LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
+        LiveWindow.addSensor(subsystemName, "Pivot Encoder", rotateEncoder);
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, false);
          SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
     }

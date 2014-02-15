@@ -315,11 +315,11 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){                
-                lastTrimUp = opL1;
-                lastTrimDown = opL2;
+            lastTrimUp = opL1;
+            lastTrimDown = opL2;
             lastLeftJoyYValue = driverLeftYAxis;
             lastRightJoyYValue = driverRightYAxis;
-                lastShoot = opR2;
+            lastShoot = opR2;
             lastShiftDown = driverLeftTrigger;
             lastShiftUp = driverRightTrigger;
             lastShiftOverrideState = driverLeftTopButton;
