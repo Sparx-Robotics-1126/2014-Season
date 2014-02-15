@@ -97,6 +97,26 @@ public class Controls extends GenericSubsystem{
      */ 
     private double rightSpeedToSet;
     
+    /**
+     * The last value of the driver right trigger
+     */
+    private boolean lastDriverRightTrigger;
+    
+    /**
+     * The last value of the driver top left button
+     */ 
+    private boolean lastDriverLeftTopButton;
+    
+    /**
+     * The last value of the drivers left trigger
+     */ 
+    private boolean lastDriverLeftTrigger;
+    
+    /**
+     * The last value of the hold in place
+     */ 
+    private boolean lastHoldInPlaceStart;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -188,10 +208,6 @@ public class Controls extends GenericSubsystem{
     private double driverRightZAxis;
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
-    private boolean lastDriverRightTrigger;
-    private boolean lastDriverLeftTopButton;
-    private boolean lastDriverLeftTrigger;
-    private boolean lastHoldInPlaceStart;
     /**
      * Creates a new Controls
      */
