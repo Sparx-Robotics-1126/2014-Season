@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.sensors.EncoderData;
 import org.gosparx.util.Logger;
@@ -260,6 +261,12 @@ public class Drives extends GenericSubsystem {
      * variables.
      */ 
     private int autoFunctionState;
+    
+    /**
+     * The name of the SmartDashboard variable.
+     * Is used to send and get variables from the smartdashboard
+     */
+    private String smartAutoShiftingName = "Auto Shifting";
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -454,6 +461,7 @@ public class Drives extends GenericSubsystem {
         rightFrontDrives.set(-rightMotorOutput);
         rightRearDrives.set(-rightMotorOutput);
         rightBottomDrives.set(-rightMotorOutput);   
+        updatedSmartDashboard();
     }
     
     /**
@@ -606,6 +614,10 @@ public class Drives extends GenericSubsystem {
     public boolean isLastCommandDone() {
         return autoFunctionState == State.FUNCT_HOLD_POS;
     }
+    
+    private void updatedSmartDashboard(){
+        SmartDashboard.putBoolean(smartAutoShiftingName, !manualShifting);
+    }
 
     public void liveWindow() {
         LiveWindow.addActuator(subsystemName, "Right Front", rightFrontDrives);
@@ -616,6 +628,7 @@ public class Drives extends GenericSubsystem {
         LiveWindow.addSensor(subsystemName, "Left Encoder", leftDrivesEncoder);
         LiveWindow.addActuator(subsystemName, "Shifting", shifter);
         LiveWindow.addSensor(subsystemName, "GYRO", gyro);
+        SmartDashboard.putBoolean(smartAutoShiftingName, true);
     }
 
     public int sleepTime(){

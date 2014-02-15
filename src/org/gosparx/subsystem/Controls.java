@@ -97,6 +97,16 @@ public class Controls extends GenericSubsystem{
      */ 
     private double rightSpeedToSet;
     
+    /**
+     * The last value of the driver top left button
+     */ 
+    private boolean lastDriverLeftTopButton;
+    
+    /**
+     * The last value of the drivers left trigger
+     */ 
+    private boolean lastDriverLeftTrigger;
+    
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
     //********************************************************************
@@ -120,6 +130,30 @@ public class Controls extends GenericSubsystem{
     private static final int START = 10;
     private static final int L3 = 11;
     private static final int R3 = 12;
+    
+    //**************************************************************************
+    //*****************************Logitech f310 mapping************************
+    //**************************************************************************
+    private static final int LOGI_LEFT_X_AXIS = 1;
+    private static final int LOGI_LEFT_Y_AXIS = 2;
+    private static final int LOGI_RIGHT_X_AXIS = 3;
+    private static final int LOGI_RIGHT_Y_AXIS = 4;
+    /** right = 1, left = -1 */
+    private static final int LOGI_DPAD_X_AXIS = 5;
+    /** up = -1, down = 1 */
+    private static final int LOGI_DPAD_Y_AXIS = 6;
+    private static final int LOGI_X = 1;
+    private static final int LOGI_A = 2;
+    private static final int LOGI_B = 3;
+    private static final int LOGI_Y = 4;
+    private static final int LOGI_L1 = 5;
+    private static final int LOGI_R1 = 6;
+    private static final int LOGI_L2 = 7;
+    private static final int LOGI_R2 = 8;
+    private static final int LOGI_BACK = 9;
+    private static final int LOGI_START = 10;
+    private static final int LOGI_L3 = 11;
+    private static final int LOGI_R3 = 12;
     
     //********************************************************************
     //*******************Driver Controller Mapping**********************
@@ -164,8 +198,6 @@ public class Controls extends GenericSubsystem{
     private double driverRightZAxis;
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
-    
-    
     /**
      * Creates a new Controls
      */
@@ -206,25 +238,26 @@ public class Controls extends GenericSubsystem{
             lastShiftDown = driverLeftTrigger;
             lastShiftUp = driverRightTrigger;
             lastShiftOverrideState = driverLeftTopButton;
-            lastHoldInPlace = driverRightTopButton;
-            opLeftXAxis = opJoy.getRawAxis(LEFT_X_AXIS);
-            opLeftYAxis = opJoy.getRawAxis(LEFT_Y_AXIS);
-            opRightXAxis = opJoy.getRawAxis(RIGHT_X_AXIS);
-            opRightYAxis = opJoy.getRawAxis(RIGHT_Y_AXIS);
-            opDPadXAxis = opJoy.getRawAxis(DPAD_X_AXIS);
-            opDPadYAxis = opJoy.getRawAxis(DPAD_Y_AXIS);
-            opTriangle = opJoy.getRawButton(TRIANGLE);
-            opCircle = opJoy.getRawButton(CIRCLE);
-            opSquare = opJoy.getRawButton(SQUARE);
-            opCross = opJoy.getRawButton(CROSS);
-            opStart = opJoy.getRawButton(START);
-            opSelect = opJoy.getRawButton(SELECT);
-            opL1 = opJoy.getRawButton(LONE);
-            opL2 = opJoy.getRawButton(LTWO);
-            opL3 = opJoy.getRawButton(L3);
-            opR1 = opJoy.getRawButton(RONE);
-            opR2 = opJoy.getRawButton(RTWO);
-            opR3 = opJoy.getRawButton(R3);
+            lastDriverLeftTopButton = driverLeftTopButton;
+            lastDriverLeftTrigger = driverLeftTrigger;
+            opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
+            opLeftYAxis = opJoy.getRawAxis(LOGI_LEFT_Y_AXIS);
+            opRightXAxis = opJoy.getRawAxis(LOGI_RIGHT_X_AXIS);
+            opRightYAxis = opJoy.getRawAxis(LOGI_RIGHT_Y_AXIS);
+            opDPadXAxis = opJoy.getRawAxis(LOGI_DPAD_X_AXIS);
+            opDPadYAxis = opJoy.getRawAxis(LOGI_DPAD_Y_AXIS);
+            opTriangle = opJoy.getRawButton(LOGI_Y);
+            opCircle = opJoy.getRawButton(LOGI_B);
+            opSquare = opJoy.getRawButton(LOGI_X);
+            opCross = opJoy.getRawButton(LOGI_A);
+            opStart = opJoy.getRawButton(LOGI_START);
+            opSelect = opJoy.getRawButton(LOGI_BACK);
+            opL1 = opJoy.getRawButton(LOGI_L1);
+            opL2 = opJoy.getRawButton(LOGI_L2);
+            opL3 = opJoy.getRawButton(LOGI_L3);
+            opR1 = opJoy.getRawButton(LOGI_R1);
+            opR2 = opJoy.getRawButton(LOGI_R2);
+            opR3 = opJoy.getRawButton(LOGI_R3);
             driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
             driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
             driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
@@ -243,33 +276,22 @@ public class Controls extends GenericSubsystem{
                 driverRightYAxis = 0;
             }
 
-            if(driverRightTopButton != lastHoldInPlace){
-                if(driverRightTopButton){
-                    drives.startHoldPos();
-                }else{
-                    drives.stopHoldPos();
-                }
+            drives.forceLowGear((driverRightTrigger));
+            if(driverRightTopButton){
+                drives.startHoldPos();
+            }else{
+                drives.stopHoldPos();
             }
             leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
             rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
             drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
-            if(driverLeftTopButton && !lastShiftOverrideState){
+            if(driverLeftTrigger && driverLeftTopButton){
                 shiftingOverride = !shiftingOverride;
-                log.logMessage("Toggled manual shifting");
-            }
-            if(driverLeftTrigger && !shiftingOverride){
-                drives.forceLowGear(true);
-            }else{
-                drives.forceLowGear(false);
-            }
-            if(shiftingOverride){
-                if(driverLeftTrigger && !lastShiftDown){
-                    drives.manualShiftDown();
-                }else if(driverRightTrigger && !lastShiftUp){
+            }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
                     drives.manualShiftUp();
-                }
+            }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
+                    drives.manualShiftDown();
             }
-
             drives.setManualShifting(shiftingOverride);
         }
     }
