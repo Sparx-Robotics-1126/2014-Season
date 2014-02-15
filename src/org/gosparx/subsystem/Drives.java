@@ -629,6 +629,7 @@ public class Drives extends GenericSubsystem {
         LiveWindow.addActuator(subsystemName, "Shifting", shifter);
         LiveWindow.addSensor(subsystemName, "GYRO", gyro);
         SmartDashboard.putBoolean(smartAutoShiftingName, true);
+    }
 
     public int sleepTime(){
         return 10;
