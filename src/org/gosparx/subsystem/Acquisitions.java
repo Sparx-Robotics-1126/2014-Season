@@ -330,7 +330,6 @@ public class Acquisitions extends GenericSubsystem{
                 acqRollerPWM.set(0);
             }
         }
-        
             rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
             isBallInRollers = !ballDetector.get();
             switch(acquisitionState){                
@@ -343,8 +342,6 @@ public class Acquisitions extends GenericSubsystem{
                     }else if(Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet){
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
-                    }else if(Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) < rotateEncoderData.getDistance() && isEncoderDataSet){
-                        acquisitionState = AcqState.ROTATE_DOWN;
                     }else{
                         if(rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE){
                             if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
@@ -374,8 +371,6 @@ public class Acquisitions extends GenericSubsystem{
                     }else if(Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()){
                         rotationSpeed = 0;
                         acquisitionState = wantedState;
-                    }else if(Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) >= rotateEncoderData.getDistance()){
-                        acquisitionState = AcqState.ROTATE_UP;
                     }else{
                         if(rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE){
                             rotationSpeed = -0.9;//MAY WANT TO RAMP
