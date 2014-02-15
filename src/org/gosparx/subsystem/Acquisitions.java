@@ -142,10 +142,16 @@ public class Acquisitions extends GenericSubsystem{
     private final static double ROTATE_UP_SPEED = -80;
     
     /**
-     * The angle at which it is legal for the acquisition rollers to extend without breaking rules
+     * The angle at which it is legal for the acquisition rollers to extend 
+     * without breaking rules
      */
     private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
     
+    
+    /**
+     * The angle at which the longer rollers must be retracted to be within the 
+     * frame perimeter.
+     */ 
     private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 65;
     
     /**
@@ -155,17 +161,17 @@ public class Acquisitions extends GenericSubsystem{
     private final static String subsystemName = "Acquisitions";
     
     /**
-     * Close Shooter preset
+     * Close Shooter preset. Use this angle if we are close to the goal.
      */
     private final static int CLOSE_SHOOTER_PRESET = 20;
     
     /**
-     * Mid Shooter preset
+     * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
    private final static int MID_SHOOTER_PRESET = 30;
    
    /**
-    * Far Shooter preset
+    * Far Shooter preset. Use if we are far from the goal.
     */
    private final static int FAR_SHOOTER_PRESET = 45;
    
@@ -662,6 +668,10 @@ public class Acquisitions extends GenericSubsystem{
         public static final int MIDDLE_SHOOTER_PRESET = 21;
         public static final int FAR_SHOOTER_PRESET = 22;
         
+        /**
+         * @param state - the state to get the string version of
+         * @return A string version of the state.
+         */
         public static String getStateName(int state){
             switch(state){
                 case ROTATE_UP:

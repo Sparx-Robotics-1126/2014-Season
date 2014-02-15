@@ -124,9 +124,16 @@ public class Shooter extends GenericSubsystem{
     private boolean limitSwitchValue;
     
     /**
-     * The amount of time that the pnu latch needs to completely latch the shooter
+     * The amount of time that the pnu latch needs to completely latch the 
+     * shooter
      */
     private double LATCH_TIME = 0.5;
+    
+    /**
+     * The subsystem name that all of the components are listed under in the
+     * livewindow.
+     */ 
+    private String subsystemName = "Shooter";
     
     /**
      * Returns an instance of a shooter. Used in the singleton model.
@@ -258,6 +265,10 @@ public class Shooter extends GenericSubsystem{
         }
     }
     
+    /**
+     * Sets the shooter mode to the wantedState. Use the State classes constants.
+     * @param wantedState - the desired state.
+     */
     public void setMode(int wantedState){
         shooterState = wantedState;
         log.logMessage("NEW STATE HAS BEEN SET TO: " + State.getState(wantedState));
@@ -277,7 +288,9 @@ public class Shooter extends GenericSubsystem{
        return false;
     }
 
-    private String subsystemName = "Shooter";
+    /**
+     * Initializes and adds all of the components to the livewindow.
+     */ 
     public void liveWindow() {
         if(!IO.USE_PWM_CABLES){
             LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
