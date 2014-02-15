@@ -267,6 +267,9 @@ public class Drives extends GenericSubsystem {
      * Is used to send and get variables from the smartdashboard
      */
     private String smartAutoShiftingName = "Auto Shifting";
+    
+    private double leftMotorOutput = 0; 
+    private double rightMotorOutput = 0;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -321,6 +324,10 @@ public class Drives extends GenericSubsystem {
         isGyroWorking = gyroCheck();
         drivesState = State.DRIVES_LOW_GEAR;
         autoFunctionState = State.FUNCT_STANDBY;
+        shiftTime = Timer.getFPGATimestamp();
+        leftMotorOutput = 0; 
+        rightMotorOutput = 0;
+        resetSensors();
     }
 
     /**
@@ -330,9 +337,7 @@ public class Drives extends GenericSubsystem {
      */
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
-        double leftMotorOutput = 0, rightMotorOutput = 0;
-        shiftTime = Timer.getFPGATimestamp();
-        resetSensors();
+        
         if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
             rightFrontDrives.set(0);
             rightRearDrives.set(0);
@@ -477,10 +482,12 @@ public class Drives extends GenericSubsystem {
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+        log.logMessage("Left Motor Output: " + leftMotorOutput + " Right Motor Output: " + rightMotorOutput);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
         log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
         log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
+        
     }
     
     /**
@@ -496,7 +503,7 @@ public class Drives extends GenericSubsystem {
         double speed = 0;
         if(wantedSpeed != 0) {
             // TODO: Make ramping awsomeness!
-            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 2) + currentOutput;
+            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 3) + currentOutput;
         }
 
         return speed;
