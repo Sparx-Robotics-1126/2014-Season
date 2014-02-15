@@ -117,36 +117,32 @@ public class LogWriter extends GenericSubsystem{
         String message, info;
         LogMessage logMessage;
         int level;
-        while (true) {
-            synchronized(messagesToLog){
-                if(messagesToLog.isEmpty())
-                    messagesToLog.wait();
-                
-                logMessage = (LogMessage) messagesToLog.get(0);
-                message = logMessage.getMessage();
-                level = logMessage.getLevel();
-                info = logMessage.getInfo();
-                messagesToLog.remove(0);
-            }
-            String toWrite = info + message + "\n";
-            dos.write(toWrite.getBytes());
-            System.out.print(toWrite);
-            Thread.sleep(50);
-            if(level == LEVEL_ERROR){
-                prevMessages[0] = prevMessages[1];
-                prevMessages[1] = prevMessages[2];
-                prevMessages[2] = prevMessages[3];
-                prevMessages[3] = prevMessages[4];
-                prevMessages[4] = info;
-                prevMessages[5] = message;
-                dsLCD.println(DriverStationLCD.Line.kUser1, 1, prevMessages[0]);
-                dsLCD.println(DriverStationLCD.Line.kUser2, 1, prevMessages[1]);
-                dsLCD.println(DriverStationLCD.Line.kUser3, 1, prevMessages[2]);
-                dsLCD.println(DriverStationLCD.Line.kUser4, 1, prevMessages[3]);
-                dsLCD.println(DriverStationLCD.Line.kUser5, 1, prevMessages[4]);
-                dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
-                dsLCD.updateLCD();
-            }
+        synchronized(messagesToLog){
+        if(messagesToLog.isEmpty())
+            messagesToLog.wait();
+        logMessage = (LogMessage) messagesToLog.get(0);
+        message = logMessage.getMessage();
+        level = logMessage.getLevel();
+        info = logMessage.getInfo();
+        messagesToLog.remove(0);
+        }
+        String toWrite = info + message + "\n";
+        dos.write(toWrite.getBytes());
+        System.out.print(toWrite);
+        if(level == LEVEL_ERROR){
+            prevMessages[0] = prevMessages[1];
+            prevMessages[1] = prevMessages[2];
+            prevMessages[2] = prevMessages[3];
+            prevMessages[3] = prevMessages[4];
+            prevMessages[4] = info;
+            prevMessages[5] = message;
+            dsLCD.println(DriverStationLCD.Line.kUser1, 1, prevMessages[0]);
+            dsLCD.println(DriverStationLCD.Line.kUser2, 1, prevMessages[1]);
+            dsLCD.println(DriverStationLCD.Line.kUser3, 1, prevMessages[2]);
+            dsLCD.println(DriverStationLCD.Line.kUser4, 1, prevMessages[3]);
+            dsLCD.println(DriverStationLCD.Line.kUser5, 1, prevMessages[4]);
+            dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
+            dsLCD.updateLCD();
         }
     }
 
@@ -154,4 +150,11 @@ public class LogWriter extends GenericSubsystem{
        
     }
 
+    public int sleepTime() {
+        return 50;
+    }
+
+    public void logInfo() {
+        
+    }
 }

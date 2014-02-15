@@ -226,13 +226,12 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(!ds.isTest()){
-            if(ds.isEnabled() && ds.isOperatorControl()){                
-                lastLeftJoyYValue = driverLeftYAxis;
-                lastRightJoyYValue = driverRightYAxis;
-                lastShiftDown = driverLeftTrigger;
-                lastShiftUp = driverRightTrigger;
-                lastShiftOverrideState = driverLeftTopButton;
+        if(ds.isEnabled() && ds.isOperatorControl()){                
+            lastLeftJoyYValue = driverLeftYAxis;
+            lastRightJoyYValue = driverRightYAxis;
+            lastShiftDown = driverLeftTrigger;
+            lastShiftUp = driverRightTrigger;
+            lastShiftOverrideState = driverLeftTopButton;
                 lastHoldInPlaceStart = driverRightTopButton;
                 lastDriverRightTrigger = driverRightTrigger;
                 lastDriverLeftTopButton = driverLeftTopButton;
@@ -255,50 +254,41 @@ public class Controls extends GenericSubsystem{
                 opR1 = opJoy.getRawButton(LOGI_R1);
                 opR2 = opJoy.getRawButton(LOGI_R2);
                 opR3 = opJoy.getRawButton(LOGI_R3);
-                driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
-                driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
-                driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
-                driverLeftTopButton = leftJoy.getRawButton(ATTACK3_TOP_BUTTON);
-                driverLeftTrigger = leftJoy.getRawButton(ATTACK3_TRIGGER);
-                driverRightXAxis = rightJoy.getRawAxis(ATTACK3_X_AXIS);
-                driverRightYAxis = rightJoy.getRawAxis(ATTACK3_Y_AXIS);
-                driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
-                driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
-                driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
-                
-                if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
-                    driverLeftYAxis = 0;
-                }
-                if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
-                    driverRightYAxis = 0;
-                }
-                
+            driverLeftXAxis = leftJoy.getRawAxis(ATTACK3_X_AXIS);
+            driverLeftYAxis = leftJoy.getRawAxis(ATTACK3_Y_AXIS);
+            driverLeftZAxis = leftJoy.getRawAxis(ATTACK3_Z_AXIS);
+            driverLeftTopButton = leftJoy.getRawButton(ATTACK3_TOP_BUTTON);
+            driverLeftTrigger = leftJoy.getRawButton(ATTACK3_TRIGGER);
+            driverRightXAxis = rightJoy.getRawAxis(ATTACK3_X_AXIS);
+            driverRightYAxis = rightJoy.getRawAxis(ATTACK3_Y_AXIS);
+            driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
+            driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
+            driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+
+            if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
+                driverLeftYAxis = 0;
+            }
+            if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
+                driverRightYAxis = 0;
+            }
+
                 drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
                 if(lastHoldInPlaceStart && driverRightTopButton){
                     drives.startHoldPos();
-                    }else{
-                        drives.stopHoldPos();
-                    }
+                }else{
+                    drives.stopHoldPos();
                 }
-                leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
-                rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
-                drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
+            }
+            leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
+            rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
+            drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
                 if(driverLeftTrigger && driverLeftTopButton){
-                    shiftingOverride = !shiftingOverride;
+                shiftingOverride = !shiftingOverride;
                 }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
                     drives.manualShiftUp();
                 }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
                     drives.manualShiftDown();
-                drives.setManualShifting(shiftingOverride);
-                
-                if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
-                    lastLogTime = Timer.getFPGATimestamp();
-                    log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
-                    log.logMessage("Left Joystick Y: " + driverLeftYAxis + " Left Joystick Last Y: " + lastLeftJoyYValue);
-                    log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
-                }
-                Thread.sleep(20);
-            }
+            drives.setManualShifting(shiftingOverride);
         }
     }
     /**
@@ -323,5 +313,15 @@ public class Controls extends GenericSubsystem{
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", ds.getMatchTime());
+    }
+
+    public int sleepTime(){
+        return 20;
+    }
+    
+    public void logInfo(){
+        log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
+        log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
+        log.logMessage("Average Runtime: " + getAverageRuntime() + " sec");
     }
 }
