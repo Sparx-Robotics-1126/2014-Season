@@ -321,119 +321,119 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
-        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
-            if(!IO.USE_PWM_CABLES){
+        if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
+            if (!IO.USE_PWM_CABLES) {
                 rotatingMotor.setX(0);
                 acqRoller.setX(0);
-            }else{
+            } else {
                 rotatingMotorPWM.set(0);
                 acqRollerPWM.set(0);
             }
         }
-            rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
-            isBallInRollers = !ballDetector.get();
-            switch(acquisitionState){                
-                case AcqState.ROTATE_UP://rotate shooter up
-                    if(wantedShooterAngle == UP_POSITION && upperLimit.get()){//straight up and down
-                        rotationSpeed = 0;
-                        isEncoderDataSet = true;
-                        rotateEncoderData.reset();
-                        acquisitionState = AcqState.SAFE_STATE;
-                    }else if(Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet){
-                        rotationSpeed = 0;
-                        acquisitionState = wantedState;
-                    }else{
-                        if(rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE){
-                            if(rotateEncoderData.getSpeed() < ROTATE_UP_SPEED){
-                                rotationSpeed += -.05;
-                            }else {
-                                rotationSpeed -= -.05; 
-                            }
-                        }else{
-                            rotationSpeed = 0.3;
-                        }
-                    }
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance() 
-                            && acqShortPnu.get() == ACQ_SHORT_PNU_EXTENDED && wantedState != AcqState.READY_TO_SHOOT){
-                        acquisitionState = AcqState.ROTATE_READY_RETRACT;
-                    }
-                    
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER >= rotateEncoderData.getDistance()
-                            && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED){
-                        acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                    }
-                    wantedAcqSpeed = 0;//turns motors off
-                    break;
-                case AcqState.ROTATE_DOWN://rotate shooter down
-                    if(wantedShooterAngle == DOWN_POSITION && lowerLimit.get()){//limit Switch reads false when touched
-                        rotationSpeed = 0;
-                        acquisitionState = wantedState;
-                    }else if(Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()){
-                        rotationSpeed = 0;
-                        acquisitionState = wantedState;
-                    }else{
-                        if(rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE){
-                            rotationSpeed = -0.9;//MAY WANT TO RAMP
-                        }else{
-                            rotationSpeed = -0.45;
-                        }
-                    }
-                    if(ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance() &&
-                            acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED){
-                        acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
-                    }
-                    wantedAcqSpeed = 0;//turns motors off
-                    break;
-                case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
-                        acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
-                        acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                        acquisitionState = AcqState.ROTATE_DOWN;
-                    break;
-                case AcqState.ROTATE_READY_RETRACT://angle at which it is safe to extend the rollers
-                    wantedAcqSpeed = 0;
-                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
-                    acquisitionState = AcqState.ROTATE_UP;
-                    break;
-                case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                        acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
-                        acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                        wantedAcqSpeed =INTAKE_ROLLER_SPEED;//Turns rollers on
-                        if(isBallInRollers && Timer.getFPGATimestamp() - lastBallDetectTime >= BALL_DETECT_TIME){
-                            acquisitionState = AcqState.ACQUIRED;
-                            log.logMessage("Ball Detected!");
-                        }else if(isBallInRollers && lastBallDetectTime == 0){
-                            lastBallDetectTime = Timer.getFPGATimestamp();
-                        }else if(!isBallInRollers){
-                            lastBallDetectTime = 0;
-                        }
-                    break;
-                case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
-                    wantedAcqSpeed = 0;
-                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
-                    break;
-                case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
-                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rolls right on out
-                    break;
-                case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
-                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                    break;
-                case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
-                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                    break;
-                case AcqState.SAFE_STATE://Shooter is in the robots perimeter
-                    break;
-                case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
+        rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
+        isBallInRollers = !ballDetector.get();
+        switch (acquisitionState) {
+            case AcqState.ROTATE_UP://rotate shooter up
+                if (wantedShooterAngle == UP_POSITION && upperLimit.get()) {//straight up and down
                     rotationSpeed = 0;
-                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                    isEncoderDataSet = true;
+                    rotateEncoderData.reset();
+                    acquisitionState = AcqState.SAFE_STATE;
+                } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
+                    rotationSpeed = 0;
+                    acquisitionState = wantedState;
+                } else {
+                    if (rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE) {
+                        if (rotateEncoderData.getSpeed() < ROTATE_UP_SPEED) {
+                            rotationSpeed += -.05;
+                        } else {
+                            rotationSpeed -= -.05;
+                        }
+                    } else {
+                        rotationSpeed = 0.3;
+                    }
+                }
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance()
+                        && acqShortPnu.get() == ACQ_SHORT_PNU_EXTENDED && wantedState != AcqState.READY_TO_SHOOT) {
+                    acquisitionState = AcqState.ROTATE_READY_RETRACT;
+                }
+
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER >= rotateEncoderData.getDistance()
+                        && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED) {
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                    wantedAcqSpeed = 0;
-                    break;
-            }
-            setPivotMotor(rotationSpeed);
-            setAcquiringMotor(wantedAcqSpeed);
+                }
+                wantedAcqSpeed = 0;//turns motors off
+                break;
+            case AcqState.ROTATE_DOWN://rotate shooter down
+                if (wantedShooterAngle == DOWN_POSITION && lowerLimit.get()) {//limit Switch reads false when touched
+                    rotationSpeed = 0;
+                    acquisitionState = wantedState;
+                } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
+                    rotationSpeed = 0;
+                    acquisitionState = wantedState;
+                } else {
+                    if (rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE) {
+                        rotationSpeed = -0.9;//MAY WANT TO RAMP
+                    } else {
+                        rotationSpeed = -0.45;
+                    }
+                }
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()
+                        && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED) {
+                    acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
+                }
+                wantedAcqSpeed = 0;//turns motors off
+                break;
+            case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
+                acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acquisitionState = AcqState.ROTATE_DOWN;
+                break;
+            case AcqState.ROTATE_READY_RETRACT://angle at which it is safe to extend the rollers
+                wantedAcqSpeed = 0;
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
+                acquisitionState = AcqState.ROTATE_UP;
+                break;
+            case AcqState.ACQUIRING://Rollers are running and we are getting a ball
+                acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
+                if (isBallInRollers && Timer.getFPGATimestamp() - lastBallDetectTime >= BALL_DETECT_TIME) {
+                    acquisitionState = AcqState.ACQUIRED;
+                    log.logMessage("Ball Detected!");
+                } else if (isBallInRollers && lastBallDetectTime == 0) {
+                    lastBallDetectTime = Timer.getFPGATimestamp();
+                } else if (!isBallInRollers) {
+                    lastBallDetectTime = 0;
+                }
+                break;
+            case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
+                wantedAcqSpeed = 0;
+                acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                break;
+            case AcqState.EJECT_BALL://ball is being ejected from robot through rollers
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);//Ball rolls right on out
+                break;
+            case AcqState.READY_TO_RETRACT://The maximum angle to be at before an over 5' penalty
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                break;
+            case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                break;
+            case AcqState.SAFE_STATE://Shooter is in the robots perimeter
+                break;
+            case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
+                rotationSpeed = 0;
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                wantedAcqSpeed = 0;
+                break;
+        }
+        setPivotMotor(rotationSpeed);
+        setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
     }
     
