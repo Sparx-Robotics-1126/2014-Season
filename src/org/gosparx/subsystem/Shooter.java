@@ -22,23 +22,23 @@ public class Shooter extends GenericSubsystem{
      /**
      * The timeout for winding the cable onto the winch, in seconds.
      */ 
-    private static final double WIND_TIMEOUT = 2;//MAY BE MORE
+    private static final double WIND_TIMEOUT = 5;//MAY BE MORE
     
     /**
      * The inches the pot travels per volt change.
      */
-    private static final double INCHES_PER_VOLT = -1.5707963267948966192313216916398;//one inch wheel
+    private static final double INCHES_PER_VOLT = -6.3009708737864077669902912621359;//one inch wheel
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 6;
+    private static final double INCHES_TO_WIND = 8;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
      */ 
-    private static final double UNWIND_TIMEOUT = 2;
+    private static final double UNWIND_TIMEOUT = 5;
     
      /**
      * The motor speed to pull back the winch at.
@@ -59,7 +59,7 @@ public class Shooter extends GenericSubsystem{
      * How long in seconds between shooting the ball and starting to pull the
      * winch back again.
      */ 
-    private static final double TIME_BETWEEN_SHOTS = .5;
+    private static final double TIME_BETWEEN_SHOTS = 5;
     
     /**
      * The Potentiometer for the winch. 
@@ -168,6 +168,11 @@ public class Shooter extends GenericSubsystem{
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
+        if(!latchSwitch.get()){
+            shooterState = State.STANDBY;
+        }else{
+            shooterState = State.SET_HOME;
+        }
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
@@ -184,7 +189,6 @@ public class Shooter extends GenericSubsystem{
                 winchMotorPWM.set(0);
             }
         }
-        while(!ds.isTest()){
             wantedWinchSpeed = 0;
             limitSwitchValue = !latchSwitch.get();
             switch(shooterState){
@@ -210,7 +214,7 @@ public class Shooter extends GenericSubsystem{
                 // Then starts retracting the winch.
                 case State.SHOOTER_COOLDOWN:
                     if(Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS){
-                        shooterState = State.RETRACT;
+                        shooterState = State.SET_HOME;
                     } 
                     break;
                 case State.SET_HOME:
@@ -227,6 +231,7 @@ public class Shooter extends GenericSubsystem{
                     latch.set(LATCH_ENGAGED);
                     wantedWinchSpeed = WINCH_SPEED;
                     if(Timer.getFPGATimestamp() - lastUnwindTime >= LATCH_TIME){
+                        lastUnwindTime = Timer.getFPGATimestamp();
                         log.logMessage("Stopping Winch Motor");
                         wantedWinchSpeed = 0;
                         shooterState = State.UNWINDING;
@@ -256,7 +261,6 @@ public class Shooter extends GenericSubsystem{
             }else{
                 winchMotorPWM.set(wantedWinchSpeed);
             }
-        }
     }
     
     /**
@@ -273,7 +277,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY && Acquisitions.getInstance().readyToShoot()){
+       if(shooterState == State.STANDBY){ //&& Acquisitions.getInstance().readyToShoot()){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -298,7 +302,7 @@ public class Shooter extends GenericSubsystem{
     }
 
     public int sleepTime() {
-        return 50;
+        return 20;
     }
 
     public void logInfo() {

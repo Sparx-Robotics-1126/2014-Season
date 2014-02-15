@@ -134,7 +134,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The distance each tick travels. (in degrees)
      */
-    private final static double DEGREES_PER_TICK = 0.007670476;
+    private final static double DEGREES_PER_TICK = 0.14064698;//0.007670476; - WORM GEAR
     
     /**
      * Degrees per second
