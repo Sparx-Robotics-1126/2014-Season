@@ -185,7 +185,7 @@ public class Acquisitions extends GenericSubsystem{
     * The angle when we are close to the floor mode, or acquiring. It is used to
     * slow down the motors so we do not bounce back when we attempt to aquire.
     */ 
-   private final static int CLOES_TO_ACQUIRING_ANGLE = 90;
+   private final static int CLOSE_TO_ACQUIRING_ANGLE = 90;
    
    /**
     * The time in seconds the limit switch must be pressed for so that it 
@@ -264,6 +264,22 @@ public class Acquisitions extends GenericSubsystem{
      * The tolerance in degrees for pivoting.
      */
     private static final double PIVOT_THRESHOLD                             = 1;
+    
+    /**
+     * The motor output to start pivoting up at. 
+     */ 
+    private static final double PIVOT_UP_START_POWER                        = .4;
+    
+    /**
+     * The motor output to start pivoting the motor down at. It will go at this
+     * power until it reaches CLOSE_TO_ACQUIRING.
+     */ 
+    private static final double PIVOT_DOWN_START_POWER                      = -.2;
+    
+    /**
+     * The motor output when we are CLOSE_TO_ACQUIRING.
+     */ 
+    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.1;
     
     /**
      * 
@@ -350,7 +366,7 @@ public class Acquisitions extends GenericSubsystem{
                             rotationSpeed -= -.05;
                         }
                     } else {
-                        rotationSpeed = 0.4;
+                        rotationSpeed = PIVOT_UP_START_POWER;
                     }
                 }
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance()
@@ -372,10 +388,10 @@ public class Acquisitions extends GenericSubsystem{
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else {
-                    if (rotateEncoderData.getDistance() < CLOES_TO_ACQUIRING_ANGLE) {
-                        rotationSpeed = -0.2;//MAY WANT TO RAMP
+                    if (rotateEncoderData.getDistance() < CLOSE_TO_ACQUIRING_ANGLE) {
+                        rotationSpeed = PIVOT_DOWN_START_POWER;//MAY WANT TO RAMP
                     } else {
-                        rotationSpeed = -0.1;
+                        rotationSpeed = PIVOT_DOWN_CLOSE_POWER;
                     }
                 }
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()
