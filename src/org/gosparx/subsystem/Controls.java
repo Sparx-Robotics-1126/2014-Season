@@ -98,11 +98,6 @@ public class Controls extends GenericSubsystem{
     private double rightSpeedToSet;
     
     /**
-     * The last value of the driver right trigger
-     */
-    private boolean lastDriverRightTrigger;
-    
-    /**
      * The last value of the driver top left button
      */ 
     private boolean lastDriverLeftTopButton;
@@ -111,11 +106,6 @@ public class Controls extends GenericSubsystem{
      * The last value of the drivers left trigger
      */ 
     private boolean lastDriverLeftTrigger;
-    
-    /**
-     * The last value of the hold in place
-     */ 
-    private boolean lastHoldInPlaceStart;
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
@@ -248,8 +238,6 @@ public class Controls extends GenericSubsystem{
             lastShiftDown = driverLeftTrigger;
             lastShiftUp = driverRightTrigger;
             lastShiftOverrideState = driverLeftTopButton;
-            lastHoldInPlaceStart = driverRightTopButton;
-            lastDriverRightTrigger = driverRightTrigger;
             lastDriverLeftTopButton = driverLeftTopButton;
             lastDriverLeftTrigger = driverLeftTrigger;
             opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
@@ -288,8 +276,8 @@ public class Controls extends GenericSubsystem{
                 driverRightYAxis = 0;
             }
 
-            drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
-            if(lastHoldInPlaceStart && driverRightTopButton){
+            drives.forceLowGear((driverRightTrigger));
+            if(driverRightTopButton){
                 drives.startHoldPos();
             }else{
                 drives.stopHoldPos();
