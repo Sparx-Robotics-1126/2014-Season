@@ -192,7 +192,37 @@ public class Acquisitions extends GenericSubsystem{
     * actually counts. It is used to prevent noise from triggering acquisitions
     */
    private final static double BALL_DETECT_TIME = 0.1;
-   
+       /**    
+     * The group to display the ready to shoot rectangle on the livewindow under.
+     */ 
+    private static final String READY_TO_SHOOT_DISPLAY = "Ready To Shoot";
+    
+    /**
+     * The group to put the wanted angle meter on the livewindow under.
+     */ 
+    private static final String WANTED_ANGLE_DISPLAY = "Wanted Angle";
+    
+    /**
+     * The tolerance in degrees for pivoting.
+     */
+    private static final double PIVOT_THRESHOLD                             = 1;
+    
+    /**
+     * The motor output to start pivoting up at. 
+     */ 
+    private static final double PIVOT_UP_START_POWER                        = .2;
+    
+    /**
+     * The motor output to start pivoting the motor down at. It will go at this
+     * power until it reaches CLOSE_TO_ACQUIRING.
+     */ 
+    private static final double PIVOT_DOWN_START_POWER                      = -.25;
+    
+    /**
+     * The motor output when we are CLOSE_TO_ACQUIRING.
+     */ 
+    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
+    
     /*/************************VARIABLES***************************** /*/
     
     /**
@@ -250,36 +280,7 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private double wantedAcqSpeed = 0;
     
-    /**    
-     * The group to display the ready to shoot rectangle on the livewindow under.
-     */ 
-    private static final String READY_TO_SHOOT_DISPLAY = "Ready To Shoot";
-    
-    /**
-     * The group to put the wanted angle meter on the livewindow under.
-     */ 
-    private static final String WANTED_ANGLE_DISPLAY = "Wanted Angle";
-    
-    /**
-     * The tolerance in degrees for pivoting.
-     */
-    private static final double PIVOT_THRESHOLD                             = 1;
-    
-    /**
-     * The motor output to start pivoting up at. 
-     */ 
-    private static final double PIVOT_UP_START_POWER                        = .2;
-    
-    /**
-     * The motor output to start pivoting the motor down at. It will go at this
-     * power until it reaches CLOSE_TO_ACQUIRING.
-     */ 
-    private static final double PIVOT_DOWN_START_POWER                      = -.25;
-    
-    /**
-     * The motor output when we are CLOSE_TO_ACQUIRING.
-     */ 
-    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
+
     
     /**
      * 
