@@ -191,6 +191,7 @@ public class Controls extends GenericSubsystem{
     private boolean lastDriverRightTrigger;
     private boolean lastDriverLeftTopButton;
     private boolean lastDriverLeftTrigger;
+    private boolean lastHoldInPlaceStart;
     /**
      * Creates a new Controls
      */
@@ -282,9 +283,6 @@ public class Controls extends GenericSubsystem{
                 leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
                 rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
                 drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
-                }else{
-                    drives.stopHoldPos();
-                }
                 if(driverLeftTrigger && driverLeftTopButton){
                     shiftingOverride = !shiftingOverride;
                 }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
