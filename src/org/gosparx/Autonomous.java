@@ -1,6 +1,10 @@
 package org.gosparx;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
 import org.gosparx.subsystem.Vision;
@@ -21,6 +25,11 @@ public class Autonomous extends GenericSubsystem{
      * Instance of vision
      */
     private Vision vision;
+    
+    /**
+     * A list of choices for Smart autonomous mode
+     */
+    private SendableChooser smartChoose;
     
     /**
      * The autonomous that runAuto uses
@@ -51,20 +60,41 @@ public class Autonomous extends GenericSubsystem{
      * Test to see if the closest target is the hot goal
      */
     private boolean visionHotGoal = false;
-
+    
+    /**
+     * If true than smartDashboard decides the auto mode.
+     * Is set by the smart dashboard
+     */
+    private boolean smartAutoMode = false;
+    
+    /**
+     * The name of the currently selected auto mode
+     */
+    private String selectedAutoName = "UNKNOWN";
+    
+    /**
+     * Wanted auto mode for autonomous
+     */
+    private int wantedAutoMode;
+    
+    /**
+     * The auto switch on the robot. It tells what auto to run
+     */
+    private AnalogChannel autoSelectSwitch;
     
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
-    private static final double AUTO_SETTING_0 = 3.208;
-    private static final double AUTO_SETTING_1 = 3.126;
-    private static final double AUTO_SETTING_2 = 3.036;
-    private static final double AUTO_SETTING_3 = 2.935;
-    private static final double AUTO_SETTING_4 = 2.824;
-    private static final double AUTO_SETTING_5 = 2.701;
-    private static final double AUTO_SETTING_6 = 2.563;
-    private static final double AUTO_SETTING_7 = 2.405;
-    private static final double AUTO_SETTING_8 = 2.225;
+    private static final double AUTO_SETTING_0 = 5.00;
+    private static final double AUTO_SETTING_1 = 4.45;
+    private static final double AUTO_SETTING_2 = 3.89;
+    private static final double AUTO_SETTING_3 = 3.33;
+    private static final double AUTO_SETTING_4 = 2.77;
+    private static final double AUTO_SETTING_5 = 2.22;
+    private static final double AUTO_SETTING_6 = 1.66;
+    private static final double AUTO_SETTING_7 = 1.10;
+    private static final double AUTO_SETTING_8 = 0.54;
+    private static final double AUTO_SETTING_9 = -0.1;
     /**************************************************************************/
     /************************ Autonomous commands *****************************/
     /**************************************************************************/
@@ -108,6 +138,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * No auto will run
      */
+    private static final String NO_AUTO_NAME = "No Auto";
     private static final int[][] noAuto = { 
         {END}
     };
@@ -115,6 +146,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Drives forward 20 feet
      */
+    private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
         {DRIVES_GO_FORWARD, 20*12},  
         {DRIVES_DONE},
@@ -124,9 +156,11 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Drives in a 4x4 foot square, turning to the right
      */
+    private static final String AUTO_SQUARE_NAME = "Auto Square";
     private static final int[][] autoSquare = {
-        {LOOP, 4*2},
-        {DRIVES_GO_FORWARD, 12*4},
+        {DRIVES_DONE},
+        {LOOP, 4},
+        {DRIVES_GO_FORWARD, 12},
         {DRIVES_DONE},
         {DRIVES_TURN_RIGHT, 90},
         {DRIVES_DONE},
@@ -137,6 +171,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Camera will follow the target
      */
+    private static final String CAMERA_FOLLOW_NAME = "Camera Follow";
     private static final int[][] cameraFollow = { 
         {LOOP, Integer.MAX_VALUE},
         {VISION_DISTANCE},
@@ -149,7 +184,9 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Turns 90 degrees to the left. Used for debugging
      */
+    private static final String TURN_90_NAME = "Turn 90";
     private static final int[][] turn90 = {
+        {DRIVES_DONE},
         {DRIVES_TURN_LEFT, 90},
         {DRIVES_DONE},
         {END}
@@ -176,36 +213,87 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
-           double voltage = 0; // need voltage reaading;
+        
+        if(smartAutoMode){
+            wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
+        }else{
+           double voltage = autoSelectSwitch.getVoltage(); // need voltage reaading
            if (voltage >= AUTO_SETTING_0){
-               currentAutonomous = null;
+               wantedAutoMode = 0;
            }else if (voltage >= AUTO_SETTING_1){
-               currentAutonomous = null;
+               wantedAutoMode = 1;
            }else if (voltage >= AUTO_SETTING_2){
-               currentAutonomous = null;
+               wantedAutoMode = 2;
            }else if (voltage >= AUTO_SETTING_3){
-               currentAutonomous = null;
+               wantedAutoMode = 3;
            }else if (voltage >= AUTO_SETTING_4){
-               currentAutonomous = null;
+               wantedAutoMode = 4;
            }else if (voltage >= AUTO_SETTING_5){
-               currentAutonomous = null;
+               wantedAutoMode = 5;
            }else if (voltage >= AUTO_SETTING_6){
-               currentAutonomous = noAuto;
+               wantedAutoMode = 6;
+           }else if (voltage >= AUTO_SETTING_7){
+               wantedAutoMode = 7;
+           }else if (voltage >= AUTO_SETTING_8){
+               wantedAutoMode = 8;
+           }else if (voltage >= AUTO_SETTING_9){
+               wantedAutoMode = 9;
            }else{
-               currentAutonomous = noAuto;
+               wantedAutoMode = 100;
            }
+        }
+        switch(wantedAutoMode){
+            case 0:
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
+                break;
+            case 1:
+                currentAutonomous = autoSquare;
+                selectedAutoName = AUTO_SQUARE_NAME;
+                break;
+            case 2:
+                currentAutonomous = cameraFollow;
+                selectedAutoName = CAMERA_FOLLOW_NAME;
+                break;
+            case 3:
+                currentAutonomous = moveFoward;
+                selectedAutoName = MOVE_FOWARD_NAME;
+                break;
+            case 4:
+                currentAutonomous = turn90;
+                selectedAutoName = TURN_90_NAME;
+                break;
+            case 5:
+                
+                break;
+            case 6:
+                
+                break;
+            case 7:
+                
+                break;
+            case 8:
+                
+                break;
+            case 9:
+                
+                break;
+            default:
+                currentAutonomous = noAuto;
+                selectedAutoName = "ERROR";
+        }
+        sendSmartAuto(selectedAutoName);
     }
+    
     
     /**
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = turn90;
-        int start = 0, current = start, finished = currentAutonomous.length;
-        while (true){
+        int start = 0, finished = currentAutonomous.length;
+        System.out.println("************* " + finished + " *************************");
             while(ds.isAutonomous() &&  ds.isEnabled()){
-                    current++;
-                for (int i = start; i <= finished; i++){
+                for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
                     switch (currentAutonomous[i][0]){
                         case DRIVES_GO_FORWARD:
@@ -279,7 +367,7 @@ public class Autonomous extends GenericSubsystem{
                             }
                             break;
                         case NEXT:
-                            if(loopTime > 0){
+                            if(loopTime > 1){
                                 i = i - currentAutonomous[i][1] - 1;//the extra one is to cancel the +1 for the loop
                                 loopTime--;
                             }
@@ -292,13 +380,19 @@ public class Autonomous extends GenericSubsystem{
                             break;
                         case END:
                             runAutonomous = false;
+                            break;
                         default:
-//                            print("No case statement: " + currentAutonomous[i]);
+                            log.logMessage("No case statement: " + currentAutonomous[i]);
+                            break;
                     }
-                }   
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException ex) {
+                        log.logError("AUTO: SLEEP FAILED");
+                    }
+                    }
+                }       
             }
-        }              
-      }
     }
 
     /**
@@ -307,6 +401,7 @@ public class Autonomous extends GenericSubsystem{
     public void init() {
         drives = Drives.getInstance();
         vision = Vision.getInstance();
+        autoSelectSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
     }
 
     /**
@@ -314,7 +409,7 @@ public class Autonomous extends GenericSubsystem{
      * @throws Exception 
      */
     public void execute() throws Exception {
-        while(true){
+        while(!ds.isTest()){
             Thread.sleep(20);
             if(ds.isAutonomous() && ds.isEnabled()){
                 auto.runAutonomous();
@@ -328,7 +423,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Drives class is done doing its last command
      */
     private void isDoneDrives(){
-        while(!drives.isLastCommandDone()){
+        while(!drives.isLastCommandDone() && ds.isAutonomous()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -341,7 +436,7 @@ public class Autonomous extends GenericSubsystem{
      * Waits until the Vision class is done doing its last command
      */
     private void isVisionDone(){
-        while(!vision.isLastCommandDone()){
+        while(!vision.isLastCommandDone() && ds.isAutonomous()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
@@ -352,5 +447,26 @@ public class Autonomous extends GenericSubsystem{
     
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
+    }
+    
+    private String smartChooseName = "Current Auto";
+    private void sendSmartAuto(String autoName){
+        SmartDashboard.putString(smartChooseName, autoName);
+        smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
+    }
+
+    public void liveWindow() {
+        smartChoose = new SendableChooser();
+        smartChoose.addDefault("No Auto", new Integer(0));
+        smartChoose.addObject("Auto 1", new Integer(1));
+        smartChoose.addObject("Auto 2", new Integer(2));
+        smartChoose.addObject("Auto 3", new Integer(3));
+        smartChoose.addObject("Auto 4", new Integer(4));
+        smartChoose.addObject("Auto 5", new Integer(5));
+        smartChoose.addObject("Auto 6", new Integer(6));
+        smartChoose.addObject("Auto 7", new Integer(7));
+        smartChoose.addObject("Auto 8", new Integer(8));
+        SmartDashboard.putData("Auto Mode", smartChoose);
+        SmartDashboard.putBoolean(smartChooseName, false);
     }
 }

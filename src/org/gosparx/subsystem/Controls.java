@@ -1,12 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.util.Logger;
 
@@ -43,6 +40,13 @@ public class Controls extends GenericSubsystem{
     private Drives drives;
     
     /**
+     * The factor to divide the previous + the current joystick Y values. Used 
+     * to slow down the drives to a complete stop so that they do not flip the 
+     * robot on a sudden stop
+     */ 
+    private static final double SLOW_DOWN_RAMP = 1.35;
+    
+    /**
      * The dead zone for the Driver joysticks. This is the zone in which the    
      * drives will be set to 0.
      */ 
@@ -69,14 +73,29 @@ public class Controls extends GenericSubsystem{
     private boolean lastShiftDown                                       = false;
     
     /**
-     * The last state of the hold in place start button
-     */ 
-    private boolean lastHoldInPlaceStart                                = false;
+     * The last state of the hold in place button
+     */
+    private boolean lastHoldInPlace                                     = false;
     
     /**
-     * The last state of the hold in place stop button
-     */    
-    private boolean lastHoldInPlaceStop                                 = false;
+     * The last Y value of the left Joystick
+     */ 
+    private double lastLeftJoyYValue                                      = 0.0;
+    
+    /**
+     * The last Y value of the right Joystick
+     */ 
+    private double lastRightJoyYValue                                     = 0.0;
+    
+    /**
+     * The left speed to set the drives
+     */ 
+    private double leftSpeedToSet;
+    
+    /**
+     * The right speed to set the drives
+     */ 
+    private double rightSpeedToSet;
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
@@ -206,8 +225,10 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        while(true){
-            if(ds.isEnabled() && ds.isOperatorControl()){
+        while(!ds.isTest()){
+            if(ds.isEnabled() && ds.isOperatorControl()){                
+                lastLeftJoyYValue = driverLeftYAxis;
+                lastRightJoyYValue = driverRightYAxis;
                 lastShiftDown = driverLeftTrigger;
                 lastShiftUp = driverRightTrigger;
                 lastShiftOverrideState = driverLeftTopButton;
@@ -243,16 +264,24 @@ public class Controls extends GenericSubsystem{
                 driverRightZAxis = rightJoy.getRawAxis(ATTACK3_Z_AXIS);
                 driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
                 driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
+                
                 if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                     driverLeftYAxis = 0;
                 }
                 if(Math.abs(driverRightYAxis) < JOYSTICK_DEADZONE){
                     driverRightYAxis = 0;
                 }
-                drives.setSpeed(getSpeed(driverLeftYAxis), getSpeed(driverRightYAxis));
+                
                 drives.forceLowGear((driverRightTrigger&&lastDriverRightTrigger));
                 if(lastHoldInPlaceStart && driverRightTopButton){
                     drives.startHoldPos();
+                    }else{
+                        drives.stopHoldPos();
+                    }
+                }
+                leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
+                rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
+                drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
                 }else{
                     drives.stopHoldPos();
                 }
@@ -262,12 +291,13 @@ public class Controls extends GenericSubsystem{
                     drives.manualShiftUp();
                 }else if(driverLeftTrigger && !driverLeftTopButton && !lastDriverLeftTrigger){
                     drives.manualShiftDown();
-                }
                 drives.setManualShifting(shiftingOverride);
                 
                 if(Timer.getFPGATimestamp() - LOG_EVERY >= lastLogTime){
                     lastLogTime = Timer.getFPGATimestamp();
-                    log.logMessage("Left: " + getSpeed(driverLeftYAxis) + " Right: " + getSpeed(driverRightYAxis));
+                    log.logMessage("Left Speed to Set: " + leftSpeedToSet + " Right Speed to Set: " + rightSpeedToSet);
+                    log.logMessage("Left Joystick Y: " + driverLeftYAxis + " Left Joystick Last Y: " + lastLeftJoyYValue);
+                    log.logMessage("Right Joystick Y: " + driverRightYAxis + " Right Joystick Last Y: " + lastRightJoyYValue);
                 }
                 Thread.sleep(20);
             }
@@ -276,9 +306,24 @@ public class Controls extends GenericSubsystem{
     /**
      * Edit this method to change how the joystick values translate into speed
      * @param joystickValue - the joystick value to convert to speed
+     * @param lastValue - the last value of the joystick
      * @return the speed desired after the joystickValue is applied to the formula
      */
-    private double getSpeed(double joystickValue){
+    private double getSpeed(double joystickValue, double lastValue){
+        if(joystickValue > lastValue){
+            joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
+        }
+        if(Math.abs(joystickValue) < JOYSTICK_DEADZONE){
+            joystickValue = 0;
+        }
         return (Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue,2): -MathUtils.pow(joystickValue,2)) * -1);
+    }
+
+    public void liveWindow() {
+        
+    }
+    
+    private void smartDashboardTimer(){
+        SmartDashboard.putNumber("Timer", ds.getMatchTime());
     }
 }
