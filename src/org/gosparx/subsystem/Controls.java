@@ -404,9 +404,9 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)){
                     lastOffsetTime = Timer.getFPGATimestamp();
                     if(opL2){
-                        acq.addOffset(2);
-                    }else{
                         acq.addOffset(-2);
+                    }else{
+                        acq.addOffset(2);
                     }
                 }
                 

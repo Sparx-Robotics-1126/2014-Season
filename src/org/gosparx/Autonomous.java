@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Acquisitions;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.subsystem.Shooter;
 import org.gosparx.subsystem.Vision;
 import org.gosparx.util.Logger;
 
@@ -32,6 +33,11 @@ public class Autonomous extends GenericSubsystem{
      * Instance of acquisitions
      */
     private Acquisitions acq;
+    
+    /**
+     * Instance of shooter
+     */
+    private Shooter shooter;
     
     /**
      * A list of choices for Smart autonomous mode
@@ -140,8 +146,8 @@ public class Autonomous extends GenericSubsystem{
     /* Shooter */
     private static final int SHOOTER_SHOOT                  = 20;
     private static final int SHOOTER_SET_PRESET             = 21;
-    private static final int SHOOTER_IN_POSITION            = 22;
-    private static final int SHOOTER_DONE                   = 23;
+    private static final int SHOOTER_READY_TO_SHOOT         = 22;
+    private static final int SHOOTER_READY                   = 23;
     
     /* Vision */
     private static final int VISION_DISTANCE                = 30;
@@ -221,15 +227,23 @@ public class Autonomous extends GenericSubsystem{
     private static final int[][] twoBallsInHigh = {
         {ACQ_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
-        {SHOOTER_IN_POSITION},
+        {SHOOTER_READY_TO_SHOOT},
         {WAIT, 1000},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
         {DRIVES_GO_FORWARD, 30},
         {DRIVES_DONE},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
-        {SHOOTER_IN_POSITION},
+        {SHOOTER_READY_TO_SHOOT},
         {END}
+    };
+    
+    private static final String ONE_BALL_IN_HIGH = "One ball in high";
+    private static final int[][] oneBallInHigh = {
+        {ACQ_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
+        {SHOOTER_READY_TO_SHOOT},
+//        {SHOOTER_SHOOT}
     };
     
     /**
@@ -308,7 +322,8 @@ public class Autonomous extends GenericSubsystem{
                 selectedAutoName = TWO_BALLS_IN_HIGH;
                 break;
             case 6:
-                
+                currentAutonomous = oneBallInHigh;
+                selectedAutoName = ONE_BALL_IN_HIGH;
                 break;
             case 7:
                 
@@ -331,9 +346,7 @@ public class Autonomous extends GenericSubsystem{
      * Gets the data from the array and tells each subsystem what actions to take.
      */
     private void runAutonomous(){
-        currentAutonomous = twoBallsInHigh;
         int start = 0, finished = currentAutonomous.length;
-        System.out.println("************* " + finished + " *************************");
             while(ds.isAutonomous() &&  ds.isEnabled()){
                 for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
@@ -382,18 +395,19 @@ public class Autonomous extends GenericSubsystem{
                             isAcquisitionsDone(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_SHOOT:
-                            
+                            log.logMessage("Shoting Ball");
+                            shooter.shoot();
                             break;
                         case SHOOTER_SET_PRESET:
                             log.logMessage("Setting Preset");
-                            acq.setPreset(currentAutonomous[i][1]);
+                            acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
-                        case SHOOTER_IN_POSITION:
+                        case SHOOTER_READY_TO_SHOOT:
                             log.logMessage("Shooter in Position");
                             isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
-                        case SHOOTER_DONE:
-                            isVisionDone();
+                        case SHOOTER_READY:
+                            isShooterDone();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -450,6 +464,7 @@ public class Autonomous extends GenericSubsystem{
         vision = Vision.getInstance();
         autoSelectSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
         acq = Acquisitions.getInstance();
+        shooter = Shooter.getInstance();
     }
 
     /**
@@ -509,6 +524,16 @@ public class Autonomous extends GenericSubsystem{
      */
     private void isAcquisitionsDone(int wantedDoneState){
         while(!acq.isLastCommandDone(wantedDoneState)){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void isShooterDone(){
+        while(!shooter.isLastCommandDone()){
             try {
                 Thread.sleep(20);
             } catch (InterruptedException ex) {

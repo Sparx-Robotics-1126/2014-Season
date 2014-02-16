@@ -139,7 +139,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Degrees per second
      */
-    private final static double ROTATE_UP_SPEED = 80;
+    private final static double ROTATE_UP_SPEED = -80;
     
     /**
      * The angle at which it is legal for the acquisition rollers to extend 
@@ -173,7 +173,7 @@ public class Acquisitions extends GenericSubsystem{
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 52;
+   private final static int FAR_SHOOTER_PRESET = 55;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -210,13 +210,13 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The motor output to start pivoting up at. 
      */ 
-    private static final double PIVOT_UP_START_POWER                        = .2;
+    private static final double PIVOT_UP_START_POWER                        = .1;
     
     /**
      * The motor output to start pivoting the motor down at. It will go at this
      * power until it reaches CLOSE_TO_ACQUIRING.
      */ 
-    private static final double PIVOT_DOWN_START_POWER                      = -.25;
+    private static final double PIVOT_DOWN_START_POWER                      = -.35;
     
     /**
      * The motor output when we are CLOSE_TO_ACQUIRING.
@@ -353,18 +353,25 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.ROTATE_UP://rotate shooter up
                 if (wantedShooterAngle == UP_POSITION && upperLimit.get()) {//straight up and down
                     rotationSpeed = 0;
+                    wantedAcqSpeed = 0;
                     isEncoderDataSet = true;
                     rotateEncoderData.reset();
                     acquisitionState = AcqState.SAFE_STATE;
                 } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
                     rotationSpeed = 0;
+                    wantedAcqSpeed = 0;
                     acquisitionState = wantedState;
                 } else {
                     if (rotateEncoderData.getDistance() > CENTER_OF_GRAVITY_ANGLE) {
-                        if (rotateEncoderData.getSpeed() < ROTATE_UP_SPEED) {
+                        if (rotateEncoderData.getSpeed() > ROTATE_UP_SPEED) {
                             rotationSpeed += .05;
                         } else {
                             rotationSpeed -= .05;
+                        }
+                        if(rotationSpeed > 1){
+                            rotationSpeed = 1;
+                        }else if(rotationSpeed < -1){
+                            rotationSpeed = -1;
                         }
                     } else {
                         rotationSpeed = PIVOT_UP_START_POWER;
@@ -406,8 +413,7 @@ public class Acquisitions extends GenericSubsystem{
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acquisitionState = AcqState.ROTATE_DOWN;
                 break;
-            case AcqState.ROTATE_READY_RETRACT://angle at which it is safe to extend the rollers
-                wantedAcqSpeed = 0;
+            case AcqState.ROTATE_READY_RETRACT:
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
                 acquisitionState = AcqState.ROTATE_UP;
@@ -441,7 +447,7 @@ public class Acquisitions extends GenericSubsystem{
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/50;   
+                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/15;   
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 break;
@@ -554,12 +560,14 @@ public class Acquisitions extends GenericSubsystem{
      * DOWN_POSITION - acquiring
      */
     private void setAngle(int angle){
-        wantedShooterAngle = angle;
-        rotateEncoderData.calculateSpeed();
-        if(rotateEncoderData.getDistance() > wantedShooterAngle){
-            acquisitionState = AcqState.ROTATE_UP;
-        }else{
-            acquisitionState = AcqState.ROTATE_DOWN;
+        if(wantedState == AcqState.READY_TO_SHOOT){
+            wantedShooterAngle = angle;
+            rotateEncoderData.calculateSpeed();
+            if(rotateEncoderData.getDistance() > wantedShooterAngle){
+                acquisitionState = AcqState.ROTATE_UP;
+            }else{
+                acquisitionState = AcqState.ROTATE_DOWN;
+            }
         }
     }
     

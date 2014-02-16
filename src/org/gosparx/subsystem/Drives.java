@@ -88,7 +88,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The Y Intercept for the scaling formula.
      */ 
-    private static final double Y_INTERCEPT = .2;
+    private static final double Y_INTERCEPT = .5;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -625,7 +625,7 @@ public class Drives extends GenericSubsystem {
      * Returns if the last command is done
      */
     public boolean isLastCommandDone() {
-        return autoFunctionState == State.FUNCT_HOLD_POS;
+        return (autoFunctionState == State.FUNCT_HOLD_POS || autoFunctionState == State.FUNCT_STANDBY);
     }
     
     private void updatedSmartDashboard(){
