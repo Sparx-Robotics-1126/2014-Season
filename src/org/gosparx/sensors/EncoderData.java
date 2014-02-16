@@ -88,4 +88,11 @@ public class EncoderData {
         lastTime = Utility.getFPGATime();
         lastEncoderCount =  USE_COUNTER ? counter.get() : controlled.get();
     }
+    
+    /**
+     * @return the time (in seconds) that the encoder has updated its values 
+     */
+    public double getLastReadingTime(){
+        return Utility.getFPGATime() - lastTime;
+    }
 }

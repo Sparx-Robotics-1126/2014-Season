@@ -1,11 +1,13 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.Relay;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
+import org.gosparx.IO;
 
 public class Vision extends GenericSubsystem {
 
@@ -18,6 +20,7 @@ public class Vision extends GenericSubsystem {
     private BinaryImage filteredImage;
     private ColorImage image;
     private static Vision vision;
+    private Relay cameraLights;
 
     private TargetReport target;
     private int verticalTargets[];
@@ -42,6 +45,12 @@ public class Vision extends GenericSubsystem {
 
     //Maximum number of particles to process
     private static final int MAX_PARTICLES = 8;
+    
+    /**
+     * If true then the imaging calculations will continue
+     * If false the thread will sleep saving CPU power
+     */
+    private boolean needImage = false;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
@@ -70,6 +79,8 @@ public class Vision extends GenericSubsystem {
         verticalTargets = new int[MAX_PARTICLES];
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
+        cameraLights = new Relay(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
+        cameraLights.set(Relay.Value.kOn);
         camera = AxisCamera.getInstance();// get an instance of the camera 
         try {
             Thread.sleep(2000);
@@ -98,9 +109,21 @@ public class Vision extends GenericSubsystem {
      */
     public void execute() throws Exception {
         if(cameraResponding) {
-            getBestTarget();
-            freeImage();
+            if(needImage){
+                getBestTarget();
+                freeImage();
+            }else{
+                sleep(20);
+            }
         }
+    }
+    
+    /**
+     * Sets weather or not to use CPU power to calculate images
+     * @param calculate. True if need calculations. False if not
+     */
+    public void setCameraMode(boolean calculate){
+        needImage = calculate;
     }
 
     public void liveWindow() {

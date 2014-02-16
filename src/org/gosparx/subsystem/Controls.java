@@ -98,6 +98,11 @@ public class Controls extends GenericSubsystem{
     private double rightSpeedToSet;
     
     /**
+     * The last value of the DPadXAxis
+     */
+    private double lastShooterMode                                      = 0;
+    
+    /*
      * The last value of the driver top left button
      */ 
     private boolean lastDriverLeftTopButton;
@@ -106,6 +111,80 @@ public class Controls extends GenericSubsystem{
      * The last value of the drivers left trigger
      */ 
     private boolean lastDriverLeftTrigger;
+    
+    /*
+     * The last value of the DPadYAxis
+     */
+    private double lastAcquireMode                                      = 0;
+    
+    /**
+     * the last value of the DPadYAxis
+     */
+    private double lastTrussMode                                        = 0;
+    
+    /**
+     * The last value of the DPadXValue
+     */ 
+    private double lastReleaseMode                                      = 0;
+    
+    /**
+     * The last value of the RTWO button. 
+     */ 
+    private boolean lastShoot                                           = false;
+    
+    /**
+     * The Time the last shooter angle offset was updated
+     */
+    private double lastOffsetTime;
+    
+    /**
+     * Time (in seconds) between offset
+     */
+    private static final double OFFSET_TIME = 0.5;
+    
+    /**
+     * The time at which the robot was enabled
+     */
+    private double startingMatchTime;
+    
+    /**
+     * An instance of acquisitions.
+     */ 
+    private Acquisitions acq;
+    
+    /**
+     * An instance of Shooter for use of accessing non static methods.
+     */ 
+    private Shooter shooter;
+    
+    private boolean lastTrimUp                                          = false;
+    
+    private boolean lastTrimDown                                        = false;
+    
+    private static final int TRIM_ANGLE                                 = 2;
+    
+    //********************************************************************
+    //********************AIRFLO Controller Mapping***********************
+    //********************************************************************
+    public static final int AIRFLO_CROSS = 1;
+    public static final int AIRFLO_CIRCLE = 2;
+    public static final int AIRFLO_SQUARE = 3;
+    public static final int AIRFLO_TRIANGLE = 4;
+    public static final int AIRFLO_LONE = 5;
+    public static final int AIRFLO_LTWO = 7;
+    public static final int AIRFLO_RONE = 6;
+    public static final int AIRFLO_RTWO = 8;
+    public static final int AIRFLO_SELECT = 9;
+    public static final int AIRFLO_START = 10;
+    public static final int AIRFLO_ANALOG = 11;
+    public static final int AIRFLO_L3 = 12;
+    public static final int AIRFLO_R3 = 13;
+    public static final int AIRFLO_RIGHT_Y = 3;
+    public static final int AIRFLO_RIGHT_X = 4;
+    public static final int AIRFLO_LEFT_Y = 2;
+    public static final int AIRFLO_LEFT_X = 1;
+    public static final int AIRFLO_D_PAD_Y = 6;//UP - NEGATIVE
+    public static final int AIRFLO_D_PAD_X = 5;//LEFT - NEGATIVE 
     
     //********************************************************************
     //*****************Playstation 2 Controller Mapping*******************
@@ -224,7 +303,10 @@ public class Controls extends GenericSubsystem{
         rightJoy = new Joystick(IO.RIGHT_DRIVER_JOY_PORT);
         opJoy = new Joystick(IO.OPER_JOY_PORT);
         drives = Drives.getInstance();
+        acq = Acquisitions.getInstance();
+        shooter = Shooter.getInstance();
     }
+    
     /**
      * Reassigns all of the variables and sets drives speed to the Y variables 
      * of the driver joysticks
@@ -233,8 +315,11 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){                
+            lastTrimUp = opL1;
+            lastTrimDown = opL2;
             lastLeftJoyYValue = driverLeftYAxis;
             lastRightJoyYValue = driverRightYAxis;
+            lastShoot = opR2;
             lastShiftDown = driverLeftTrigger;
             lastShiftUp = driverRightTrigger;
             lastShiftOverrideState = driverLeftTopButton;
@@ -269,6 +354,7 @@ public class Controls extends GenericSubsystem{
             driverRightTopButton = rightJoy.getRawButton(ATTACK3_TOP_BUTTON);
             driverRightTrigger = rightJoy.getRawButton(ATTACK3_TRIGGER);
 
+                /*/****************DRIVER********************* /*/
             if(Math.abs(driverLeftYAxis) < JOYSTICK_DEADZONE){
                 driverLeftYAxis = 0;
             }
@@ -293,6 +379,55 @@ public class Controls extends GenericSubsystem{
                     drives.manualShiftDown();
             }
             drives.setManualShifting(shiftingOverride);
+                /*/********************OPERATOR****************** /*/
+                if(opCircle){
+                    acq.setMode(Acquisitions.AcqState.ACQUIRING);
+                }else if(opCross){
+                    acq.setMode(Acquisitions.AcqState.OFF_STATE);
+                }else if(opTriangle){
+                    acq.setMode(Acquisitions.AcqState.EJECT_BALL);
+                }else if(opStart){
+                    acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
+                }else if(opSquare){
+                    acq.setMode(Acquisitions.AcqState.SAFE_STATE);
+                }
+                
+                if(opDPadYAxis == 1){
+                    acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
+                }else if(opDPadXAxis == 1){
+                    acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
+                }else if(opDPadYAxis == -1){
+                    acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
+                }
+                
+                //OFFSET
+                if(Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)){
+                    lastOffsetTime = Timer.getFPGATimestamp();
+                    if(opL2){
+                        acq.addOffset(-2);
+                    }else{
+                        acq.addOffset(2);
+                    }
+                }
+                
+                if(opR1){
+                    shooter.setMode(Shooter.State.SET_HOME);
+                }else if(opR3){
+                    shooter.setMode(Shooter.State.STANDBY);
+                }
+                
+                if(opR2 && !lastShoot){
+                    shooter.shoot();
+                }
+                
+                if(opL1 && !lastTrimUp){
+                    acq.addOffset(TRIM_ANGLE);
+                }else if(opL2 && !lastTrimDown){
+                    acq.addOffset(-TRIM_ANGLE);
+                }
+                smartDashboardTimer();
+            }else{
+                startingMatchTime = Timer.getFPGATimestamp();
         }
     }
     /**
@@ -302,9 +437,7 @@ public class Controls extends GenericSubsystem{
      * @return the speed desired after the joystickValue is applied to the formula
      */
     private double getSpeed(double joystickValue, double lastValue){
-        if(joystickValue > lastValue){
-            joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
-        }
+        joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
         if(Math.abs(joystickValue) < JOYSTICK_DEADZONE){
             joystickValue = 0;
         }
@@ -312,11 +445,11 @@ public class Controls extends GenericSubsystem{
     }
 
     public void liveWindow() {
-        
+        SmartDashboard.putNumber("Timer", 0);
     }
     
     private void smartDashboardTimer(){
-        SmartDashboard.putNumber("Timer", ds.getMatchTime());
+        SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
     }
 
     public int sleepTime(){

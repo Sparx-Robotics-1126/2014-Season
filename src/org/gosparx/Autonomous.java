@@ -5,8 +5,10 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.gosparx.subsystem.Acquisitions;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
+import org.gosparx.subsystem.Shooter;
 import org.gosparx.subsystem.Vision;
 import org.gosparx.util.Logger;
 
@@ -26,6 +28,16 @@ public class Autonomous extends GenericSubsystem{
      * Instance of vision
      */
     private Vision vision;
+    
+    /**
+     * Instance of acquisitions
+     */
+    private Acquisitions acq;
+    
+    /**
+     * Instance of shooter
+     */
+    private Shooter shooter;
     
     /**
      * A list of choices for Smart autonomous mode
@@ -88,6 +100,17 @@ public class Autonomous extends GenericSubsystem{
      */
     private AnalogChannel autoSelectSwitch;
     
+    /**    
+     * String used in sendSmartAuto(), used as the group for the current auto name
+     * on the livewindow
+     */ 
+    private String smartChooseName = "Current Auto";
+    
+    /**
+     * The String used for the group of the boolean data that we use to decide 
+     * if we are using smartdashboard to choose an automode.
+     */ 
+    private String smartChooser = "Use SmartDashboard";
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
@@ -114,16 +137,17 @@ public class Autonomous extends GenericSubsystem{
     private static final int DRIVES_DONE                    = 6;
     
     /* Aquire */
-    private static final int INTAKE_AQUIRE_BALL             = 10;
-    private static final int INTAKE_REVERSE                 = 11;
-    private static final int INTAKE_IN_POSITION             = 12;
-    private static final int INTAKE_DONE                    = 13;
+    private static final int ACQ_READY                      = 10;
+    private static final int ACQ_AQUIRE_BALL                = 11;
+    private static final int ACQ_REVERSE                    = 12;
+    private static final int ACQ_ACQUIRE_IN_POSITION        = 13;
+    private static final int ACQ_DONE                       = 14;
     
     /* Shooter */
     private static final int SHOOTER_SHOOT                  = 20;
     private static final int SHOOTER_SET_PRESET             = 21;
-    private static final int SHOOTER_IN_POSITION            = 22;
-    private static final int SHOOTER_DONE                   = 23;
+    private static final int SHOOTER_READY_TO_SHOOT         = 22;
+    private static final int SHOOTER_READY                   = 23;
     
     /* Vision */
     private static final int VISION_DISTANCE                = 30;
@@ -198,6 +222,32 @@ public class Autonomous extends GenericSubsystem{
         {END}
     };
    
+    
+    private static final String TWO_BALLS_IN_HIGH = "Two balls in high";
+    private static final int[][] twoBallsInHigh = {
+        {ACQ_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 1000},
+        {ACQ_AQUIRE_BALL},
+        {ACQ_ACQUIRE_IN_POSITION},
+        {DRIVES_GO_FORWARD, 30},
+        {DRIVES_DONE},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_READY_TO_SHOOT},
+        {END}
+    };
+    
+    private static final String ONE_BALL_IN_HIGH = "One ball in high";
+    private static final int[][] oneBallInHigh = {
+        {ACQ_READY},
+        {SHOOTER_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
+        {SHOOTER_READY_TO_SHOOT},
+        {SHOOTER_SHOOT},
+        {END}
+    };
+    
     /**
      * Autonomous Constructor
      */
@@ -270,10 +320,12 @@ public class Autonomous extends GenericSubsystem{
                 selectedAutoName = TURN_90_NAME;
                 break;
             case 5:
-                
+                currentAutonomous = twoBallsInHigh;
+                selectedAutoName = TWO_BALLS_IN_HIGH;
                 break;
             case 6:
-                
+                currentAutonomous = oneBallInHigh;
+                selectedAutoName = ONE_BALL_IN_HIGH;
                 break;
             case 7:
                 
@@ -297,7 +349,6 @@ public class Autonomous extends GenericSubsystem{
      */
     private void runAutonomous(){
         int start = 0, finished = currentAutonomous.length;
-        System.out.println("************* " + finished + " *************************");
             while(ds.isAutonomous() &&  ds.isEnabled()){
                 for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
@@ -325,29 +376,40 @@ public class Autonomous extends GenericSubsystem{
                             log.logMessage("Auto Waiting for Drives");
                             isDoneDrives();
                             break;
-                        case INTAKE_AQUIRE_BALL:
-                            
+                        case ACQ_READY:
+                            log.logMessage("Auto is configuring");
+                            isAcquisitionsReady();
                             break;
-                        case INTAKE_REVERSE:
-                            
+                        case ACQ_AQUIRE_BALL:
+                            log.logMessage("Auto Acquiring");
+                            acq.setMode(Acquisitions.AcqState.ACQUIRING);
                             break;
-                        case INTAKE_IN_POSITION:
-                            
+                        case ACQ_REVERSE:
+                            log.logMessage("Auto Ejecting Ball");
+                            acq.setMode(Acquisitions.AcqState.EJECT_BALL);
                             break;
-                        case INTAKE_DONE:
-                            
+                        case ACQ_ACQUIRE_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                            log.logMessage("Auto is waiting for Acquisitions to acquire");
+                            isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
+                            break;
+                        case ACQ_DONE:
+                            log.logMessage("Auto is waiting for Acquisitions");
+                            isAcquisitionsDone(currentAutonomous[i][1]);
                             break;
                         case SHOOTER_SHOOT:
-                            
+                            log.logMessage("Shoting Ball");
+                            shooter.shoot();
                             break;
                         case SHOOTER_SET_PRESET:
-                            
+                            log.logMessage("Setting Preset");
+                            acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
-                        case SHOOTER_IN_POSITION:
-                            
+                        case SHOOTER_READY_TO_SHOOT:
+                            log.logMessage("Shooter in Position");
+                            isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
-                        case SHOOTER_DONE:
-                            isVisionDone();
+                        case SHOOTER_READY:
+                            isShooterReady();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -372,7 +434,11 @@ public class Autonomous extends GenericSubsystem{
                             log.logMessage("Setting Loop to " + currentAutonomous[i][1] + " loops");
                             break;
                         case WAIT:
-                            
+                            try {
+                                Thread.sleep(currentAutonomous[i][1]);
+                            } catch (InterruptedException ex) {
+                                ex.printStackTrace();
+                            }
                             break;
                         case END:
                             runAutonomous = false;
@@ -399,6 +465,8 @@ public class Autonomous extends GenericSubsystem{
         drives = Drives.getInstance();
         vision = Vision.getInstance();
         autoSelectSwitch = new AnalogChannel(IO.DEFAULT_SLOT, IO.AUTOSWITCH_CHANNEL);
+        acq = Acquisitions.getInstance();
+        shooter = Shooter.getInstance();
     }
 
     /**
@@ -439,16 +507,64 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
+    /**
+     * Waits until acquisitions is ready for the next command
+     */ 
+    private void isAcquisitionsReady(){
+        while(!acq.isAcquisitionsReady()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Waits until acquisitions is in wantedDoneState state
+     * @param wantedDoneState - the state to wait until acquisitions is in
+     */
+    private void isAcquisitionsDone(int wantedDoneState){
+        while(!acq.isLastCommandDone(wantedDoneState)){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void isShooterReady(){
+        while(!shooter.isLastCommandDone()){
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Sets if autonomous is allowed to run
+     * @param allowedToRun - whether or not autonomous is ready to run
+     */ 
     public void runAuto(boolean allowedToRun){
         runAutonomous = allowedToRun;
     }
     
-    private String smartChooseName = "Current Auto";
+    /**
+     * Sends the name of the current autonomous to the livewindow and gets if we
+     * are using smart dashboard to choose the autonomous mode
+     * @param autoName - the name of the current autonomous mode
+     */ 
     private void sendSmartAuto(String autoName){
         SmartDashboard.putString("Selected Auto Mode: ", autoName);
-        smartAutoMode = SmartDashboard.getBoolean(smartChooseName);
+        smartAutoMode = SmartDashboard.getBoolean(smartChooser);
     }
 
+    /**
+     * Inits and sends all of the components of the livewindow
+     */ 
     public void liveWindow() {
         smartChoose = new SendableChooser();
         smartChoose.addDefault("No Auto", new Integer(0));
@@ -461,7 +577,7 @@ public class Autonomous extends GenericSubsystem{
         smartChoose.addObject("Auto 7", new Integer(7));
         smartChoose.addObject("Auto 8", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
-        SmartDashboard.putBoolean(smartChooseName, false);
+        SmartDashboard.putBoolean(smartChooser, false);
     }
 
     public int sleepTime() {

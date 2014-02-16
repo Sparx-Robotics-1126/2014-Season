@@ -88,7 +88,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The Y Intercept for the scaling formula.
      */ 
-    private static final double Y_INTERCEPT = .2;
+    private static final double Y_INTERCEPT = .5;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -267,6 +267,9 @@ public class Drives extends GenericSubsystem {
      * Is used to send and get variables from the smartdashboard
      */
     private String smartAutoShiftingName = "Auto Shifting";
+    
+    private double leftMotorOutput = 0; 
+    private double rightMotorOutput = 0;
         
     /**
      * Look to see if there is a drive class, if not it creates one
@@ -283,7 +286,7 @@ public class Drives extends GenericSubsystem {
      * Creates a drives subsystem for controlling the drives subsystem.
      */
     public Drives(){
-        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY); 
+        super(Logger.SUB_DRIVES, Thread.NORM_PRIORITY);//This may be changed to max 
         wantedLeftSpeed = 0;
         wantedRightSpeed = 0;
     }
@@ -321,6 +324,10 @@ public class Drives extends GenericSubsystem {
         isGyroWorking = gyroCheck();
         drivesState = State.DRIVES_LOW_GEAR;
         autoFunctionState = State.FUNCT_STANDBY;
+        shiftTime = Timer.getFPGATimestamp();
+        leftMotorOutput = 0; 
+        rightMotorOutput = 0;
+        resetSensors();
     }
 
     /**
@@ -330,9 +337,13 @@ public class Drives extends GenericSubsystem {
      */
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
-        double leftMotorOutput = 0, rightMotorOutput = 0;
-        shiftTime = Timer.getFPGATimestamp();
-        resetSensors();
+        
+        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
+            rightFrontDrives.set(0);
+            rightRearDrives.set(0);
+            leftFrontDrives.set(0);
+            leftRearDrives.set(0);
+        }
         currentAngle = gyro.getAngle();
         leftEncoderData.calculateSpeed();
         rightEncoderData.calculateSpeed();
@@ -471,10 +482,12 @@ public class Drives extends GenericSubsystem {
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
         log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+        log.logMessage("Left Motor Output: " + leftMotorOutput + " Right Motor Output: " + rightMotorOutput);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
         log.logMessage("Shift State = " + State.getState(drivesState) + " Functions State: " + State.getState(autoFunctionState));
         log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
+        
     }
     
     /**
@@ -490,7 +503,7 @@ public class Drives extends GenericSubsystem {
         double speed = 0;
         if(wantedSpeed != 0) {
             // TODO: Make ramping awsomeness!
-            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 2) + currentOutput;
+            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 3) + currentOutput;
         }
 
         return speed;
@@ -612,7 +625,7 @@ public class Drives extends GenericSubsystem {
      * Returns if the last command is done
      */
     public boolean isLastCommandDone() {
-        return autoFunctionState == State.FUNCT_HOLD_POS;
+        return (autoFunctionState == State.FUNCT_HOLD_POS || autoFunctionState == State.FUNCT_STANDBY);
     }
     
     private void updatedSmartDashboard(){

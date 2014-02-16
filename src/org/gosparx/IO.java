@@ -7,6 +7,10 @@ package org.gosparx;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public class IO {
+    /**
+     * This set weather to use the PWM cables or use the CAN cables
+     */
+    public static final boolean USE_PWM_CABLES          = true;
     
     // Digital Side Card Slots
     public static final int DEFAULT_SLOT                = 1;
@@ -47,6 +51,38 @@ public class IO {
     public static final int OPER_JOY_PORT               = 3;
     
     //Analog Ports
-    public static final int DEFAULT_ANALOG_MODULE                                 = 1;
-    public static final int AUTOSWITCH_CHANNEL                                    = 2;
+    public static final int DEFAULT_ANALOG_MODULE       = 1;
+    public static final int AUTOSWITCH_CHANNEL          = 2;
+    
+    //Shooter IO
+    public static final int WINCH_POT_CHAN              = 3;
+    
+    public static final int CAN_ADRESS_PIVOT            = 4;
+    public static final int PWM_PIVOT                   = 3;
+    
+    public static final int CAN_ADRESS_WINCH            = 2;
+    public static final int PWM_WINCH                   = 1;
+    
+    public static final int CAN_ADRESS_ACQ              = 3;
+    public static final int PWM_ACQ                     = 2;
+    
+    public static final int PIVOT_ENCODER_CHAN_1        = 5;
+    
+    public static final int PIVOT_ENCODER_CHAN_2        = 6;
+    
+    public static final int ACQ_TOGGLE_CHAN             = 3;
+    
+    public static final int ACQ_BALL_DETECTOR           = 12;
+    
+    public static final int LATCH_LIMIT_SWITCH_CHAN     = 11;
+    
+    public static final int SHOOTER_ACQ_MODE_CHAN       = 9;
+    
+    public static final int SHOOTER_SAFE_MODE_CHAN      = 10;
+    
+    public static final int LATCH_CHAN                  = 4;
+    
+    public static final int KEEP_IN_FRAME_CHAN          = 2;
+    
+    public static final int CAMERA_LIGHT_RELAY          = 5;
 }
