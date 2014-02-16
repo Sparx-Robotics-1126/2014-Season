@@ -244,7 +244,7 @@ public class Autonomous extends GenericSubsystem{
         {SHOOTER_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-//        {SHOOTER_SHOOT}
+        {SHOOTER_SHOOT},
         {END}
     };
     
