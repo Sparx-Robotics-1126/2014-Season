@@ -241,9 +241,11 @@ public class Autonomous extends GenericSubsystem{
     private static final String ONE_BALL_IN_HIGH = "One ball in high";
     private static final int[][] oneBallInHigh = {
         {ACQ_READY},
+        {SHOOTER_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
 //        {SHOOTER_SHOOT}
+        {END}
     };
     
     /**
@@ -407,7 +409,7 @@ public class Autonomous extends GenericSubsystem{
                             isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
                             break;
                         case SHOOTER_READY:
-                            isShooterDone();
+                            isShooterReady();
                             break;
                         case VISION_DISTANCE:
                             visionDistance = vision.getDistance();
@@ -532,7 +534,7 @@ public class Autonomous extends GenericSubsystem{
         }
     }
     
-    private void isShooterDone(){
+    private void isShooterReady(){
         while(!shooter.isLastCommandDone()){
             try {
                 Thread.sleep(20);

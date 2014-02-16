@@ -280,7 +280,9 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private double wantedAcqSpeed = 0;
     
-
+    private boolean upperLimitSwitch = true;
+    
+    private boolean lowerLimitSwitch = true;
     
     /**
      * 
@@ -349,9 +351,11 @@ public class Acquisitions extends GenericSubsystem{
         }
         rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
         isBallInRollers = !ballDetector.get();
+        upperLimitSwitch = !upperLimit.get();
+        lowerLimitSwitch = !lowerLimit.get();
         switch (acquisitionState) {
             case AcqState.ROTATE_UP://rotate shooter up
-                if (wantedShooterAngle == UP_POSITION && upperLimit.get()) {//straight up and down
+                if (wantedShooterAngle == UP_POSITION && upperLimitSwitch) {//straight up and down
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
                     isEncoderDataSet = true;
@@ -389,7 +393,7 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;//turns motors off
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
-                if (wantedShooterAngle == DOWN_POSITION && lowerLimit.get()) {//limit Switch reads false when touched
+                if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {

@@ -437,9 +437,7 @@ public class Controls extends GenericSubsystem{
      * @return the speed desired after the joystickValue is applied to the formula
      */
     private double getSpeed(double joystickValue, double lastValue){
-        if(joystickValue > lastValue){
-            joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
-        }
+        joystickValue = (joystickValue + lastValue)/SLOW_DOWN_RAMP;//closer to 1 = slower   
         if(Math.abs(joystickValue) < JOYSTICK_DEADZONE){
             joystickValue = 0;
         }
