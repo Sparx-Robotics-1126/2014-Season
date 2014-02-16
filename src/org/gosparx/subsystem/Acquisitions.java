@@ -210,7 +210,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The motor output to start pivoting up at. 
      */ 
-    private static final double PIVOT_UP_START_POWER                        = .1;
+    private static final double PIVOT_UP_CLOSE_POWER                        = .1;
     
     /**
      * The motor output to start pivoting the motor down at. It will go at this
@@ -378,7 +378,7 @@ public class Acquisitions extends GenericSubsystem{
                             rotationSpeed = -1;
                         }
                     } else {
-                        rotationSpeed = PIVOT_UP_START_POWER;
+                        rotationSpeed = PIVOT_UP_CLOSE_POWER;
                     }
                 }
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND >= rotateEncoderData.getDistance()
