@@ -280,8 +280,14 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private double wantedAcqSpeed = 0;
     
+    /**
+     * The correct true or false value of the upper limit switch
+     */
     private boolean upperLimitSwitch = true;
     
+    /**
+     * The correct true or false value of the lower limit switch
+     */
     private boolean lowerLimitSwitch = true;
     
     /**
