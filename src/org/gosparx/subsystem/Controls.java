@@ -69,26 +69,6 @@ public class Controls extends GenericSubsystem{
     private boolean shiftingOverride                                    = false;
     
     /**
-     * The last state of the shifting override button
-     */
-    private boolean lastShiftOverrideState                              = false;
-    
-    /**
-     * The last state of the manual shift up button
-     */ 
-    private boolean lastShiftUp                                         = false;
-    
-    /**
-     * The last state of the manual shift down
-     */ 
-    private boolean lastShiftDown                                       = false;
-    
-    /**
-     * The last state of the hold in place button
-     */
-    private boolean lastHoldInPlace                                     = false;
-    
-    /**
      * The last Y value of the left Joystick
      */ 
     private double lastLeftJoyYValue                                      = 0.0;
@@ -107,11 +87,6 @@ public class Controls extends GenericSubsystem{
      * The right speed to set the drives
      */ 
     private double rightSpeedToSet;
-    
-    /**
-     * The last value of the DPadXAxis
-     */
-    private double lastShooterMode                                      = 0;
     
     /*
      * The last value of the driver top left button
@@ -369,9 +344,6 @@ public class Controls extends GenericSubsystem{
             lastLeftJoyYValue = driverLeftYAxis;
             lastRightJoyYValue = driverRightYAxis;
             lastShoot = opR2;
-            lastShiftDown = driverLeftTrigger;
-            lastShiftUp = driverRightTrigger;
-            lastShiftOverrideState = driverLeftTopButton;
             lastDriverLeftTopButton = driverLeftTopButton;
             lastDriverLeftTrigger = driverLeftTrigger;
             opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
@@ -453,9 +425,9 @@ public class Controls extends GenericSubsystem{
                 if(Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)){
                     lastOffsetTime = Timer.getFPGATimestamp();
                     if(opL2 && !lastTrimDown){
-                        acq.addOffset(2);
+                        acq.addOffset(TRIM_ANGLE);
                     }else if (opL1 && !lastTrimUp){
-                        acq.addOffset(-2);
+                        acq.addOffset(-TRIM_ANGLE);
                     }
                 }
                 
