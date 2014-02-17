@@ -77,7 +77,7 @@ public class Autonomous extends GenericSubsystem{
     /**
      * This is the number of the command that is running
      */
-    private int i = 0;
+    private int currentAutoStep = 0;
 
     /**
      * If true than smartDashboard decides the auto mode.
@@ -111,6 +111,16 @@ public class Autonomous extends GenericSubsystem{
      * if we are using smartdashboard to choose an automode.
      */ 
     private String smartChooser = "Use SmartDashboard";
+    
+    /**
+     * The length of the current autonomous
+     */
+    private int finished = 0;
+    
+    /**
+     * Should be move on to the next command
+     */
+    private boolean increaseI = false;
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
@@ -178,7 +188,7 @@ public class Autonomous extends GenericSubsystem{
      */
     private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
-        {DRIVES_GO_FORWARD, 20*12},  
+        {DRIVES_GO_FORWARD, 30},  
         {DRIVES_DONE},
         {END}
     };
@@ -226,15 +236,24 @@ public class Autonomous extends GenericSubsystem{
     private static final String TWO_BALLS_IN_HIGH = "Two balls in high";
     private static final int[][] twoBallsInHigh = {
         {ACQ_READY},
-        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {SHOOTER_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-        {WAIT, 1000},
+        {WAIT, 500},
+        {SHOOTER_SHOOT},
+        {WAIT, 500},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
-        {DRIVES_GO_FORWARD, 30},
+        {DRIVES_GO_FORWARD, 10},
         {DRIVES_DONE},
-        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {DRIVES_GO_FORWARD, 10},
+        {DRIVES_DONE},
+        {DRIVES_GO_FORWARD, 10},
+        {DRIVES_DONE},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 500},
+        {SHOOTER_SHOOT},
         {END}
     };
     
@@ -269,7 +288,6 @@ public class Autonomous extends GenericSubsystem{
      * Gets the current auto mode based off of the auto switch
      */
     public void getAutoMode(){
-        
         if(smartAutoMode){
             wantedAutoMode = ((Integer) smartChoose.getSelected()).intValue();
         }else{
@@ -347,115 +365,115 @@ public class Autonomous extends GenericSubsystem{
     /**
      * Gets the data from the array and tells each subsystem what actions to take.
      */
-    private void runAutonomous(){
-        int start = 0, finished = currentAutonomous.length;
-            while(ds.isAutonomous() &&  ds.isEnabled()){
-                for (int i = start; i < finished; i++){
-                    if (ds.isEnabled() && runAutonomous){
-                    switch (currentAutonomous[i][0]){
-                        case DRIVES_GO_FORWARD:
-                            log.logMessage("Auto Drives Foward");
-                            drives.driveStraight(currentAutonomous[i][1]);
-                            break;
-                        case DRIVES_GO_REVERSE:
-                            log.logMessage("Auto Drives Reverse");
-                            drives.driveStraight(currentAutonomous[i][1]);
-                            break;
-                        case DRIVES_TURN_LEFT:
-                            log.logMessage("Auto Turn Left");
-                            drives.turn(-currentAutonomous[i][1]);
-                            break;
-                        case DRIVES_TURN_RIGHT:
-                            log.logMessage("Auto Turn Right");
-                            drives.turn(currentAutonomous[i][1]);
-                            break;
-                        case DRIVES_STOP:
-                            
-                            break;
-                        case DRIVES_DONE:
-                            log.logMessage("Auto Waiting for Drives");
-                            isDoneDrives();
-                            break;
-                        case ACQ_READY:
-                            log.logMessage("Auto is configuring");
-                            isAcquisitionsReady();
-                            break;
-                        case ACQ_AQUIRE_BALL:
-                            log.logMessage("Auto Acquiring");
-                            acq.setMode(Acquisitions.AcqState.ACQUIRING);
-                            break;
-                        case ACQ_REVERSE:
-                            log.logMessage("Auto Ejecting Ball");
-                            acq.setMode(Acquisitions.AcqState.EJECT_BALL);
-                            break;
-                        case ACQ_ACQUIRE_IN_POSITION://ONLY WORKS WITH ACQUIRING
-                            log.logMessage("Auto is waiting for Acquisitions to acquire");
-                            isAcquisitionsDone(Acquisitions.AcqState.ACQUIRING);
-                            break;
-                        case ACQ_DONE:
-                            log.logMessage("Auto is waiting for Acquisitions");
-                            isAcquisitionsDone(currentAutonomous[i][1]);
-                            break;
-                        case SHOOTER_SHOOT:
-                            log.logMessage("Shoting Ball");
-                            shooter.shoot();
-                            break;
-                        case SHOOTER_SET_PRESET:
-                            log.logMessage("Setting Preset");
-                            acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
-                            break;
-                        case SHOOTER_READY_TO_SHOOT:
-                            log.logMessage("Shooter in Position");
-                            isAcquisitionsDone(Acquisitions.AcqState.READY_TO_SHOOT);
-                            break;
-                        case SHOOTER_READY:
-                            isShooterReady();
-                            break;
-                        case VISION_DISTANCE:
-                            visionDistance = vision.getDistance();
-                            log.logMessage("Vision getting Distance");
-                            break;
-                        case VISION_ANGLE:
-                            visionAngle = vision.getDegrees();
-                            log.logMessage("Vision getting Degrees");
-                            break;
-                        case VISION_HOT_TARGET:
-                            visionHotGoal = vision.isHotGoal();
-                            break;
-                        case NEXT:
-                            if(loopTime > 1){
-                                i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop
-                                loopTime--;
-                            }
-                            log.logMessage("Next Loop");
-                            break;
-                        case LOOP:
-                            loopTime = currentAutonomous[i][1];
-                            log.logMessage("Setting Loop to " + currentAutonomous[i][1] + " loops");
-                            break;
-                        case WAIT:
-                            try {
-                                Thread.sleep(currentAutonomous[i][1]);
-                            } catch (InterruptedException ex) {
-                                ex.printStackTrace();
-                            }
-                            break;
-                        case END:
-                            runAutonomous = false;
-                            log.logMessage("Auto has stopped ****************");
-                            break;
-                        default:
-                            log.logMessage("No case statement: " + currentAutonomous[i]);
-                            break;
+    private void runAutonomous() {
+        finished = currentAutonomous.length;
+        increaseI = true;
+        if (ds.isEnabled() && runAutonomous) {
+            switch (currentAutonomous[currentAutoStep][0]) {
+                case DRIVES_GO_FORWARD:
+                    log.logMessage("Auto Drives Foward");
+                    drives.driveStraight(currentAutonomous[currentAutoStep][1]);
+                    break;
+                case DRIVES_GO_REVERSE:
+                    log.logMessage("Auto Drives Reverse");
+                    drives.driveStraight(currentAutonomous[currentAutoStep][1]);
+                    break;
+                case DRIVES_TURN_LEFT:
+                    log.logMessage("Auto Turn Left");
+                    drives.turn(-currentAutonomous[currentAutoStep][1]);
+                    break;
+                case DRIVES_TURN_RIGHT:
+                    log.logMessage("Auto Turn Right");
+                    drives.turn(currentAutonomous[currentAutoStep][1]);
+                    break;
+                case DRIVES_STOP:
+
+                    break;
+                case DRIVES_DONE:
+                    log.logMessage("Auto Waiting for Drives");
+                    runNextStatement(drives.isLastCommandDone());
+                    break;
+                case ACQ_READY:
+                    log.logMessage("Auto is configuring");
+                    runNextStatement(acq.isAcquisitionsReady());
+                    break;
+                case ACQ_AQUIRE_BALL:
+                    log.logMessage("Auto Acquiring");
+                    acq.setMode(Acquisitions.AcqState.ACQUIRING);
+                    break;
+                case ACQ_REVERSE:
+                    log.logMessage("Auto Ejecting Ball");
+                    acq.setMode(Acquisitions.AcqState.EJECT_BALL);
+                    break;
+                case ACQ_ACQUIRE_IN_POSITION://ONLY WORKS WITH ACQUIRING
+                    log.logMessage("Auto is waiting for Acquisitions to acquire");
+                    runNextStatement(acq.isLastCommandDone(Acquisitions.AcqState.ACQUIRING));
+                    break;
+                case ACQ_DONE:
+                    log.logMessage("Auto is waiting for Acquisitions");
+                    runNextStatement(acq.isLastCommandDone(currentAutonomous[currentAutoStep][1]));
+                    break;
+                case SHOOTER_SHOOT:
+                    log.logMessage("Shoting Ball");
+                    shooter.shoot();
+                    break;
+                case SHOOTER_SET_PRESET:
+                    log.logMessage("Setting Preset");
+                    acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
+                    break;
+                case SHOOTER_READY_TO_SHOOT:
+                    log.logMessage("Shooter in Position");
+                    runNextStatement(acq.isLastCommandDone(Acquisitions.AcqState.READY_TO_SHOOT) && shooter.isLastCommandDone());
+                    break;
+                case SHOOTER_READY:
+                    runNextStatement(shooter.isLastCommandDone());
+                    break;
+                case VISION_DISTANCE:
+                    visionDistance = vision.getDistance();
+                    log.logMessage("Vision getting Distance");
+                    break;
+                case VISION_ANGLE:
+                    visionAngle = vision.getDegrees();
+                    log.logMessage("Vision getting Degrees");
+                    break;
+                case VISION_HOT_TARGET:
+                    visionHotGoal = vision.isHotGoal();
+                    break;
+                case NEXT:
+                    if (loopTime > 1) {
+                        currentAutoStep = (currentAutoStep - currentAutonomous[currentAutoStep][1]) - 1;//the extra one is to cancel the +1 for the loop
+                        loopTime--;
                     }
+                    log.logMessage("Next Loop");
+                    break;
+                case LOOP:
+                    loopTime = currentAutonomous[currentAutoStep][1];
+                    log.logMessage("Setting Loop to " + currentAutonomous[currentAutoStep][1] + " loops");
+                    break;
+                case WAIT:
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(currentAutonomous[currentAutoStep][1]);
                     } catch (InterruptedException ex) {
-                        log.logError("AUTO: SLEEP FAILED");
+                        ex.printStackTrace();
                     }
-                    }
-                }       
+                    break;
+                case END:
+                    runAutonomous = false;
+                    log.logMessage("Auto HAS STOPPED****************");
+                    break;
+                default:
+                    log.logMessage("No case statement: " + currentAutonomous[currentAutoStep]);
+                    break;
             }
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+                log.logError("AUTO: SLEEP FAILED");
+            }
+        }
+        if(increaseI){//FOR LOOP without a true FOR LOOP
+            currentAutoStep++;
+        }
     }
 
     /**
@@ -475,72 +493,18 @@ public class Autonomous extends GenericSubsystem{
      */
     public void execute() throws Exception {
         if(ds.isAutonomous() && ds.isEnabled()){
-            auto.runAutonomous();
+            runAutonomous();
         }else{
-            auto.getAutoMode();
+            getAutoMode();
+            currentAutoStep = 0;
         }
     }
     
-    /**
-     * Waits until the Drives class is done doing its last command
-     */
-    private void isDoneDrives(){
-        while(!drives.isLastCommandDone() && ds.isAutonomous()){
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    
-    /**
-     * Waits until the Vision class is done doing its last command
-     */
-    private void isVisionDone(){
-        while(!vision.isLastCommandDone() && ds.isAutonomous()){
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    
-    /**
-     * Waits until acquisitions is ready for the next command
-     */ 
-    private void isAcquisitionsReady(){
-        while(!acq.isAcquisitionsReady()){
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    
-    /**
-     * Waits until acquisitions is in wantedDoneState state
-     * @param wantedDoneState - the state to wait until acquisitions is in
-     */
-    private void isAcquisitionsDone(int wantedDoneState){
-        while(!acq.isLastCommandDone(wantedDoneState)){
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-    
-    private void isShooterReady(){
-        while(!shooter.isLastCommandDone()){
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            }
+    private void runNextStatement(boolean lastCommandComplete){
+        if(lastCommandComplete){
+            increaseI = true;
+       }else{
+            increaseI = false;
         }
     }
     

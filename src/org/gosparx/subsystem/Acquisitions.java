@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
@@ -94,6 +95,11 @@ public class Acquisitions extends GenericSubsystem{
      * Detect when the shooter has reached it maximum angle (acquiring position)
      */
     private DigitalInput lowerLimit;
+    
+    /**
+     * Gives power to the ball detector system
+     */
+    private Solenoid ballDetectorPower;
             
     /**
      * Is attached to the motor that drives the rotating motion.
@@ -129,7 +135,7 @@ public class Acquisitions extends GenericSubsystem{
      * The speed at which the rollers pick up a ball.
      * May have to be modified based on design. (slower may be better)
      */
-    private final static double INTAKE_ROLLER_SPEED = 1.0;//TODO: CHECK
+    private final static double INTAKE_ROLLER_SPEED = -1.0;//TODO: CHECK
     
     /**
      * The distance each tick travels. (in degrees)
@@ -163,17 +169,17 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 30;
+    private final static int CLOSE_SHOOTER_PRESET = 34;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 40;
+   private final static int MID_SHOOTER_PRESET = 52;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 55;
+   private final static int FAR_SHOOTER_PRESET = 60;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -281,7 +287,7 @@ public class Acquisitions extends GenericSubsystem{
     private double wantedAcqSpeed = 0;
     
     private boolean upperLimitSwitch = true;
-    
+
     private boolean lowerLimitSwitch = true;
     
     /**
@@ -333,6 +339,7 @@ public class Acquisitions extends GenericSubsystem{
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
         acquisitionState = AcqState.ROTATE_UP;//default state
         wantedState = AcqState.SAFE_STATE;
+        ballDetectorPower =  new Solenoid(IO.ALTERNATE_SLOT, IO.BALL_SENSOR_POWER);//MAKES BALL SESNOR TURN ON
     }
 
     /**
@@ -340,6 +347,7 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
+        ballDetectorPower.set(true);
         if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
             if (!IO.USE_PWM_CABLES) {
                 rotatingMotor.setX(0);
@@ -350,7 +358,7 @@ public class Acquisitions extends GenericSubsystem{
             }
         }
         rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
-        isBallInRollers = !ballDetector.get();
+        isBallInRollers = ballDetector.get();
         upperLimitSwitch = !upperLimit.get();
         lowerLimitSwitch = !lowerLimit.get();
         switch (acquisitionState) {
@@ -390,7 +398,6 @@ public class Acquisitions extends GenericSubsystem{
                         && acqLongPnu.get() == ACQ_LONG_PNU_EXTENDED) {
                     acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 }
-                wantedAcqSpeed = 0;//turns motors off
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
                 if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
@@ -423,17 +430,13 @@ public class Acquisitions extends GenericSubsystem{
                 acquisitionState = AcqState.ROTATE_UP;
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                rotationSpeed = 0.1;//MAKES sure that the shooter stays down. (it can backdrive)
+                rotationSpeed = -0.2;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
-                if (isBallInRollers && Timer.getFPGATimestamp() - lastBallDetectTime >= BALL_DETECT_TIME) {
+                if (isBallInRollers) {
                     acquisitionState = AcqState.ACQUIRED;
                     log.logMessage("Ball Detected!");
-                } else if (isBallInRollers && lastBallDetectTime == 0) {
-                    lastBallDetectTime = Timer.getFPGATimestamp();
-                } else if (!isBallInRollers) {
-                    lastBallDetectTime = 0;
                 }
                 break;
             case AcqState.ACQUIRED://limit switch has been pressed - short cylinder retracts
@@ -452,6 +455,7 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/15;   
+                acquisitionState = wantedState;
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 break;

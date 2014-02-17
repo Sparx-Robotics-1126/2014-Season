@@ -410,7 +410,9 @@ public class Controls extends GenericSubsystem{
                     }
                 }
                 
-                if(opR1){
+                if(opSelect){
+                    shooter.setMode(Shooter.State.STANDBY);
+                }else if(opR1){
                     shooter.setMode(Shooter.State.SET_HOME);
                 }else if(opR3){
                     shooter.setMode(Shooter.State.STANDBY);

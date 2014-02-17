@@ -33,7 +33,7 @@ public class Shooter extends GenericSubsystem{
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 12.5;
+    private static final double INCHES_TO_WIND = 17;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -278,7 +278,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY && Acquisitions.getInstance().readyToShoot()){
+       if(shooterState == State.STANDBY){ //&& Acquisitions.getInstance().readyToShoot()){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -313,13 +313,7 @@ public class Shooter extends GenericSubsystem{
     }
     
     public boolean isLastCommandDone(){
-        if(limitSwitchValue){
             return shooterState == State.STANDBY;
-        }else if(shooterState != State.SHOOTER_COOLDOWN){
-            shooterState = State.SET_HOME;
-            return false;
-        }
-        return false;
     }
     
     /**
