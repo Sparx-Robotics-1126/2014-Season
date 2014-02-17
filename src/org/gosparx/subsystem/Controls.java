@@ -420,7 +420,7 @@ public class Controls extends GenericSubsystem{
             leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
             rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
             drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
-            if(driverLeftTrigger && driverLeftTopButton){
+            if(driverLeftTrigger && driverLeftTopButton && !lastDriverLeftTopButton && !lastDriverLeftTrigger){
                 shiftingOverride = !shiftingOverride;
             }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
                     drives.manualShiftUp();
