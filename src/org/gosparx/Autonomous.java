@@ -504,7 +504,7 @@ public class Autonomous extends GenericSubsystem{
     }
 
     /**
-     * Inits and sends all of the components of the livewindow
+     * Initializes and sends all of the components of the livewindow
      */ 
     public void liveWindow() {
         smartChoose = new SendableChooser();
