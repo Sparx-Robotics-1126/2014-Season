@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Gyro;
-import edu.wpi.first.wpilibj.PIDSource;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
@@ -95,11 +94,6 @@ public class Drives extends GenericSubsystem {
      * drives to achieve.
      */
     private double wantedLeftSpeed;
-    
-    /**
-     * Average Encoder distance for both the left and right encoder.
-     */
-    private double averageEncoderDistance;
     
     /**
      * This is controlling the left front drives motor.
@@ -249,7 +243,7 @@ public class Drives extends GenericSubsystem {
     /**
      * Number of loops turning must go through to determine accuracy.
      */
-    private static int turnCompleteCounter = 3;
+    private static final int TURN_COMPLETE_COUNTR = 3;
     
     /**
      * Number of loop that turning has successfully done in threshold
@@ -266,7 +260,7 @@ public class Drives extends GenericSubsystem {
      * The name of the SmartDashboard variable.
      * Is used to send and get variables from the smartdashboard
      */
-    private String smartAutoShiftingName = "Auto Shifting";
+    private static final String smartAutoShiftingName = "Auto Shifting";
     
     private double leftMotorOutput = 0; 
     private double rightMotorOutput = 0;
@@ -338,12 +332,14 @@ public class Drives extends GenericSubsystem {
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
         
-        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
+        //ALL VALUES NEED TO BE SET TO 0
+        if(ds.isTest() && ds.isDisabled()){
             rightFrontDrives.set(0);
             rightRearDrives.set(0);
             leftFrontDrives.set(0);
             leftRearDrives.set(0);
         }
+        
         currentAngle = gyro.getAngle();
         leftEncoderData.calculateSpeed();
         rightEncoderData.calculateSpeed();
@@ -352,7 +348,9 @@ public class Drives extends GenericSubsystem {
         leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
         rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
         double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
-        averageEncoderDistance = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
+        
+        averageDistEncoder = (leftEncoderData.getDistance() + rightEncoderData.getDistance())/2;
+        
         switch(autoFunctionState){
             case State.FUNCT_TURNING:
                 degToGo = desiredAngle - currentAngle;
@@ -364,7 +362,7 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
                         rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                     }
-                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == turnCompleteCounter) {
+                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTR) {
                         log.logMessage("Done Turning");
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
@@ -377,32 +375,24 @@ public class Drives extends GenericSubsystem {
                     log.logMessage("COMPLETED: " + turnLoopCounter + " Loops || Gyro: "  + currentAngle + " DegToGo: " + degToGo);
                 }else{
                     autoFunctionState = State.FUNCT_HOLD_POS;
-                }    
-                if(ds.isOperatorControl() || ds.isTest()){
-                    autoFunctionState = State.DRIVES_LOW_GEAR;
-                }
+                } 
                 break;
             case State.FUNCT_DRIVE_STRAIGHT:
-                if(inchesToGo - averageDistEncoder > 0) {
-                    setSpeed(30, 30);
-                }
-                if(Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                if(Math.abs(leftEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                     leftMotorOutput = 0;
                 }
-                if(Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                if(Math.abs(rightEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
                     rightMotorOutput = 0;
                 }
-                if((Math.abs(rightDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && (Math.abs(leftDrivesEncoder.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                if((Math.abs(rightEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && 
+                        (Math.abs(leftEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
                     log.logMessage("Done Driving Straight.");
+                    setSpeed(0, 0);
                     resetSensors();
                     autoFunctionState = State.FUNCT_HOLD_POS;
                 }
-                if(ds.isOperatorControl() || ds.isTest()){
-                    autoFunctionState = State.DRIVES_LOW_GEAR;
-                }
                 break;
             case State.FUNCT_HOLD_POS:
-                averageDistEncoder = (leftDrivesEncoder.getDistance() + rightDrivesEncoder.getDistance())/2;
                 if(gyro.getAngle() > TURNING_THRESHOLD){
                     leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
                     rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
@@ -526,21 +516,23 @@ public class Drives extends GenericSubsystem {
      * values to turn left 
      */
     public void turn(double degrees){
-        gyro.reset();
+        resetGyro();
         desiredAngle = degrees;
         autoFunctionState = State.FUNCT_TURNING;
     }
     
     /**
      * Drives straight for inches number of inches. Self correcting
-     * @param inches - the desired number of inches to drive. Use negatives to
-     *                 go backwards
+     *
+     * @param inches the desired number of inches to drive. Use negatives to go
+     * backwards
+     * @param speed the speed in Inches per Second you want to go
      */
-    public void driveStraight(double inches){
-        autoFunctionState = State.FUNCT_DRIVE_STRAIGHT;
+    public void driveStraight(double inches, double speed){
+        resetEncoders();
         inchesToGo = inches;
-        leftDrivesEncoder.reset();
-        rightDrivesEncoder.reset();
+        setSpeed(speed, speed);
+        autoFunctionState = State.FUNCT_DRIVE_STRAIGHT;
     }
     /**
      * Forces drives to stay in low gear or to release it from low gear
@@ -554,14 +546,14 @@ public class Drives extends GenericSubsystem {
      */
     public void manualShiftUp(){
         needsToManuallyShiftUp = true;
-        System.out.println("Manually shifting Up");
+        log.logMessage("Manually shifting Up");
     }
     /**
      * Sets the drives to shift down if manualShifting is true
      */
     public void manualShiftDown(){
         needsToManuallyShiftDown = true;
-        System.out.println("Manually shifting Down");
+        log.logMessage("Manually shifting Down");
     }
     /**
      * Sets manualShifting to manual. If manualShifting is true, it will disable
