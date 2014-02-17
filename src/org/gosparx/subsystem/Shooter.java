@@ -214,14 +214,18 @@ public class Shooter extends GenericSubsystem{
                 // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
                 // Then starts retracting the winch.
                 case State.SHOOTER_COOLDOWN:
-                    if(Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS){
-                        shooterState = State.SET_HOME;
-                    } 
+                    if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
+                        if (limitSwitchValue) {
+                            shooterState = State.STANDBY;
+                        }else{
+                            shooterState = State.SET_HOME;
+                        }
+                    }
                     break;
                 case State.SET_HOME:
                     latch.set(LATCH_DISENGAGED);
                     wantedWinchSpeed = WINCH_SPEED;
-                    if(limitSwitchValue){
+                    if (limitSwitchValue) {
                         log.logMessage("LATCH HAS BEEN TRIGGERED");
                         shooterState = State.UNWIND_WINCH;
                         potData.reset();
