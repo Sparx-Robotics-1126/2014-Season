@@ -114,7 +114,7 @@ public class Vision extends GenericSubsystem {
                 getBestTarget();
                 freeImage();
                 needImage = false;
-                System.out.println("Distane: " + getDistance() + " ANGLE: " + getDegrees() + " HOt GOAL: " + isHotGoal());
+                System.out.println("Distane: " + getTargetDistance() + " ANGLE: " + getDegrees() + " HOt GOAL: " + isHotGoal());
 //            }else{
 //                cameraLights.set(false);
                 sleep(20);
@@ -454,7 +454,7 @@ public class Vision extends GenericSubsystem {
      *
      * @return distance - how far away the target is from the camera in feet
      */
-    public double getDistance() {
+    private double getTargetDistance() {
         return imageDistance;
     }
 
@@ -478,6 +478,10 @@ public class Vision extends GenericSubsystem {
         pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
         degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(imageDistance)));
         return degrees;
+    }
+    
+    public double getDistanceToGoal(){
+        return Math.cos(getDegrees()) * getTargetDistance();
     }
      
     /**

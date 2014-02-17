@@ -174,7 +174,7 @@ public class Autonomous extends GenericSubsystem{
     /**************************************************************************/
     /**************************** End of commands *****************************/
     /**************************************************************************/
-    
+
     /**
      * No auto will run
      */
@@ -188,50 +188,10 @@ public class Autonomous extends GenericSubsystem{
      */
     private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
-        {DRIVES_GO_FORWARD, 30},  
+        {DRIVES_GO_FORWARD, 36, 30},  
         {DRIVES_DONE},
         {END}
     };
-    
-    /**
-     * Drives in a 4x4 foot square, turning to the right
-     */
-    private static final String AUTO_SQUARE_NAME = "Auto Square";
-    private static final int[][] autoSquare = {
-        {DRIVES_DONE},
-        {LOOP, 4},
-        {DRIVES_GO_FORWARD, 12},
-        {DRIVES_DONE},
-        {DRIVES_TURN_RIGHT, 90},
-        {DRIVES_DONE},
-        {NEXT, 4},
-        {END}
-    };
-    
-    /**
-     * Camera will follow the target
-     */
-    private static final String CAMERA_FOLLOW_NAME = "Camera Follow";
-    private static final int[][] cameraFollow = { 
-        {LOOP, Integer.MAX_VALUE},
-        {VISION_DISTANCE},
-        {VISION_ANGLE},
-        {DRIVES_TRACK_TARGET},
-        {NEXT, 3},
-        {END}
-    };
-    
-    /**
-     * Turns 90 degrees to the left. Used for debugging
-     */
-    private static final String TURN_90_NAME = "Turn 90";
-    private static final int[][] turn90 = {
-        {DRIVES_DONE},
-        {DRIVES_TURN_LEFT, 90},
-        {DRIVES_DONE},
-        {END}
-    };
-   
     
     private static final String TWO_BALLS_IN_HIGH = "Two balls in high";
     private static final int[][] twoBallsInHigh = {
@@ -244,11 +204,7 @@ public class Autonomous extends GenericSubsystem{
         {WAIT, 500},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
-        {DRIVES_GO_FORWARD, 10},
-        {DRIVES_DONE},
-        {DRIVES_GO_FORWARD, 10},
-        {DRIVES_DONE},
-        {DRIVES_GO_FORWARD, 10},
+        {DRIVES_GO_FORWARD, 30, 15},
         {DRIVES_DONE},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
@@ -263,7 +219,24 @@ public class Autonomous extends GenericSubsystem{
         {SHOOTER_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 500},
         {SHOOTER_SHOOT},
+        {DRIVES_GO_FORWARD, 60, 30},
+        {DRIVES_DONE},
+        {END}
+    };
+    
+    private static final String ONE_BALL_IN_HOT_HIGH = "One ball in high";
+    private static final int[][] oneBallInHotHigh = {
+        {ACQ_READY},
+        {SHOOTER_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
+        {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 500},
+        {VISION_HOT_TARGET},
+        {SHOOTER_SHOOT},
+        {DRIVES_GO_FORWARD, 60, 30},
+        {DRIVES_DONE},
         {END}
     };
     
@@ -322,37 +295,40 @@ public class Autonomous extends GenericSubsystem{
                 selectedAutoName = NO_AUTO_NAME;
                 break;
             case 1:
-                currentAutonomous = autoSquare;
-                selectedAutoName = AUTO_SQUARE_NAME;
-                break;
-            case 2:
-                currentAutonomous = cameraFollow;
-                selectedAutoName = CAMERA_FOLLOW_NAME;
-                break;
-            case 3:
                 currentAutonomous = moveFoward;
                 selectedAutoName = MOVE_FOWARD_NAME;
                 break;
-            case 4:
-                currentAutonomous = turn90;
-                selectedAutoName = TURN_90_NAME;
-                break;
-            case 5:
-                currentAutonomous = twoBallsInHigh;
-                selectedAutoName = TWO_BALLS_IN_HIGH;
-                break;
-            case 6:
+            case 2:
                 currentAutonomous = oneBallInHigh;
                 selectedAutoName = ONE_BALL_IN_HIGH;
                 break;
+            case 3:
+                currentAutonomous = oneBallInHotHigh;
+                selectedAutoName = ONE_BALL_IN_HOT_HIGH;
+                break;
+            case 4:
+                currentAutonomous = twoBallsInHigh;
+                selectedAutoName = TWO_BALLS_IN_HIGH;
+                break;
+            case 5:
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
+                break;
+            case 6:
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
+                break;
             case 7:
-                
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
                 break;
             case 8:
-                
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
                 break;
             case 9:
-                
+                currentAutonomous = noAuto;
+                selectedAutoName = NO_AUTO_NAME;
                 break;
             default:
                 currentAutonomous = noAuto;
@@ -372,11 +348,11 @@ public class Autonomous extends GenericSubsystem{
             switch (currentAutonomous[currentAutoStep][0]) {
                 case DRIVES_GO_FORWARD:
                     log.logMessage("Auto Drives Foward");
-                    drives.driveStraight(currentAutonomous[currentAutoStep][1]);
+                    drives.driveStraight(currentAutonomous[currentAutoStep][1], currentAutonomous[currentAutoStep][2]);
                     break;
                 case DRIVES_GO_REVERSE:
                     log.logMessage("Auto Drives Reverse");
-                    drives.driveStraight(currentAutonomous[currentAutoStep][1]);
+                    drives.driveStraight(currentAutonomous[currentAutoStep][1], currentAutonomous[currentAutoStep][2]);
                     break;
                 case DRIVES_TURN_LEFT:
                     log.logMessage("Auto Turn Left");
@@ -429,7 +405,7 @@ public class Autonomous extends GenericSubsystem{
                     runNextStatement(shooter.isLastCommandDone());
                     break;
                 case VISION_DISTANCE:
-                    visionDistance = vision.getDistance();
+                    visionDistance = vision.getDistanceToGoal();
                     log.logMessage("Vision getting Distance");
                     break;
                 case VISION_ANGLE:
@@ -437,7 +413,8 @@ public class Autonomous extends GenericSubsystem{
                     log.logMessage("Vision getting Degrees");
                     break;
                 case VISION_HOT_TARGET:
-                    visionHotGoal = vision.isHotGoal();
+                    runNextStatement(vision.isHotGoal());
+                    log.logMessage("See Hot Goal");
                     break;
                 case NEXT:
                     if (loopTime > 1) {
@@ -532,14 +509,14 @@ public class Autonomous extends GenericSubsystem{
     public void liveWindow() {
         smartChoose = new SendableChooser();
         smartChoose.addDefault("No Auto", new Integer(0));
-        smartChoose.addObject("Auto 1", new Integer(1));
-        smartChoose.addObject("Auto 2", new Integer(2));
-        smartChoose.addObject("Auto 3", new Integer(3));
-        smartChoose.addObject("Auto 4", new Integer(4));
-        smartChoose.addObject("Auto 5", new Integer(5));
-        smartChoose.addObject("Auto 6", new Integer(6));
-        smartChoose.addObject("Auto 7", new Integer(7));
-        smartChoose.addObject("Auto 8", new Integer(8));
+        smartChoose.addObject("Move foward", new Integer(1));
+        smartChoose.addObject("One ball in top", new Integer(2));
+        smartChoose.addObject("One ball in hot top", new Integer(3));
+        smartChoose.addObject("Two balls in top", new Integer(4));
+        smartChoose.addObject("Auto 4", new Integer(5));
+        smartChoose.addObject("Auto 5", new Integer(6));
+        smartChoose.addObject("Auto 6", new Integer(7));
+        smartChoose.addObject("Auto 7", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
         SmartDashboard.putBoolean(smartChooser, false);
     }

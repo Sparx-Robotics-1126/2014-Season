@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -48,6 +49,11 @@ public class Acquisitions extends GenericSubsystem{
      * Is returned in getInstance
      */
     private static Acquisitions acquisitions;
+    
+    /**
+     * The instance of vision
+     */
+    private Vision vision;
     
     /*/*************MOTORS/SENSORS/SOLENOIDS******************** /*/
     
@@ -327,6 +333,7 @@ public class Acquisitions extends GenericSubsystem{
             rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
             acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         }
+        vision = Vision.getInstance();
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.DEFAULT_SLOT, IO.ACQ_BALL_DETECTOR);
         upperLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_SAFE_MODE_CHAN);
@@ -556,6 +563,9 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.FAR_SHOOTER_PRESET:
                 setAngle(FAR_SHOOTER_PRESET);
                 break;
+            case AcqState.AUTO_PRESET:
+                setAngle(getAutoAngle());
+                break;
             default:
                 wantedShooterAngle = UP_POSITION;
         }
@@ -619,6 +629,18 @@ public class Acquisitions extends GenericSubsystem{
             }
         }else{
             rotatingMotorPWM.set(speed);
+        }
+    }
+    
+    /**
+     * Finds the wanted angle based off of camera distance
+     * @returns the wanted angle to shoot
+     */
+    private int getAutoAngle(){
+        if(vision.getLastImageTime() < 0.5){
+            return (int)(-15.77806938 + (14.2465927 * (MathUtils.log(vision.getDistanceToGoal()) / MathUtils.log(Math.E))));
+        }else{
+            return 0;
         }
     }
     
@@ -697,6 +719,7 @@ public class Acquisitions extends GenericSubsystem{
         public static final int CLOSE_SHOOTER_PRESET = 20;
         public static final int MIDDLE_SHOOTER_PRESET = 21;
         public static final int FAR_SHOOTER_PRESET = 22;
+        public static final int AUTO_PRESET = 23;
         
         /**
          * @param state - the state to get the string version of

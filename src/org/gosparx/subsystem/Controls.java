@@ -398,6 +398,8 @@ public class Controls extends GenericSubsystem{
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
                 }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
+                }else if(opSelect){
+                    acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
                 }
                 
                 //OFFSET
@@ -410,9 +412,7 @@ public class Controls extends GenericSubsystem{
                     }
                 }
                 
-                if(opSelect){
-                    shooter.setMode(Shooter.State.STANDBY);
-                }else if(opR1){
+                if(opR1){
                     shooter.setMode(Shooter.State.SET_HOME);
                 }else if(opR3){
                     shooter.setMode(Shooter.State.STANDBY);

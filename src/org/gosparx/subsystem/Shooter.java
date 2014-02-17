@@ -27,7 +27,7 @@ public class Shooter extends GenericSubsystem{
     /**
      * The inches the pot travels per volt change.
      */
-    private static final double INCHES_PER_VOLT = -6.3009708737864077669902912621359;//one inch wheel
+    private static final double INCHES_PER_VOLT = -7.8539816339744830961566084581988;//1 and 1/4 inch wheel
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
