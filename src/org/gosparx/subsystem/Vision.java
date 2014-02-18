@@ -116,7 +116,6 @@ public class Vision extends GenericSubsystem {
 //                needImage = false;
 //            }else{
 //                cameraLights.set(false);
-                sleep(20);
 //            }
         }
     }
