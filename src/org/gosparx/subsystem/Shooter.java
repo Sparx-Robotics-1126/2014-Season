@@ -43,7 +43,7 @@ public class Shooter extends GenericSubsystem{
      /**
      * The motor speed to pull back the winch at.
      */
-    private static final double WINCH_SPEED = 1.00;
+    private static final double WINCH_SPEED = -1.00;
     
     /**
      * The boolean constant if the latch is engaged.

@@ -176,6 +176,7 @@ public class Acquisitions extends GenericSubsystem{
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
     private final static int CLOSE_SHOOTER_PRESET = 34;
+
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
