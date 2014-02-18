@@ -88,6 +88,11 @@ public class Drives extends GenericSubsystem {
      * The Y Intercept for the scaling formula.
      */ 
     private static final double Y_INTERCEPT = .5;
+    
+    /**
+     * Number of loops turning must go through to determine accuracy.
+     */
+    private static final int TURN_COMPLETE_COUNTER = 3;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -231,11 +236,6 @@ public class Drives extends GenericSubsystem {
     private double degToGo;
     
     /**
-     * Number of loops turning must go through to determine accuracy.
-     */
-    private static final int TURN_COMPLETE_COUNTR = 3;
-    
-    /**
      * Number of loop that turning has successfully done in threshold
      */
     private int turnLoopCounter = 0;
@@ -350,7 +350,7 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
                         rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                     }
-                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTR) {
+                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTER) {
                         log.logMessage("Done Turning");
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
