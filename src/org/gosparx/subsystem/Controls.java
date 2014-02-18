@@ -11,7 +11,31 @@ import org.gosparx.util.Logger;
  * @author Alex
  * @date 1/12/14
  */
-public class Controls extends GenericSubsystem{
+public class Controls extends GenericSubsystem{ 
+    
+    /**
+     * The amount in degrees to trim the shooter every time the trim buttons are
+     * hit.
+     */ 
+    private static final int TRIM_ANGLE                                 = 2;
+    
+    /**
+     * The factor to divide the previous + the current joystick Y values. Used 
+     * to slow down the drives to a complete stop so that they do not flip the 
+     * robot on a sudden stop
+     */ 
+    private static final double SLOW_DOWN_RAMP = 1.35;
+    
+    /**
+     * The dead zone for the Driver joysticks. This is the zone in which the    
+     * drives will be set to 0.
+     */ 
+    private double JOYSTICK_DEADZONE = .04; 
+        
+     /**
+     * Time (in seconds) between offset
+     */
+    private static final double OFFSET_TIME = 0.5;
     
     /**
      * The only Controls that will ever be created in the entire robot. It is 
@@ -40,42 +64,9 @@ public class Controls extends GenericSubsystem{
     private Drives drives;
     
     /**
-     * The factor to divide the previous + the current joystick Y values. Used 
-     * to slow down the drives to a complete stop so that they do not flip the 
-     * robot on a sudden stop
-     */ 
-    private static final double SLOW_DOWN_RAMP = 1.35;
-    
-    /**
-     * The dead zone for the Driver joysticks. This is the zone in which the    
-     * drives will be set to 0.
-     */ 
-    private double JOYSTICK_DEADZONE = .04; 
-        
-    /**
      * Stores if we are overriding auto shifting
      */
     private boolean shiftingOverride                                    = false;
-    
-    /**
-     * The last state of the shifting override button
-     */
-    private boolean lastShiftOverrideState                              = false;
-    
-    /**
-     * The last state of the manual shift up button
-     */ 
-    private boolean lastShiftUp                                         = false;
-    
-    /**
-     * The last state of the manual shift down
-     */ 
-    private boolean lastShiftDown                                       = false;
-    
-    /**
-     * The last state of the hold in place button
-     */
-    private boolean lastHoldInPlace                                     = false;
     
     /**
      * The last Y value of the left Joystick
@@ -97,11 +88,6 @@ public class Controls extends GenericSubsystem{
      */ 
     private double rightSpeedToSet;
     
-    /**
-     * The last value of the DPadXAxis
-     */
-    private double lastShooterMode                                      = 0;
-    
     /*
      * The last value of the driver top left button
      */ 
@@ -112,20 +98,15 @@ public class Controls extends GenericSubsystem{
      */ 
     private boolean lastDriverLeftTrigger;
     
-    /*
-     * The last value of the DPadYAxis
-     */
-    private double lastAcquireMode                                      = 0;
-    
     /**
-     * the last value of the DPadYAxis
+     * The last value of the operator's Dpad X axis
      */
-    private double lastTrussMode                                        = 0;
-    
+    private int lastDPadX                                           = 0;
+        
     /**
-     * The last value of the DPadXValue
+     * The last value of the operator's Dpad Y axis
      */ 
-    private double lastReleaseMode                                      = 0;
+    private int lastDPadY                                           = 0;
     
     /**
      * The last value of the RTWO button. 
@@ -136,11 +117,6 @@ public class Controls extends GenericSubsystem{
      * The Time the last shooter angle offset was updated
      */
     private double lastOffsetTime;
-    
-    /**
-     * Time (in seconds) between offset
-     */
-    private static final double OFFSET_TIME = 0.5;
     
     /**
      * The time at which the robot was enabled
@@ -157,11 +133,55 @@ public class Controls extends GenericSubsystem{
      */ 
     private Shooter shooter;
     
+    /**
+     * The last state of the trim up button. Used for rising edge detection.
+     */ 
     private boolean lastTrimUp                                          = false;
     
+    /**
+     * The last state of the trim down button. Used for rising edge detection.
+     */ 
     private boolean lastTrimDown                                        = false;
     
-    private static final int TRIM_ANGLE                                 = 2;
+    /**
+     * The last state of the circle button. Used for rising edge detection.
+     */ 
+    private boolean lastOPCircle                                        = false;
+    
+    /**
+     * The last state of the cross button. Used for rising edge detection.
+     */ 
+    private boolean lastOPCross                                         = false;
+    
+    /**
+     * The last state of the square button. Used for rising edge detection.
+     */ 
+    private boolean lastOPSquare                                        = false;
+    
+    /**
+     * The last state of the triangle button. Used for rising edge detection.
+     */ 
+    private boolean lastOPTriangle                                      = false;
+    
+    /**
+     * The last state of the R1 button. Used for rising edge detection.
+     */ 
+    private boolean lastOPR1                                            = false;
+    
+    /**
+     * The last state of the R3 button. Used for rising edge detection.
+     */ 
+    private boolean lastOPR3                                            = false;
+    
+    /**
+     * The last state of the start button. Used for rising edge detection.
+     */ 
+    private boolean lastOPStart                                         = false;
+    
+    /**
+     * The last value of the operator's select button(PS2) or back button (Logitech) 
+     */ 
+    private boolean lastOPSelect                                        = false;
     
     //********************************************************************
     //********************AIRFLO Controller Mapping***********************
@@ -314,15 +334,22 @@ public class Controls extends GenericSubsystem{
      * @throws Exception throws exception if something bad happens
      */
     public void execute() throws Exception {
-        if(ds.isEnabled() && ds.isOperatorControl()){                
+        if(ds.isEnabled() && ds.isOperatorControl()){
+            lastOPSelect = opSelect;
+            lastDPadX = (int) opDPadXAxis;
+            lastDPadY = (int) opDPadYAxis;
+            lastOPR1 = opR1;
+            lastOPR3 = opR3;
+            lastOPCircle = opCircle;
+            lastOPSquare = opSquare;
+            lastOPTriangle = opTriangle;
+            lastOPCross = opCross;
+            lastOPStart = opStart;
             lastTrimUp = opL1;
             lastTrimDown = opL2;
             lastLeftJoyYValue = driverLeftYAxis;
             lastRightJoyYValue = driverRightYAxis;
             lastShoot = opR2;
-            lastShiftDown = driverLeftTrigger;
-            lastShiftUp = driverRightTrigger;
-            lastShiftOverrideState = driverLeftTopButton;
             lastDriverLeftTopButton = driverLeftTopButton;
             lastDriverLeftTrigger = driverLeftTrigger;
             opLeftXAxis = opJoy.getRawAxis(LOGI_LEFT_X_AXIS);
@@ -371,7 +398,7 @@ public class Controls extends GenericSubsystem{
             leftSpeedToSet = getSpeed(driverLeftYAxis, lastLeftJoyYValue);
             rightSpeedToSet = getSpeed(driverRightYAxis, lastRightJoyYValue);
             drives.setSpeed(leftSpeedToSet, rightSpeedToSet);
-            if(driverLeftTrigger && driverLeftTopButton){
+            if(driverLeftTrigger && driverLeftTopButton && !lastDriverLeftTopButton && !lastDriverLeftTrigger){
                 shiftingOverride = !shiftingOverride;
             }else if(driverLeftTopButton && !driverLeftTrigger && !lastDriverLeftTopButton){
                     drives.manualShiftUp();
@@ -380,52 +407,46 @@ public class Controls extends GenericSubsystem{
             }
             drives.setManualShifting(shiftingOverride);
                 /*/********************OPERATOR****************** /*/
-                if(opCircle){
+                if(opCircle && !lastOPCircle){
                     acq.setMode(Acquisitions.AcqState.ACQUIRING);
-                }else if(opCross){
+                }else if(opCross && !lastOPCross){
                     acq.setMode(Acquisitions.AcqState.OFF_STATE);
-                }else if(opTriangle){
+                }else if(opTriangle && !lastOPTriangle){
                     acq.setMode(Acquisitions.AcqState.EJECT_BALL);
-                }else if(opStart){
+                }else if(opStart && !lastOPStart){
                     acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
-                }else if(opSquare){
+                }else if(opSquare && !lastOPSquare){
                     acq.setMode(Acquisitions.AcqState.SAFE_STATE);
                 }
                 
-                if(opDPadYAxis == 1){
+                if(opDPadYAxis == 1 && opDPadYAxis != lastDPadY){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                }else if(opDPadXAxis == 1){
+                }else if(opDPadXAxis == 1 && opDPadXAxis != lastDPadX){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                }else if(opDPadYAxis == -1){
+                }else if(opDPadYAxis == -1 && opDPadYAxis != lastDPadY){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
-                }else if(opSelect){
+                }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
                 }
                 
                 //OFFSET
                 if(Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)){
                     lastOffsetTime = Timer.getFPGATimestamp();
-                    if(opL2){
-                        acq.addOffset(-2);
-                    }else{
-                        acq.addOffset(2);
+                    if(opL2 && !lastTrimDown){
+                        acq.addOffset(TRIM_ANGLE);
+                    }else if (opL1 && !lastTrimUp){
+                        acq.addOffset(-TRIM_ANGLE);
                     }
                 }
                 
-                if(opR1){
+                if(opR1 && !lastOPR1){
                     shooter.setMode(Shooter.State.SET_HOME);
-                }else if(opR3){
+                }else if(opR3 && !lastOPR3){
                     shooter.setMode(Shooter.State.STANDBY);
                 }
                 
                 if(opR2 && !lastShoot){
                     shooter.shoot();
-                }
-                
-                if(opL1 && !lastTrimUp){
-                    acq.addOffset(TRIM_ANGLE);
-                }else if(opL2 && !lastTrimDown){
-                    acq.addOffset(-TRIM_ANGLE);
                 }
                 smartDashboardTimer();
             }else{

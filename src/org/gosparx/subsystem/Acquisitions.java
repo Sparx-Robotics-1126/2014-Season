@@ -293,8 +293,14 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private double wantedAcqSpeed = 0;
     
+    /**
+     * The correct true or false value of the upper limit switch
+     */
     private boolean upperLimitSwitch = true;
 
+    /**
+     * The correct true or false value of the lower limit switch
+     */
     private boolean lowerLimitSwitch = true;
     
     /**
@@ -388,9 +394,9 @@ public class Acquisitions extends GenericSubsystem{
                         } else {
                             rotationSpeed -= .05;
                         }
-                        if(rotationSpeed > 1){
+                        if (rotationSpeed > 1) {
                             rotationSpeed = 1;
-                        }else if(rotationSpeed < -1){
+                        } else if (rotationSpeed < -1) {
                             rotationSpeed = -1;
                         }
                     } else {
@@ -462,7 +468,7 @@ public class Acquisitions extends GenericSubsystem{
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
-                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/15;   
+                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter

@@ -88,6 +88,11 @@ public class Drives extends GenericSubsystem {
      * The Y Intercept for the scaling formula.
      */ 
     private static final double Y_INTERCEPT = .5;
+    
+    /**
+     * Number of loops turning must go through to determine accuracy.
+     */
+    private static final int TURN_COMPLETE_COUNTER = 3;
         
     /**
      * This is the speed in inches per second we want the left side of the 
@@ -104,11 +109,6 @@ public class Drives extends GenericSubsystem {
      * This is controlling the left rear drives motor.
      */
     private Talon leftRearDrives;
-    
-    /**
-     * This controls the third motor on the drive train, (may or may not exist)
-     */
-    private Talon leftBottomDrives;
     
     /**
      * This is the encoder on the left side of the robot.
@@ -130,11 +130,6 @@ public class Drives extends GenericSubsystem {
      * This is controlling the right rear drives motor.
      */
     private Talon rightRearDrives;
-    
-    /**
-     * This controls the third motor on the drive train, (may or may not exist)
-     */
-    private Talon rightBottomDrives;
     
     /**
      * This is the encoder on the right side of the robot.
@@ -241,11 +236,6 @@ public class Drives extends GenericSubsystem {
     private double degToGo;
     
     /**
-     * Number of loops turning must go through to determine accuracy.
-     */
-    private static final int TURN_COMPLETE_COUNTR = 3;
-    
-    /**
      * Number of loop that turning has successfully done in threshold
      */
     private int turnLoopCounter = 0;
@@ -293,7 +283,6 @@ public class Drives extends GenericSubsystem {
     public void init() {
         leftFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_FRONT_DRIVES_PWM);
         leftRearDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_REAR_DRIVES_PWM);
-        leftBottomDrives = new Talon(IO.DEFAULT_SLOT, IO.LEFT_BOTTOM_DRIVES_PWM);
         leftDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.LEFT_DRIVES_ENCODER_CHAN_1,IO.DEFAULT_SLOT,IO.LEFT_DRIVES_ENCODER_CHAN_2, false, EncodingType.k4X);
         leftDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         leftEncoderData = new EncoderData(leftDrivesEncoder, DIST_PER_TICK);
@@ -301,7 +290,6 @@ public class Drives extends GenericSubsystem {
         
         rightFrontDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_FRONT_DRIVES_PWM);
         rightRearDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_REAR_DRIVES_PWM);
-        rightBottomDrives = new Talon(IO.DEFAULT_SLOT, IO.RIGHT_BOTTOM_DRIVES_PWM);
         rightDrivesEncoder = new Encoder(IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.RIGHT_DRIVES_ENCODER_CHAN_2, true, EncodingType.k4X);
         rightDrivesEncoder.setDistancePerPulse(DIST_PER_TICK);
         rightEncoderData = new EncoderData(rightDrivesEncoder, DIST_PER_TICK);
@@ -362,7 +350,7 @@ public class Drives extends GenericSubsystem {
                         leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
                         rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
                     }
-                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTR) {
+                    if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTER) {
                         log.logMessage("Done Turning");
                         leftMotorOutput = 0;
                         rightMotorOutput = 0;
@@ -456,12 +444,10 @@ public class Drives extends GenericSubsystem {
         //LEFT MOTORS
         leftFrontDrives.set(leftMotorOutput);
         leftRearDrives.set(leftMotorOutput);
-        leftBottomDrives.set(leftMotorOutput);
 
         //RIGHT MOTORS
         rightFrontDrives.set(-rightMotorOutput);
-        rightRearDrives.set(-rightMotorOutput);
-        rightBottomDrives.set(-rightMotorOutput);   
+        rightRearDrives.set(-rightMotorOutput); 
         updatedSmartDashboard();
     }
     
