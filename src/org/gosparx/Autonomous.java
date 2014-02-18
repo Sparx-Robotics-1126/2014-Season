@@ -2,6 +2,7 @@ package org.gosparx;
 
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -121,6 +122,27 @@ public class Autonomous extends GenericSubsystem{
      * Should be move on to the next command
      */
     private boolean increaseI = false;
+    
+    /**
+     * The time at which autonomous starts
+     */
+    private double startAutoTime = 0;
+    
+    /**
+     * True if we want a critical time, false if not
+     * This is set in the arrays
+     */
+    private boolean checkTime = false;
+    
+    /**
+     * The action which we want to preform when time is critical
+     */
+    private int criticalTimeAction = 0;
+    
+    /**
+     * The time at which we must stop our current action and move on
+     */
+    private int critalTime = 0;
     /**************************************************************************/
     /*************************Manual Switch Voltages **************************/
     /**************************************************************************/
@@ -167,6 +189,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int DRIVES_TRACK_TARGET            = 40;
 
     /* Misc */
+    private static final int TEST_SECONDS_LEFT                   = 95;
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
     private static final int LOOP                           = 97;//number of loops, 
     private static final int WAIT                           = 98;
@@ -230,6 +253,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int[][] oneBallInHotHigh = {
         {ACQ_READY},
         {SHOOTER_READY},
+        {TEST_SECONDS_LEFT, 7, 7},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
         {WAIT, 500},
@@ -416,6 +440,10 @@ public class Autonomous extends GenericSubsystem{
                     runNextStatement(vision.isHotGoal());
                     log.logMessage("See Hot Goal");
                     break;
+                case TEST_SECONDS_LEFT:
+                    checkTime = true;
+                    critalTime = currentAutonomous[currentAutoStep][1];
+                    criticalTimeAction = currentAutonomous[currentAutoStep][2];
                 case NEXT:
                     if (loopTime > 1) {
                         currentAutoStep = (currentAutoStep - currentAutonomous[currentAutoStep][1]) - 1;//the extra one is to cancel the +1 for the loop
@@ -451,6 +479,12 @@ public class Autonomous extends GenericSubsystem{
         if(increaseI){//FOR LOOP without a true FOR LOOP
             currentAutoStep++;
         }
+        
+        //Makes sure we have enough time left to move
+        if(checkTime && Timer.getFPGATimestamp() - startAutoTime >= critalTime){
+            currentAutoStep = criticalTimeAction;
+            checkTime = false;
+        }
     }
 
     /**
@@ -473,6 +507,7 @@ public class Autonomous extends GenericSubsystem{
             runAutonomous();
         }else{
             getAutoMode();
+            startAutoTime = Timer.getFPGATimestamp();
             currentAutoStep = 0;
         }
     }
