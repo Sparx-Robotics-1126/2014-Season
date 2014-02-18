@@ -113,8 +113,7 @@ public class Vision extends GenericSubsystem {
                 cameraLights.set(true);
                 getBestTarget();
                 freeImage();
-                needImage = false;
-                System.out.println("Distane: " + getTargetDistance() + " ANGLE: " + getDegrees() + " HOt GOAL: " + isHotGoal());
+//                needImage = false;
 //            }else{
 //                cameraLights.set(false);
                 sleep(20);
@@ -193,7 +192,7 @@ public class Vision extends GenericSubsystem {
         } catch (Exception e){
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
-        thresholdImage = image.thresholdRGB(0, 255, 200, 255, 0, 255);   // keep only green objects
+        thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
 
@@ -207,12 +206,10 @@ public class Vision extends GenericSubsystem {
         //iterate through each particle and score to see if it is a target
         scores = new Scores[filteredImage.getNumberParticles()];
         horizontalTargetCount = verticalTargetCount = 0;
-
         if (filteredImage.getNumberParticles() > 0) {
             for (int i = 0; i < MAX_PARTICLES && i < filteredImage.getNumberParticles(); i++) {
                 ParticleAnalysisReport report = filteredImage.getParticleAnalysisReport(i);
                 scores[i] = new Scores();
-
                 //Score each particle on rectangularity and aspect ratio
                 scores[i].rectangularity = scoreRectangularity(report);
                 scores[i].aspectRatioVertical = scoreAspectRatio(filteredImage, report, i, true);
@@ -481,7 +478,7 @@ public class Vision extends GenericSubsystem {
     }
     
     public double getDistanceToGoal(){
-        return Math.cos(getDegrees()) * getTargetDistance();
+        return Math.abs(Math.cos(getDegrees()) * getTargetDistance());
     }
      
     /**
@@ -492,7 +489,9 @@ public class Vision extends GenericSubsystem {
     }
     
     public void logInfo(){
-        log.logMessage("Dist: " + (-0.0181818 * (boundingRectHeight) + 25.090909) + " Report: " + boundingRectHeight);
+        log.logMessage("Dist to goal: " + getDistanceToGoal());
+        log.logMessage("Dist to Target: " + getTargetDistance());
+        log.logMessage("Hot Target: " + isHotGoal());
         log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
     }
 }
