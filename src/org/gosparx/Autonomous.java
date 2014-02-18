@@ -442,11 +442,6 @@ public class Autonomous extends GenericSubsystem{
                     log.logMessage("No case statement: " + currentAutonomous[currentAutoStep]);
                     break;
             }
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException ex) {
-                log.logError("AUTO: SLEEP FAILED");
-            }
         }
         if(increaseI){//FOR LOOP without a true FOR LOOP
             currentAutoStep++;
