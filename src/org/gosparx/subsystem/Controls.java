@@ -178,6 +178,11 @@ public class Controls extends GenericSubsystem{
      */ 
     private boolean lastOPStart                                         = false;
     
+    /**
+     * The last value of the operator's select button(PS2) or back button (Logitech) 
+     */ 
+    private boolean lastOPSelect                                        = false;
+    
     //********************************************************************
     //********************AIRFLO Controller Mapping***********************
     //********************************************************************
@@ -330,6 +335,7 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){
+            lastOPSelect = opSelect;
             lastDPadX = (int) opDPadXAxis;
             lastDPadY = (int) opDPadYAxis;
             lastOPR1 = opR1;
@@ -419,7 +425,7 @@ public class Controls extends GenericSubsystem{
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
                 }else if(opDPadYAxis == -1 && opDPadYAxis != lastDPadY){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
-                }else if(opSelect){
+                }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
                 }
                 
