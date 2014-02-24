@@ -14,7 +14,8 @@ public class IO {
     
     // Digital Side Card Slots
     public static final int DEFAULT_SLOT                = 1;
-    
+    public static final int ALTERNATE_SLOT             = 2;
+    ;
     // Drives PWM Slots
     public static final int LEFT_FRONT_DRIVES_PWM       = 4;
     public static final int LEFT_REAR_DRIVES_PWM        = 5;
@@ -29,6 +30,7 @@ public class IO {
     
     // Drives Pnumatic Slots
     public static final int SHIFT_CHAN                  = 1;
+    public static final int BALL_SENSOR_POWER           = 1; //slot 2
     
     //Drives Gyro slot
     public static final int GYRO_ANALOG                 = 1;
@@ -82,5 +84,5 @@ public class IO {
     
     public static final int KEEP_IN_FRAME_CHAN          = 2;
     
-    public static final int CAMERA_LIGHT_RELAY          = 5;
+    public static final int CAMERA_LIGHT_RELAY          = 8;
 }

@@ -1,7 +1,7 @@
 package org.gosparx.subsystem;
 
-import edu.wpi.first.wpilibj.Relay;
 import com.sun.squawk.util.MathUtils;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.image.*;
@@ -19,7 +19,7 @@ public class Vision extends GenericSubsystem {
     private BinaryImage filteredImage;
     private ColorImage image;
     private static Vision vision;
-    private Relay cameraLights;
+    private Solenoid cameraLights;
 
     private TargetReport target;
     private int verticalTargets[];
@@ -78,8 +78,8 @@ public class Vision extends GenericSubsystem {
         verticalTargets = new int[MAX_PARTICLES];
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
-        cameraLights = new Relay(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
-        cameraLights.set(Relay.Value.kOn);
+        cameraLights = new Solenoid(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
+        cameraLights.set(true);
         camera = AxisCamera.getInstance();// get an instance of the camera 
         try {
             Thread.sleep(2000);
@@ -108,12 +108,14 @@ public class Vision extends GenericSubsystem {
      */
     public void execute() throws Exception {
         if(cameraResponding) {
-            if(needImage){
+//            if(needImage){
+                cameraLights.set(true);
                 getBestTarget();
                 freeImage();
-            }else{
-                sleep(20);
-            }
+//                needImage = false;
+//            }else{
+//                cameraLights.set(false);
+//            }
         }
     }
     
@@ -206,12 +208,10 @@ public class Vision extends GenericSubsystem {
         //iterate through each particle and score to see if it is a target
         scores = new Scores[filteredImage.getNumberParticles()];
         horizontalTargetCount = verticalTargetCount = 0;
-
         if (filteredImage.getNumberParticles() > 0) {
             for (int i = 0; i < MAX_PARTICLES && i < filteredImage.getNumberParticles(); i++) {
                 ParticleAnalysisReport report = filteredImage.getParticleAnalysisReport(i);
                 scores[i] = new Scores();
-
                 //Score each particle on rectangularity and aspect ratio
                 scores[i].rectangularity = scoreRectangularity(report);
                 scores[i].aspectRatioVertical = scoreAspectRatio(filteredImage, report, i, true);
@@ -289,12 +289,12 @@ public class Vision extends GenericSubsystem {
             //To get measurement information such as sizes or locations use the
             //horizontal or vertical index to get the particle report as shown below
             ParticleAnalysisReport distanceReport  = filteredImage.getParticleAnalysisReport(target.verticalIndex);
-            double distance = computeDistance(filteredImage, distanceReport, target.verticalIndex);
+            double distance = computeDistance(filteredImage, distanceReport, target.horizontalIndex);
             imageDistance = distance * 12;
             if (target.Hot) {
                 imageHotGoal = true;
             } else {
-                imageHotGoal = true;
+                imageHotGoal = false;
             }
         }
     }
@@ -330,14 +330,14 @@ public class Vision extends GenericSubsystem {
      */
     private double computeDistance(BinaryImage image, ParticleAnalysisReport report, int particleNumber) throws NIVisionException {
         double rectLong, height;
-        int targetHeight;
+        double targetHeight;
 
         rectLong = NIVision.MeasureParticle(image.image, particleNumber, false, MeasurementType.IMAQ_MT_EQUIVALENT_RECT_LONG_SIDE);
         //using the smaller of the estimated rectangle long side and the bounding rectangle height results in better performance
         //on skewed rectangles
         height = Math.min(report.boundingRectHeight, rectLong);
         boundingRectHeight = report.boundingRectHeight;
-        targetHeight = 17;//32
+        targetHeight = 11.5;
         return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
     }
    
@@ -453,7 +453,7 @@ public class Vision extends GenericSubsystem {
      *
      * @return distance - how far away the target is from the camera in feet
      */
-    public double getDistance() {
+    private double getTargetDistance() {
         return imageDistance;
     }
 
@@ -478,6 +478,10 @@ public class Vision extends GenericSubsystem {
         degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(imageDistance)));
         return degrees;
     }
+    
+    public double getDistanceToGoal(){
+        return Math.abs(Math.cos(getDegrees()) * getTargetDistance());
+    }
      
     /**
      * Allows for the getDegrees and getDistance methods to return there updated value
@@ -494,8 +498,9 @@ public class Vision extends GenericSubsystem {
     }
     
     public void logInfo(){
-        log.logMessage("Dist: " + (-0.0181818 * (boundingRectHeight) + 25.090909) + " Report: " + boundingRectHeight);
+        log.logMessage("Dist to goal: " + getDistanceToGoal());
+        log.logMessage("Dist to Target: " + getTargetDistance());
+        log.logMessage("Hot Target: " + isHotGoal());
         log.logMessage("Average Runtime: " + getAverageRuntime() + "seconds");
     }
-    
 }
