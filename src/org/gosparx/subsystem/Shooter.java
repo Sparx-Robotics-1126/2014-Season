@@ -27,13 +27,13 @@ public class Shooter extends GenericSubsystem{
     /**
      * The inches the pot travels per volt change.
      */
-    private static final double INCHES_PER_VOLT = -6.3009708737864077669902912621359;//one inch wheel
+    private static final double INCHES_PER_VOLT = -7.8539816339744830961566084581988;//1 and 1/4 inch wheel
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 12.5;
+    private static final double INCHES_TO_WIND = 17;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -43,7 +43,7 @@ public class Shooter extends GenericSubsystem{
      /**
      * The motor speed to pull back the winch at.
      */
-    private static final double WINCH_SPEED = 1.00;
+    private static final double WINCH_SPEED = -1.00;
     
     /**
      * The boolean constant if the latch is engaged.
@@ -65,7 +65,7 @@ public class Shooter extends GenericSubsystem{
      * The amount of time that the pnu latch needs to completely latch the 
      * shooter
      */
-    private static final double LATCH_TIME = 0.25;
+    private static final double LATCH_TIME = 0.75;
     /**
      * The Potentiometer for the winch. 
      */
@@ -215,9 +215,13 @@ public class Shooter extends GenericSubsystem{
             // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
             // Then starts retracting the winch.
             case State.SHOOTER_COOLDOWN:
-                if(Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS){
-                    shooterState = State.SET_HOME;
-                } 
+                if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
+                    if (limitSwitchValue) {
+                        shooterState = State.STANDBY;
+                    } else {
+                        shooterState = State.SET_HOME;
+                    }
+                }
                 break;
             case State.SET_HOME:
                 latch.set(LATCH_DISENGAGED);
@@ -279,7 +283,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY && Acquisitions.getInstance().readyToShoot()){
+       if(shooterState == State.STANDBY){ //&& Acquisitions.getInstance().readyToShoot()){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -314,13 +318,7 @@ public class Shooter extends GenericSubsystem{
     }
     
     public boolean isLastCommandDone(){
-        if(limitSwitchValue){
             return shooterState == State.STANDBY;
-        }else if(shooterState != State.SHOOTER_COOLDOWN){
-            shooterState = State.SET_HOME;
-            return false;
-        }
-        return false;
     }
     
     /**
