@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.Relay;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
 import org.gosparx.IO;
@@ -63,7 +62,7 @@ public class Vision extends GenericSubsystem {
     private double startImageTime;
     private boolean cameraResponding = false;
     private int timeOutNumber = 0;
-    
+    private boolean keepImage = true;//TEST image for auto
     private int boundingRectHeight;
 
     private Vision() {
@@ -189,7 +188,11 @@ public class Vision extends GenericSubsystem {
         } catch (Exception e){
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
-        thresholdImage = image.thresholdRGB(0, 30, 200, 255, 0, 255);   // keep only green objects
+        if(keepImage && ds.isEnabled()){
+            image.write("file:///ShotFrom" + ds.getAlliance() + ".png"); //java.explode;
+            keepImage = false;
+        }
+        thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
 
@@ -481,6 +484,13 @@ public class Vision extends GenericSubsystem {
      */
     public double getLastImageTime(){
         return (Timer.getFPGATimestamp() - startImageTime);
+    }
+    
+    /**
+     * Sets weather to store an image or release it
+     */
+    public void saveImage(){
+        keepImage = true;
     }
     
     public void logInfo(){

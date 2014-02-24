@@ -163,17 +163,17 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 30;
+    private final static int CLOSE_SHOOTER_PRESET = 32;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 40;
+   private final static int MID_SHOOTER_PRESET = 54;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 55;
+   private final static int FAR_SHOOTER_PRESET = 54;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -460,6 +460,7 @@ public class Acquisitions extends GenericSubsystem{
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle)/15;   
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
+                rotationSpeed = 0.2;
                 break;
             case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
                 rotationSpeed = 0;
@@ -505,6 +506,7 @@ public class Acquisitions extends GenericSubsystem{
        log.logMessage("State: " + AcqState.getStateName(acquisitionState));
        log.logMessage("Wanted State: " + AcqState.getStateName(wantedState));
        log.logMessage("Wanted Angle: " + wantedShooterAngle);
+       log.logMessage("Auto Angle: " + getAutoAngle());
        log.logMessage("Rotate Encoder: " + rotateEncoderData.getDistance());
        log.logMessage("Rotate Motor: " + rotationSpeed);
     }

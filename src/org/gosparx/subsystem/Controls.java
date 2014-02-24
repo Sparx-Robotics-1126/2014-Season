@@ -99,16 +99,6 @@ public class Controls extends GenericSubsystem{
     private boolean lastDriverLeftTrigger;
     
     /**
-     * The last value of the operator's Dpad X axis
-     */
-    private int lastDPadX                                           = 0;
-        
-    /**
-     * The last value of the operator's Dpad Y axis
-     */ 
-    private int lastDPadY                                           = 0;
-    
-    /**
      * The last value of the RTWO button. 
      */ 
     private boolean lastShoot                                           = false;
@@ -330,8 +320,6 @@ public class Controls extends GenericSubsystem{
      */
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){
-            lastDPadX = (int) opDPadXAxis;
-            lastDPadY = (int) opDPadYAxis;
             lastOPR1 = opR1;
             lastOPR3 = opR3;
             lastOPCircle = opCircle;
@@ -413,11 +401,11 @@ public class Controls extends GenericSubsystem{
                     acq.setMode(Acquisitions.AcqState.SAFE_STATE);
                 }
                 
-                if(opDPadYAxis == 1 && opDPadYAxis != lastDPadY){
+                if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                }else if(opDPadXAxis == 1 && opDPadXAxis != lastDPadX){
+                }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                }else if(opDPadYAxis == -1 && opDPadYAxis != lastDPadY){
+                }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }
                 
@@ -461,10 +449,16 @@ public class Controls extends GenericSubsystem{
 
     public void liveWindow() {
         SmartDashboard.putNumber("Timer", 0);
+        SmartDashboard.putBoolean("10 Seconds Left", false);
     }
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
+        if(Timer.getFPGATimestamp() - startingMatchTime > 130){
+            SmartDashboard.putBoolean("10 Seconds Left", true);
+        }else{
+            SmartDashboard.putBoolean("10 Seconds Left", false);
+        }
     }
 
     public int sleepTime(){

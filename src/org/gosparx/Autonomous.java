@@ -157,6 +157,7 @@ public class Autonomous extends GenericSubsystem{
     private static final int DRIVES_TRACK_TARGET            = 40;
 
     /* Misc */
+    private static final int TEST_SECONDS_LEFT              = 95;//Critical Time, Next action(starts at 0)
     private static final int NEXT                           = 96;//next i, how many lines up to repeat
     private static final int LOOP                           = 97;//number of loops, 
     private static final int WAIT                           = 98;
@@ -178,7 +179,7 @@ public class Autonomous extends GenericSubsystem{
      */
     private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
-        {DRIVES_GO_FORWARD, 20*12},  
+        {DRIVES_GO_FORWARD, 60, 45},  
         {DRIVES_DONE},
         {END}
     };
@@ -228,13 +229,15 @@ public class Autonomous extends GenericSubsystem{
         {ACQ_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-        {WAIT, 1000},
+        {WAIT, 200},
+        {WAIT, 200},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
-        {DRIVES_GO_FORWARD, 30},
+        {DRIVES_GO_FORWARD, 30, 35},
         {DRIVES_DONE},
-        {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
+        {DRIVES_GO_FORWARD, 30, 35},
         {SHOOTER_READY_TO_SHOOT},
+        {DRIVES_DONE},
         {END}
     };
     
@@ -244,7 +247,9 @@ public class Autonomous extends GenericSubsystem{
         {SHOOTER_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 5000},
         {SHOOTER_SHOOT},
+        {WAIT, 1000},
         {END}
     };
     
@@ -349,10 +354,9 @@ public class Autonomous extends GenericSubsystem{
      */
     private void runAutonomous(){
         int start = 0, finished = currentAutonomous.length;
-            while(ds.isAutonomous() &&  ds.isEnabled()){
                 for (int i = start; i < finished; i++){
                     if (ds.isEnabled() && runAutonomous){
-                    switch (currentAutonomous[i][0]){
+            increaseI = true;
                         case DRIVES_GO_FORWARD:
                             log.logMessage("Auto Drives Foward");
                             drives.driveStraight(currentAutonomous[i][1]);
@@ -422,6 +426,7 @@ public class Autonomous extends GenericSubsystem{
                         case VISION_HOT_TARGET:
                             visionHotGoal = vision.isHotGoal();
                             break;
+                    break;
                         case NEXT:
                             if(loopTime > 1){
                                 i = (i - currentAutonomous[i][1]) - 1;//the extra one is to cancel the +1 for the loop
@@ -453,9 +458,17 @@ public class Autonomous extends GenericSubsystem{
                     } catch (InterruptedException ex) {
                         log.logError("AUTO: SLEEP FAILED");
                     }
-                    }
-                }       
+            if (increaseI) {//FOR LOOP without a true FOR LOOP
+                currentAutoStep++;
             }
+            //Makes sure we have enough time left to move
+            if (checkTime && Timer.getFPGATimestamp() - startAutoTime >= critalTime) {
+                log.logMessage("Critical Time has been activated");
+                currentAutoStep = criticalTimeAction;
+                checkTime = false;
+            }
+        }
+        
     }
 
     /**
@@ -588,6 +601,8 @@ public class Autonomous extends GenericSubsystem{
      * No regular info to log about autonomous.
      */ 
     public void logInfo() {
-        
+        if(ds.isAutonomous()){
+            log.logMessage("Current Auto: " + selectedAutoName);
+        }
     }
 }
