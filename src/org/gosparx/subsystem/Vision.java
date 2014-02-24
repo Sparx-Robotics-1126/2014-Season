@@ -1,5 +1,6 @@
 package org.gosparx.subsystem;
 
+import com.sun.squawk.microedition.io.FileConnection;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
@@ -7,6 +8,8 @@ import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
+import java.io.IOException;
+import javax.microedition.io.Connector;
 import org.gosparx.IO;
 
 public class Vision extends GenericSubsystem {
@@ -65,6 +68,9 @@ public class Vision extends GenericSubsystem {
     private int timeOutNumber = 0;
     
     private int boundingRectHeight;
+    private FileConnection photoConfig;
+    private final String photoPath = "file://ShootingPictures/";
+    private int pictureCount = 1;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -74,6 +80,14 @@ public class Vision extends GenericSubsystem {
      * starts camera and some of the image criteria
      */
     public void init() {
+        //Clears last folder for storing images
+        try { 
+            photoConfig = (FileConnection)Connector.open(photoPath, Connector.READ_WRITE);
+            photoConfig.delete();
+            photoConfig.create();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         target = new TargetReport();
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
@@ -191,6 +205,8 @@ public class Vision extends GenericSubsystem {
         } catch (Exception e){
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
+            image.write(photoPath + pictureCount + ".png"); //java.explode;
+            pictureCount++;
         thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
