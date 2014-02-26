@@ -1,6 +1,7 @@
 package org.gosparx.subsystem;
 
 import com.sun.squawk.microedition.io.FileConnection;
+import com.sun.squawk.pragma.ForceInlinedPragma;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
@@ -64,13 +65,12 @@ public class Vision extends GenericSubsystem {
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
     private double startImageTime;
-    private boolean cameraResponding = false;
+    private boolean cameraResponding = true;//false
     private int timeOutNumber = 0;
     
     private int boundingRectHeight;
-    private FileConnection photoConfig;
-    private final String photoPath = "file://ShootingPictures/";
-    private int pictureCount = 1;
+    private final String photoPath = "file:///ShooterPictures";
+    private int pictureCount = 1126;//0
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -80,14 +80,7 @@ public class Vision extends GenericSubsystem {
      * starts camera and some of the image criteria
      */
     public void init() {
-        //Clears last folder for storing images
-        try { 
-            photoConfig = (FileConnection)Connector.open(photoPath, Connector.READ_WRITE);
-            photoConfig.delete();
-            photoConfig.create();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        
         target = new TargetReport();
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
@@ -95,7 +88,7 @@ public class Vision extends GenericSubsystem {
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
         cameraLights = new Solenoid(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
         cameraLights.set(true);
-        camera = AxisCamera.getInstance();// get an instance of the camera 
+//        camera = AxisCamera.getInstance();// get an instance of the camera 
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
@@ -127,7 +120,7 @@ public class Vision extends GenericSubsystem {
                 cameraLights.set(true);
                 getBestTarget();
                 freeImage();
-//                needImage = false;
+                needImage = false;
 //            }else{
 //                cameraLights.set(false);
 //            }
