@@ -92,7 +92,7 @@ public class Vision extends GenericSubsystem {
         cc.addCriteria(MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
         cameraLights = new Solenoid(IO.DEFAULT_SLOT, IO.CAMERA_LIGHT_RELAY);
         cameraLights.set(true);
-//        camera = AxisCamera.getInstance();// get an instance of the camera 
+        camera = AxisCamera.getInstance();// get an instance of the camera 
         try {
             Thread.sleep(2000);
         } catch (InterruptedException ex) {
