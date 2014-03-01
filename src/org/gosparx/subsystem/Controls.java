@@ -111,7 +111,17 @@ public class Controls extends GenericSubsystem{
     /**
      * The time at which the robot was enabled
      */
-    private double startingMatchTime;
+    private double startingMatchTime = 0;
+    
+    /**
+     * The time from last flashes
+     */
+    private double lastFlashTime;
+    
+    /**
+     * The time between flashes
+     */
+    private static final double FLASH_TIME = 0.5;
     
     /**
      * An instance of acquisitions.
@@ -462,8 +472,11 @@ public class Controls extends GenericSubsystem{
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
-        if(Timer.getFPGATimestamp() - startingMatchTime > 130){
-            SmartDashboard.putBoolean("10 Seconds Left", true);
+        if(Timer.getFPGATimestamp() - startingMatchTime > 130 && Timer.getFPGATimestamp() - startingMatchTime < 140){//130, 140
+            if(Timer.getFPGATimestamp() - lastFlashTime >= FLASH_TIME){
+                SmartDashboard.putBoolean("10 Seconds Left", !SmartDashboard.getBoolean("10 Seconds Left"));
+                lastFlashTime = Timer.getFPGATimestamp();
+            }
         }else{
             SmartDashboard.putBoolean("10 Seconds Left", false);
         }
