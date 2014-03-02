@@ -35,7 +35,7 @@ public class Shooter extends GenericSubsystem{
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 17;
+    private static final double INCHES_TO_WIND = 14;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -78,13 +78,8 @@ public class Shooter extends GenericSubsystem{
      */
     private CANJaguar winchMotor;
     private Jaguar winchMotorPWM;
-    
-<<<<<<< mechUpdates
-    private Talon winchMotor2;
-    
-=======
+
     private Victor winchMotor2;
->>>>>>> local
     /**
      * The limit switch for the winch latch.
      */ 
@@ -187,12 +182,8 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
-<<<<<<< mechUpdates
-        winchMotor2 = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
-        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
-=======
         winchMotor2 = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
->>>>>>> local
+        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
     }
 
     /**

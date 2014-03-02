@@ -555,8 +555,10 @@ public class Drives extends GenericSubsystem {
      * stopHoldPos() is called
      */
     public void startHoldPos(){
-        resetSensors();
-        autoFunctionState = State.FUNCT_HOLD_POS;
+        if(drivesState != State.FUNCT_HOLD_POS){
+            resetSensors();
+            autoFunctionState = State.FUNCT_HOLD_POS;
+        }
     }
     /**
      * Stops the holding of the position saved when startHoldPos() was called
