@@ -42,6 +42,7 @@ public class LogWriter extends GenericSubsystem{
     public final String photoConfigPath = "//photoConfig.txt";
     public final String photoPath = "file:///ShooterPictures";
    
+    public final String photoPath = "file:///ShooterPictures//";
     /**
      * Returns the singleton LogWriter
      * @return the singleton LogWriter
@@ -111,8 +112,15 @@ public class LogWriter extends GenericSubsystem{
                 dosConfig.close();
                 }
             }
+            
             //VISION
             photoConConfig = (FileConnection)Connector.open(photoPath + photoConfigPath);
+            if(!photoConConfig.exists()){
+                photoConConfig.create();
+                dosPhotoConfig = photoConConfig.openDataOutputStream();
+                dosPhotoConfig.write((""+0).getBytes());
+                dosPhotoConfig.close();
+            }
             disPhotoConfig = photoConConfig.openDataInputStream();
             char lastUsedChar = (char) disPhotoConfig.read();
             String currentNumber = "" + lastUsedChar;
@@ -120,6 +128,8 @@ public class LogWriter extends GenericSubsystem{
             disPhotoConfig.close();
             photoConConfig.close();
             //
+            
+            
             
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
