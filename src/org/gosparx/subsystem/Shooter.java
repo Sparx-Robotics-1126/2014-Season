@@ -28,7 +28,7 @@ public class Shooter extends GenericSubsystem{
     /**
      * The inches the pot travels per volt change.
      */
-    private static final double INCHES_PER_VOLT = -7.8539816339744830961566084581988;//1 and 1/4 inch wheelsdgs
+    private static final double INCHES_PER_VOLT = -12.566370614359172953850573533118;//1 and 1/4 inch wheel
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
@@ -94,7 +94,7 @@ public class Shooter extends GenericSubsystem{
      * The Solenoid of latch.
      */ 
     private Solenoid latch;
-    
+
     /**
      * The speed that the winch is set at the end of the execute() loop.
      */

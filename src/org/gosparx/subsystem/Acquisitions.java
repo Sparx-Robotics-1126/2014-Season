@@ -106,6 +106,11 @@ public class Acquisitions extends GenericSubsystem{
      * Gives power to the ball detector system
      */
     private Solenoid ballDetectorPower;
+    
+    /**
+     * Locks the cage into a certain position by locking the rotating gear
+     */
+    private Solenoid tiltBrake;
             
     /**
      * Is attached to the motor that drives the rotating motion.
@@ -236,6 +241,11 @@ public class Acquisitions extends GenericSubsystem{
      */ 
     private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
     
+    /**
+     * The extended position for the brake
+     */
+    private static final boolean BRAKE_EXTENDED = true;
+    
     /*/************************VARIABLES***************************** /*/
     
     /**
@@ -304,6 +314,13 @@ public class Acquisitions extends GenericSubsystem{
     private boolean lowerLimitSwitch = true;
     
     /**
+     * The wanted position for the brake;
+     * Extended = braking
+     * Retracted = free spin
+     */
+    private boolean brakePosition;
+    
+    /**
      * 
      * @returns the only running thread of Acquisitions.
      * This should be used instead of (new Acquisitions2)
@@ -341,6 +358,7 @@ public class Acquisitions extends GenericSubsystem{
             acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         }
         vision = Vision.getInstance();
+        tiltBrake = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_BRAKE);
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.DEFAULT_SLOT, IO.ACQ_BALL_DETECTOR);
         upperLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_SAFE_MODE_CHAN);
@@ -361,6 +379,7 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
+        brakePosition = BRAKE_EXTENDED;
         ballDetectorPower.set(true);
         if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
             if (!IO.USE_PWM_CABLES) {
@@ -377,6 +396,7 @@ public class Acquisitions extends GenericSubsystem{
         lowerLimitSwitch = !lowerLimit.get();
         switch (acquisitionState) {
             case AcqState.ROTATE_UP://rotate shooter up
+                brakePosition = !BRAKE_EXTENDED;
                 if (wantedShooterAngle == UP_POSITION && upperLimitSwitch) {//straight up and down
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
@@ -414,6 +434,7 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
+                brakePosition = !BRAKE_EXTENDED;
                 if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
@@ -480,6 +501,7 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
         }
+        tiltBrake.set(brakePosition);
         setPivotMotor(rotationSpeed);
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
