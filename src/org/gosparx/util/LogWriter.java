@@ -40,8 +40,6 @@ public class LogWriter extends GenericSubsystem{
     private DataInputStream disPhotoConfig;
     private int visionConfigNumber;
     public final String photoConfigPath = "//photoConfig.txt";
-    public final String photoPath = "file:///ShooterPictures";
-   
     public final String photoPath = "file:///ShooterPictures//";
     /**
      * Returns the singleton LogWriter
