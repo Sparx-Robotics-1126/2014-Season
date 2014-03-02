@@ -182,6 +182,10 @@ public class Acquisitions extends GenericSubsystem{
      */
     private final static int CLOSE_SHOOTER_PRESET = 34;
 
+    /**
+     * Truss Shooter preset. Used to shot the ball over the truss 
+     */
+    private final static int TRUSS_SHOOTER_PRESET = 34;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
@@ -579,10 +583,14 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
+        boolean shortShot = false;
         if(ds.isAutonomous()){
             wantedState = AcqState.READY_TO_SHOOT;
         }
         switch(preset){
+            case AcqState.TRUSS_SHOOTER_PRESET:
+                setAngle(TRUSS_SHOOTER_PRESET);
+                shortShot = true;
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
                 break;
@@ -598,6 +606,7 @@ public class Acquisitions extends GenericSubsystem{
             default:
                 wantedShooterAngle = UP_POSITION;
         }
+        Shooter.getInstance().shortShot(shortShot);
     }
     
     /**
@@ -744,11 +753,13 @@ public class Acquisitions extends GenericSubsystem{
         public static final int READY_TO_SHOOT = 9;
         public static final int SAFE_STATE = 10;
         public static final int OFF_STATE = 11;
+        
         //USED FOR PRESETS:
-        public static final int CLOSE_SHOOTER_PRESET = 20;
-        public static final int MIDDLE_SHOOTER_PRESET = 21;
-        public static final int FAR_SHOOTER_PRESET = 22;
-        public static final int AUTO_PRESET = 23;
+        public static final int TRUSS_SHOOTER_PRESET = 20;
+        public static final int CLOSE_SHOOTER_PRESET = 21;
+        public static final int MIDDLE_SHOOTER_PRESET = 22;
+        public static final int FAR_SHOOTER_PRESET = 23;
+        public static final int AUTO_PRESET = 24;
         
         /**
          * @param state - the state to get the string version of

@@ -182,8 +182,8 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
-        winchMotor2 = new Talon(IO.PWM_WINCH_2);
-        tensionSolenoid = new Solenoid(IO.PNU_TENSION);
+        winchMotor2 = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
     }
 
     /**
@@ -299,10 +299,17 @@ public class Shooter extends GenericSubsystem{
        log.logMessage("Attempted to shoot, but could not");
        return false;
     }
-
-    public void trussShot(boolean truss){
+    
+    /**
+     * Sets solenoid for short shot
+     * True = short shot
+     * false = normal shot
+     * @param truss 
+     */
+    public void shortShot(boolean truss){
          tensionSolenoid.set(truss);
     }
+    
     /**
      * Initializes and adds all of the components to the livewindow.
      */ 

@@ -414,8 +414,7 @@ public class Controls extends GenericSubsystem{
                 }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }else if(opDPadXAxis == -1){
-                    acq.setMode(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
-                    shooter.trussShot(true);
+                    acq.setPreset(Acquisitions.AcqState.TRUSS_SHOOTER_PRESET);
                 }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
                 }
