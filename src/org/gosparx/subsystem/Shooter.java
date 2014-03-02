@@ -131,6 +131,7 @@ public class Shooter extends GenericSubsystem{
      */
     private boolean limitSwitchValue;
     
+    private Solenoid tensionSolenoid;
 
     
     /**
@@ -182,6 +183,7 @@ public class Shooter extends GenericSubsystem{
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
         winchMotor2 = new Talon(IO.PWM_WINCH_2);
+        tensionSolenoid = new Solenoid(IO.PNU_TENSION);
     }
 
     /**
@@ -229,6 +231,7 @@ public class Shooter extends GenericSubsystem{
                 break;
             case State.SET_HOME:
                 latch.set(LATCH_DISENGAGED);
+                tensionSolenoid.set(false);
                 wantedWinchSpeed = WINCH_SPEED;
                 if(limitSwitchValue){
                     log.logMessage("LATCH HAS BEEN TRIGGERED");
@@ -297,6 +300,9 @@ public class Shooter extends GenericSubsystem{
        return false;
     }
 
+    public void trussShot(boolean truss){
+         tensionSolenoid.set(truss);
+    }
     /**
      * Initializes and adds all of the components to the livewindow.
      */ 
