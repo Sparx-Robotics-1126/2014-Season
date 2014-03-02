@@ -433,7 +433,7 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()) {
-                    acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                    acqLongPnu.set(ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
                 }
                 
                 wantedAcqSpeed = 0;//turns motors off
