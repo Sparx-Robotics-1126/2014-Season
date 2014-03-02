@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -76,6 +77,8 @@ public class Shooter extends GenericSubsystem{
      */
     private CANJaguar winchMotor;
     private Jaguar winchMotorPWM;
+    
+    private Talon winchMotor2;
     
     /**
      * The limit switch for the winch latch.
@@ -178,6 +181,7 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
+        winchMotor2 = new Talon(IO.PWM_WINCH_2);
     }
 
     /**
@@ -267,6 +271,7 @@ public class Shooter extends GenericSubsystem{
         }else{
             winchMotorPWM.set(wantedWinchSpeed);
         }
+        winchMotor2.set(-wantedWinchSpeed);
     }
     
     /**
