@@ -456,6 +456,11 @@ public class Acquisitions extends GenericSubsystem{
                         && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED) {
                     acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                 }
+                
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()) {
+                    acqLongPnu.set(ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                }
+                
                 wantedAcqSpeed = 0;//turns motors off
                 break;
             case AcqState.ROTATE_READY_TO_EXTEND://angle at which it is safe to extend the rollers
