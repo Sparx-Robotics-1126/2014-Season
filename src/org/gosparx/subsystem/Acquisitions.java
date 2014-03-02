@@ -146,7 +146,7 @@ public class Acquisitions extends GenericSubsystem{
      * The speed at which the rollers pick up a ball.
      * May have to be modified based on design. (slower may be better)
      */
-    private final static double INTAKE_ROLLER_SPEED = -1.0;//TODO: CHECK
+    private final static double INTAKE_ROLLER_SPEED = 1.0;//TODO: CHECK
     
     /**
      * The distance each tick travels. (in degrees)
@@ -518,12 +518,12 @@ public class Acquisitions extends GenericSubsystem{
     private void setAcquiringMotor(double value){
         if(!IO.USE_PWM_CABLES){
             try {
-                acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
+                acqRoller.setX(value);//motor runs backwards. (silly motors)
             } catch (CANTimeoutException ex) {
                 ex.printStackTrace();
             }
         }else{
-            acqRollerPWM.set(value * -1);
+            acqRollerPWM.set(value);
         }
     }
     
@@ -715,12 +715,13 @@ public class Acquisitions extends GenericSubsystem{
         }
         LiveWindow.addActuator(subsystemName, "Small Cylinder", acqShortPnu);
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
+        LiveWindow.addActuator(subsystemName, "Brake", tiltBrake);
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
         LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
         LiveWindow.addSensor(subsystemName, "Pivot Encoder", rotateEncoder);
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, false);
-         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
+        SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
     }
 
     public int sleepTime() {

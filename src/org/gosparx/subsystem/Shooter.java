@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
@@ -78,8 +79,12 @@ public class Shooter extends GenericSubsystem{
     private CANJaguar winchMotor;
     private Jaguar winchMotorPWM;
     
+<<<<<<< mechUpdates
     private Talon winchMotor2;
     
+=======
+    private Victor winchMotor2;
+>>>>>>> local
     /**
      * The limit switch for the winch latch.
      */ 
@@ -182,8 +187,12 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
+<<<<<<< mechUpdates
         winchMotor2 = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
         tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
+=======
+        winchMotor2 = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+>>>>>>> local
     }
 
     /**
@@ -317,12 +326,13 @@ public class Shooter extends GenericSubsystem{
         if(!IO.USE_PWM_CABLES){
             LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
         }else{
-            LiveWindow.addActuator(subsystemName, "Winch", winchMotorPWM);
+            LiveWindow.addActuator(subsystemName, "Winch 1", winchMotorPWM);
         }
         LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
+        LiveWindow.addActuator(subsystemName, "Winch 2", winchMotor2);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
-        
+        LiveWindow.addActuator(subsystemName, "Short Shot", tensionSolenoid);
     }
 
     public int sleepTime() {
