@@ -165,7 +165,7 @@ public class LogWriter extends GenericSubsystem{
             dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
             dsLCD.updateLCD();
         }
-        updateVisionConfig("1".getBytes());//(""+visionConfigNumber).getBytes());
+        updateVisionConfig((""+visionConfigNumber).getBytes());//(""+visionConfigNumber).getBytes());
     }
     
     private void updateDiognosis(byte[] write){
