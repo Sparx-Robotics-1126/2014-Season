@@ -33,6 +33,7 @@ public class LogWriter extends GenericSubsystem{
     
     public static int LEVEL_DEBUG                                           = 0;
     public static int LEVEL_ERROR                                           = 1;
+<<<<<<< SaveImage
     
     /*/VISION/*/
     private FileConnection photoConConfig;
@@ -41,6 +42,10 @@ public class LogWriter extends GenericSubsystem{
     private int visionConfigNumber;
     public final String photoConfigPath = "//photoConfig.txt";
     public final String photoPath = "file:///ShooterPictures//";
+=======
+   
+    private int actualVisionConfigNumber;
+>>>>>>> local
     /**
      * Returns the singleton LogWriter
      * @return the singleton LogWriter
@@ -110,6 +115,7 @@ public class LogWriter extends GenericSubsystem{
                 dosConfig.close();
                 }
             }
+<<<<<<< SaveImage
             
             //VISION
             photoConConfig = (FileConnection)Connector.open(photoPath + photoConfigPath);
@@ -136,6 +142,10 @@ public class LogWriter extends GenericSubsystem{
             }
             //
 
+=======
+            actualVisionConfigNumber = visionConfigNumber;
+            for (int i = visionConfigNumber; i <= 25; i++){
+>>>>>>> local
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
                 fileCon.delete();
@@ -144,6 +154,8 @@ public class LogWriter extends GenericSubsystem{
             fileCon.close();
         } catch (IOException ex) {
         }
+        
+        
     }
     
     /**
@@ -180,6 +192,7 @@ public class LogWriter extends GenericSubsystem{
             dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
             dsLCD.updateLCD();
         }
+<<<<<<< SaveImage
         updateVisionConfig((""+visionConfigNumber).getBytes());//(""+visionConfigNumber).getBytes());
     }
     
@@ -237,6 +250,10 @@ public class LogWriter extends GenericSubsystem{
                 ex.printStackTrace();
             }
         }
+=======
+        actualVisionConfigNumber++;
+        visionConfigNumber = actualVisionConfigNumber % 51;
+>>>>>>> local
     }
 
     public void liveWindow() {
