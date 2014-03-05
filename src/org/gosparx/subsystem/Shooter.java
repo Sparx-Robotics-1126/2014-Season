@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
@@ -130,10 +129,7 @@ public class Shooter extends GenericSubsystem{
      * The value of the limit switch
      */
     private boolean limitSwitchValue;
-    
-    private Solenoid tensionSolenoid;
 
-    
     /**
      * The subsystem name that all of the components are listed under in the
      * livewindow.
@@ -183,7 +179,6 @@ public class Shooter extends GenericSubsystem{
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
         winchMotor2 = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
-        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
     }
 
     /**
@@ -231,7 +226,6 @@ public class Shooter extends GenericSubsystem{
                 break;
             case State.SET_HOME:
                 latch.set(LATCH_DISENGAGED);
-                tensionSolenoid.set(false);
                 wantedWinchSpeed = WINCH_SPEED;
                 if(limitSwitchValue){
                     log.logMessage("LATCH HAS BEEN TRIGGERED");
@@ -301,16 +295,6 @@ public class Shooter extends GenericSubsystem{
     }
     
     /**
-     * Sets solenoid for short shot
-     * True = short shot
-     * false = normal shot
-     * @param truss 
-     */
-    public void shortShot(boolean truss){
-         tensionSolenoid.set(truss);
-    }
-    
-    /**
      * Initializes and adds all of the components to the livewindow.
      */ 
     public void liveWindow() {
@@ -323,7 +307,6 @@ public class Shooter extends GenericSubsystem{
         LiveWindow.addActuator(subsystemName, "Winch 2", winchMotor2);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
-        LiveWindow.addActuator(subsystemName, "Short Shot", tensionSolenoid);
     }
 
     public int sleepTime() {

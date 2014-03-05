@@ -83,6 +83,11 @@ public class Acquisitions extends GenericSubsystem{
     private Solenoid acqShortPnu;
     
     /**
+     * The solenoid used to make short shots
+     */
+    private Solenoid tensionSolenoid;
+    
+    /**
      * Limit Switch. Mounted on the acquisition rollers
      * Detects when a ball is between the first and second roller
      */
@@ -141,6 +146,11 @@ public class Acquisitions extends GenericSubsystem{
      * Retracted = In the shooter perimeter (can't pick up balls)
      */
     private final static boolean ACQ_LONG_PNU_EXTENDED = true;//TODO: CHECK
+    
+    /**
+     * The position in which the tension solenoid has to be in to make a short shot 
+     */
+    private final static boolean SHORT_SHOT_ACTIVATED = true;//TODO: Check
     
     /**
      * The speed at which the rollers pick up a ball.
@@ -325,6 +335,11 @@ public class Acquisitions extends GenericSubsystem{
     private boolean brakePosition;
     
     /**
+     * The position in which the tension solenoid is set to.
+     */
+    private boolean shortShot;
+    
+    /**
      * 
      * @returns the only running thread of Acquisitions.
      * This should be used instead of (new Acquisitions2)
@@ -376,6 +391,7 @@ public class Acquisitions extends GenericSubsystem{
         acquisitionState = AcqState.ROTATE_UP;//default state
         wantedState = AcqState.SAFE_STATE;
         ballDetectorPower =  new Solenoid(IO.ALTERNATE_SLOT, IO.BALL_SENSOR_POWER);//MAKES BALL SESNOR TURN ON
+        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
     }
 
     /**
@@ -510,6 +526,9 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
         }
+        if(acquisitionState != AcqState.READY_TO_SHOOT){
+            tensionSolenoid.set(!SHORT_SHOT_ACTIVATED);
+        }
         tiltBrake.set(brakePosition);
         setPivotMotor(rotationSpeed);
         setAcquiringMotor(wantedAcqSpeed);
@@ -588,14 +607,14 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
-        boolean shortShot = false;
+        shortShot = !SHORT_SHOT_ACTIVATED;
         if(ds.isAutonomous()){
             wantedState = AcqState.READY_TO_SHOOT;
         }
         switch(preset){
             case AcqState.TRUSS_SHOOTER_PRESET:
                 setAngle(TRUSS_SHOOTER_PRESET);
-                shortShot = true;
+                shortShot = SHORT_SHOT_ACTIVATED;
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
                 break;
@@ -611,7 +630,7 @@ public class Acquisitions extends GenericSubsystem{
             default:
                 wantedShooterAngle = UP_POSITION;
         }
-        Shooter.getInstance().shortShot(shortShot);
+        tensionSolenoid.set(shortShot);
     }
     
     /**
