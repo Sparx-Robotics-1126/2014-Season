@@ -99,16 +99,6 @@ public class Controls extends GenericSubsystem{
     private boolean lastDriverLeftTrigger;
     
     /**
-     * The last value of the operator's Dpad X axis
-     */
-    private int lastDPadX                                           = 0;
-        
-    /**
-     * The last value of the operator's Dpad Y axis
-     */ 
-    private int lastDPadY                                           = 0;
-    
-    /**
      * The last value of the RTWO button. 
      */ 
     private boolean lastShoot                                           = false;
@@ -121,7 +111,17 @@ public class Controls extends GenericSubsystem{
     /**
      * The time at which the robot was enabled
      */
-    private double startingMatchTime;
+    private double startingMatchTime = 0;
+    
+    /**
+     * The time from last flashes
+     */
+    private double lastFlashTime;
+    
+    /**
+     * The time between flashes
+     */
+    private static final double FLASH_TIME = 0.5;
     
     /**
      * An instance of acquisitions.
@@ -336,8 +336,6 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){
             lastOPSelect = opSelect;
-            lastDPadX = (int) opDPadXAxis;
-            lastDPadY = (int) opDPadYAxis;
             lastOPR1 = opR1;
             lastOPR3 = opR3;
             lastOPCircle = opCircle;
@@ -419,11 +417,11 @@ public class Controls extends GenericSubsystem{
                     acq.setMode(Acquisitions.AcqState.SAFE_STATE);
                 }
                 
-                if(opDPadYAxis == 1 && opDPadYAxis != lastDPadY){
+                if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                }else if(opDPadXAxis == 1 && opDPadXAxis != lastDPadX){
+                }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                }else if(opDPadYAxis == -1 && opDPadYAxis != lastDPadY){
+                }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
                 }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
@@ -469,10 +467,19 @@ public class Controls extends GenericSubsystem{
 
     public void liveWindow() {
         SmartDashboard.putNumber("Timer", 0);
+        SmartDashboard.putBoolean("10 Seconds Left", false);
     }
     
     private void smartDashboardTimer(){
         SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
+        if(Timer.getFPGATimestamp() - startingMatchTime > 130 && Timer.getFPGATimestamp() - startingMatchTime < 140){//130, 140
+            if(Timer.getFPGATimestamp() - lastFlashTime >= FLASH_TIME){
+                SmartDashboard.putBoolean("10 Seconds Left", !SmartDashboard.getBoolean("10 Seconds Left"));
+                lastFlashTime = Timer.getFPGATimestamp();
+            }
+        }else{
+            SmartDashboard.putBoolean("10 Seconds Left", false);
+        }
     }
 
     public int sleepTime(){
