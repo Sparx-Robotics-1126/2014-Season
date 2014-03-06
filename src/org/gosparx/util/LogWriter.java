@@ -34,7 +34,7 @@ public class LogWriter extends GenericSubsystem{
     public static int LEVEL_DEBUG                                           = 0;
     public static int LEVEL_ERROR                                           = 1;
     
-    /*/VISION/*/
+    //VISION
     private FileConnection photoConConfig;
     private DataOutputStream dosPhotoConfig;
     private DataInputStream disPhotoConfig;
