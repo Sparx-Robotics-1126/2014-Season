@@ -75,6 +75,7 @@ public class Vision extends GenericSubsystem {
     private int boundingRectHeight;
     private final static int MAX_STORED_PICTURES = 50;
     private int pictureCount = 0;
+    private boolean keepImage = true;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);

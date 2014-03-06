@@ -499,7 +499,6 @@ public class Autonomous extends GenericSubsystem {
                 checkTime = false;
             }
         }
-    }
 
     /**
      * Gets an instance of all the subsystems
