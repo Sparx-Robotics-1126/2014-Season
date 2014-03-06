@@ -73,11 +73,15 @@ public class Shooter extends GenericSubsystem{
     private AnalogPotentiometer winchPot;
     
     /**
-     * The motor controller for the winch.
+     * The motor controller for the right side of the winch.
      */
-    private Jaguar winchMotorPWM;
+    private Jaguar rightWinchMotor;
 
-    private Victor winchMotor2;
+    /**
+     * The motor controller for the left side of the winch
+     */
+    private Victor leftWinchMotor;
+    
     /**
      * The limit switch for the winch latch.
      */ 
@@ -156,7 +160,7 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        winchMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
+        rightWinchMotor = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
@@ -168,7 +172,7 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
-        winchMotor2 = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+        leftWinchMotor = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
     }
 
     /**
@@ -176,7 +180,7 @@ public class Shooter extends GenericSubsystem{
      */ 
     public void execute() throws Exception {
         if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
-            winchMotorPWM.set(0);
+            rightWinchMotor.set(0);
         }
         wantedWinchSpeed = 0;
         limitSwitchValue = !latchSwitch.get();
@@ -249,8 +253,8 @@ public class Shooter extends GenericSubsystem{
                 log.logError("Unknown Shooter state: " + shooterState);
                 break;
         }
-        winchMotorPWM.set(wantedWinchSpeed);
-        winchMotor2.set(-wantedWinchSpeed);
+        rightWinchMotor.set(wantedWinchSpeed);
+        leftWinchMotor.set(-wantedWinchSpeed);
     }
     
     /**
@@ -280,9 +284,9 @@ public class Shooter extends GenericSubsystem{
      * Initializes and adds all of the components to the livewindow.
      */ 
     public void liveWindow() {
-        LiveWindow.addActuator(subsystemName, "Winch 1", winchMotorPWM);
+        LiveWindow.addActuator(subsystemName, "Winch 1", rightWinchMotor);
         LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
-        LiveWindow.addActuator(subsystemName, "Winch 2", winchMotor2);
+        LiveWindow.addActuator(subsystemName, "Winch 2", leftWinchMotor);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
     }
