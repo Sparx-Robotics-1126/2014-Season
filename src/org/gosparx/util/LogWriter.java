@@ -126,15 +126,15 @@ public class LogWriter extends GenericSubsystem{
             disPhotoConfig.close();
             photoConConfig.close();
             
-            //TESTING PURPOSES
-            for (int i = visionConfigNumber; i < 100; i++){
-                photoConConfig = (FileConnection)Connector.open(photoPath + "Shot" + visionConfigNumber + ".png");
-                photoConConfig.create();
-                photoConConfig.close();
-                increaseVisionFile();
-                updateVisionConfig((""+visionConfigNumber).getBytes());
-            }
-            //
+//            //TESTING PURPOSES
+//            for (int i = visionConfigNumber; i < 100; i++){
+//                photoConConfig = (FileConnection)Connector.open(photoPath + "Shot" + visionConfigNumber + ".png");
+//                photoConConfig.create();
+//                photoConConfig.close();
+//                increaseVisionFile();
+//                updateVisionConfig((""+visionConfigNumber).getBytes());
+//            }
+//            //
 
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
@@ -219,7 +219,7 @@ public class LogWriter extends GenericSubsystem{
     
     private void increaseVisionFile(){
         visionConfigNumber++;
-        if(visionConfigNumber > 50){
+        if(visionConfigNumber >= 50){
             visionConfigNumber = 50;
         }
     }
