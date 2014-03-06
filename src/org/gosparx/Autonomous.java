@@ -142,15 +142,13 @@ public class Autonomous extends GenericSubsystem {
      * The time at which we must stop our current action and move on
      */
     private int critalTime = 0;
+    
     /**
      * ***********************************************************************
-     */
-    /**
      * ***********************Manual Switch Voltages *************************
-     */
-    /**
      * ***********************************************************************
      */
+    
     private static final double AUTO_SETTING_0 = 5.00;
     private static final double AUTO_SETTING_1 = 4.45;
     private static final double AUTO_SETTING_2 = 3.89;
@@ -161,13 +159,10 @@ public class Autonomous extends GenericSubsystem {
     private static final double AUTO_SETTING_7 = 1.10;
     private static final double AUTO_SETTING_8 = 0.54;
     private static final double AUTO_SETTING_9 = -0.1;
+    
     /**
      * ***********************************************************************
-     */
-    /**
      * ********************** Autonomous commands ****************************
-     */
-    /**
      * ***********************************************************************
      */
 
@@ -205,13 +200,10 @@ public class Autonomous extends GenericSubsystem {
     private static final int LOOP = 97;//number of loops, 
     private static final int WAIT = 98;
     private static final int END = 99;
+    
     /**
      * ***********************************************************************
-     */
-    /**
      * ************************** End of commands ****************************
-     */
-    /**
      * ***********************************************************************
      */
 
