@@ -63,12 +63,11 @@ public class Shooter extends GenericSubsystem{
     
     /**
      * The time from when we fire to the time we capture and save an image
-     */
-    /**
      * The amount of time that the pnu latch needs to completely latch the 
      * shooter
      */
     private static final double LATCH_TIME = 0.75;
+    
     /**
      * The Potentiometer for the winch. 
      */
