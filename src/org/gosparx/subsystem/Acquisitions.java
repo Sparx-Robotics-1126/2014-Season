@@ -61,14 +61,12 @@ public class Acquisitions extends GenericSubsystem{
      * Used to control the angle of the shooter
      * mini-CIM driven with a 55/12 reduction (motor/output)
      */
-    private CANJaguar rotatingMotor;
     private Jaguar rotatingMotorPWM;
     
     /**
      * Used to control the intake rollers
      * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
-    private CANJaguar acqRoller;
     private Jaguar acqRollerPWM;
     
     /**
@@ -364,18 +362,8 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        if(!IO.USE_PWM_CABLES){
-            try {
-                rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
-                acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
-            } catch (CANTimeoutException ex) {
-                log.logError("CANBus Timeout in Acquisitions init()");
-                throw new RuntimeException("CAN timeout in acquisitions init");
-            }
-        }else{
-            rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
-            acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
-        }
+        rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
+        acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         vision = Vision.getInstance();
         tiltBrake = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_BRAKE);
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
@@ -402,13 +390,8 @@ public class Acquisitions extends GenericSubsystem{
         brakePosition = BRAKE_EXTENDED;
         ballDetectorPower.set(true);
         if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
-            if (!IO.USE_PWM_CABLES) {
-                rotatingMotor.setX(0);
-                acqRoller.setX(0);
-            } else {
-                rotatingMotorPWM.set(0);
-                acqRollerPWM.set(0);
-            }
+           rotatingMotorPWM.set(0);
+           acqRollerPWM.set(0);
         }
         rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
         isBallInRollers = ballDetector.get();
@@ -540,15 +523,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param value - the desired motor output
      */ 
     private void setAcquiringMotor(double value){
-        if(!IO.USE_PWM_CABLES){
-            try {
-                acqRoller.setX(value);//motor runs backwards. (silly motors)
-            } catch (CANTimeoutException ex) {
-                ex.printStackTrace();
-            }
-        }else{
             acqRollerPWM.set(value);
-        }
     }
     
     /**
@@ -683,15 +658,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param speed - the desired output of the pivot motor.
      */ 
     private void setPivotMotor(double speed){
-        if(!IO.USE_PWM_CABLES){
-            try {
-                rotatingMotor.setX(speed);
-            } catch (CANTimeoutException ex) {
-                log.logError("CAN Timeout while setting pivot motor: " + ex.getMessage());
-            }
-        }else{
-            rotatingMotorPWM.set(speed);
-        }
+        rotatingMotorPWM.set(speed);
     }
     
     /**
@@ -730,13 +697,8 @@ public class Acquisitions extends GenericSubsystem{
      * Sets up the live window screen used in test mode to control each system manually.
      */
     public void liveWindow() {
-        if(!IO.USE_PWM_CABLES){
-            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
-            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
-        }else{
-            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotorPWM);
-            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRollerPWM);
-        }
+        LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotorPWM);
+        LiveWindow.addActuator(subsystemName, "Acquisitions", acqRollerPWM);
         LiveWindow.addActuator(subsystemName, "Small Cylinder", acqShortPnu);
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
         LiveWindow.addActuator(subsystemName, "Brake", tiltBrake);
