@@ -7,10 +7,6 @@ package org.gosparx;
  * @author Justin Bassett (Bassett.JustinT@gmail.com)
  */
 public class IO {
-    /**
-     * This set weather to use the PWM cables or use the CAN cables
-     */
-    public static final boolean USE_PWM_CABLES          = true;
     
     // Digital Side Card Slots
     public static final int DEFAULT_SLOT                = 1;
