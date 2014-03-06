@@ -125,16 +125,6 @@ public class LogWriter extends GenericSubsystem{
             visionConfigNumber = Integer.parseInt(currentNumber);
             disPhotoConfig.close();
             photoConConfig.close();
-            
-//            //TESTING PURPOSES
-//            for (int i = visionConfigNumber; i < 100; i++){
-//                photoConConfig = (FileConnection)Connector.open(photoPath + "Shot" + visionConfigNumber + ".png");
-//                photoConConfig.create();
-//                photoConConfig.close();
-//                increaseVisionFile();
-//                updateVisionConfig((""+visionConfigNumber).getBytes());
-//            }
-//            //
 
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
