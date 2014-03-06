@@ -203,7 +203,7 @@ public class Acquisitions extends GenericSubsystem{
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 60;
+   private final static int FAR_SHOOTER_PRESET = 52;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -456,8 +456,8 @@ public class Acquisitions extends GenericSubsystem{
                     acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                 }
                 
-                if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()) {
-                    acqLongPnu.set(ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER <= rotateEncoderData.getDistance()) {
+                    acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);//Ball can't escape
                 }
                 
                 wantedAcqSpeed = 0;//turns motors off
