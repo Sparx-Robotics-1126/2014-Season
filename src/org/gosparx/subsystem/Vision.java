@@ -121,14 +121,14 @@ public class Vision extends GenericSubsystem {
      */
     public void execute() throws Exception {
         if (cameraResponding) {
-//            if(needImage){
-            cameraLights.set(true);
-            getBestTarget();
-            freeImage();
-            needImage = false;
-//            }else{
-//                cameraLights.set(false);
-//            }
+            if(needImage){
+                cameraLights.set(true);
+                getBestTarget();
+                freeImage();
+                needImage = false;
+            }else{
+                cameraLights.set(false);
+            }
         }
     }
 
