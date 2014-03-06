@@ -110,6 +110,7 @@ public class Vision extends GenericSubsystem {
         }
 
         if (!cameraResponding) {
+            log.logError("Camera not Responding");
             log.logMessage("THE CAMERA HAS FAILING (SILLY PEOPLE)!!!!!!!!!!");
         }
     }
