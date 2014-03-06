@@ -488,6 +488,7 @@ public class Controls extends GenericSubsystem{
                 SmartDashboard.putBoolean("10 Seconds Left", !SmartDashboard.getBoolean("10 Seconds Left"));
                 lastFlashTime = Timer.getFPGATimestamp();
             }
+        }
     }
 
     public int sleepTime(){
