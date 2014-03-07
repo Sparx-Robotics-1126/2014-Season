@@ -203,7 +203,7 @@ public class Acquisitions extends GenericSubsystem{
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 52;
+   private final static int FAR_SHOOTER_PRESET = 53;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
