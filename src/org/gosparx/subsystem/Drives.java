@@ -90,6 +90,16 @@ public class Drives extends GenericSubsystem {
     private static final double Y_INTERCEPT = .5;
     
     /**
+     * Max degrees that we need to turn, but we still scale for hold in place.
+     */
+    private static final double TURNING_MAX_HOLD = 45;
+    
+    /**
+     * The Y Intercept for the scaling formula for hold in place.
+     */ 
+    private static final double Y_INTERCEPT_HOLD = .25;
+    
+    /**
      * Number of loops turning must go through to determine accuracy.
      */
     private static final int TURN_COMPLETE_COUNTER = 3;
@@ -344,11 +354,11 @@ public class Drives extends GenericSubsystem {
                 degToGo = desiredAngle - currentAngle;
                 if(isGyroWorking){
                     if(degToGo > 0){
-                        leftMotorOutput = (degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
-                        rightMotorOutput = -((degToGo > TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
+                        leftMotorOutput = (degToGo > TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT);
+                        rightMotorOutput = -((degToGo > TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
                     }else if(degToGo < 0){
-                        leftMotorOutput = -((degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT));
-                        rightMotorOutput = (degToGo < -TURNING_MAX) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX)*degToGo+Y_INTERCEPT);
+                        leftMotorOutput = -((degToGo < -TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT));
+                        rightMotorOutput = (degToGo < -TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT);
                     }
                     if (Math.abs(degToGo) <= TURNING_THRESHOLD && turnLoopCounter == TURN_COMPLETE_COUNTER) {
                         log.logMessage("Done Turning");
@@ -381,22 +391,22 @@ public class Drives extends GenericSubsystem {
                 }
                 break;
             case State.FUNCT_HOLD_POS:
+                leftMotorOutput = 0;
+                rightMotorOutput = 0;
                 if(gyro.getAngle() > TURNING_THRESHOLD){
-                    leftMotorOutput = -((.0048 * (gyro.getAngle())) + .15);
-                    rightMotorOutput = ((.0048 * (gyro.getAngle())) + .15);
+                        leftMotorOutput = -((degToGo < -TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT_HOLD)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT_HOLD));
+                        rightMotorOutput = (degToGo < -TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT_HOLD)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT_HOLD);
                 } else if(gyro.getAngle() < -TURNING_THRESHOLD){
-                    leftMotorOutput = -((.0048 * (gyro.getAngle())) - .15);
-                    rightMotorOutput = ((.0048 * (gyro.getAngle())) - .15);
-                } else if(averageDistEncoder > DRIVING_THRESHOLD) {
+                    leftMotorOutput = (degToGo > TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT_HOLD)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT_HOLD);
+                    rightMotorOutput = -((degToGo > TURNING_MAX_HOLD) ? (1) : (((1-Y_INTERCEPT_HOLD)/TURNING_MAX_HOLD)*degToGo+Y_INTERCEPT_HOLD));
+                }
+                if(averageDistEncoder > DRIVING_THRESHOLD) {
                     leftMotorOutput = -(.002 * averageDistEncoder + .25);
                     rightMotorOutput = -(.002 * averageDistEncoder + .25);
                 } else if(averageDistEncoder < -DRIVING_THRESHOLD){
                     leftMotorOutput = -(.002 * averageDistEncoder - .25);
                     rightMotorOutput = -(.002 * averageDistEncoder - .25);
-                } else{
-                    leftMotorOutput = 0;
-                    rightMotorOutput = 0;
-                }
+                } 
                 break;
             case State.FUNCT_STANDBY:
                break;
@@ -555,7 +565,7 @@ public class Drives extends GenericSubsystem {
      * stopHoldPos() is called
      */
     public void startHoldPos(){
-        if(drivesState != State.FUNCT_HOLD_POS){
+        if(autoFunctionState != State.FUNCT_HOLD_POS){
             resetSensors();
             autoFunctionState = State.FUNCT_HOLD_POS;
         }
