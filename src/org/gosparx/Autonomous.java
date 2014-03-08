@@ -438,14 +438,17 @@ public class Autonomous extends GenericSubsystem {
                     runNextStatement(shooter.isLastCommandDone());
                     break;
                 case VISION_DISTANCE:
+                    vision.setCameraMode(true);
                     visionDistance = vision.getDistanceToGoal();
                     log.logMessage("Vision getting Distance");
                     break;
                 case VISION_ANGLE:
+                    vision.setCameraMode(true);
                     visionAngle = vision.getDegrees();
                     log.logMessage("Vision getting Degrees");
                     break;
                 case VISION_HOT_TARGET:
+                    vision.setCameraMode(true);
                     runNextStatement(vision.isHotGoal());
                     log.logMessage("See Hot Goal");
                     break;
@@ -453,6 +456,7 @@ public class Autonomous extends GenericSubsystem {
                     checkTime = true;
                     critalTime = currentAutonomous[currentAutoStep][1];
                     criticalTimeAction = currentAutonomous[currentAutoStep][2];
+                    break;
                 case NEXT:
                     if (loopTime > 1) {
                         currentAutoStep = (currentAutoStep - currentAutonomous[currentAutoStep][1]) - 1;//the extra one is to cancel the +1 for the loop
@@ -486,7 +490,7 @@ public class Autonomous extends GenericSubsystem {
 
 
             //Makes sure we have enough time left to move
-            if (checkTime && Timer.getFPGATimestamp() - startAutoTime >= critalTime) {
+            if (checkTime && Timer.getFPGATimestamp() - startAutoTime >= critalTime && currentAutoStep < criticalTimeAction) {
                 currentAutoStep = criticalTimeAction;
                 checkTime = false;
             }

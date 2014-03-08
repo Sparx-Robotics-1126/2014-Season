@@ -64,7 +64,7 @@ public class Shooter extends GenericSubsystem{
     /**
      * 
      */
-    private static final double TIME_TO_TAKE_PICTURE = 0.25;
+    private static final double TIME_TO_TAKE_PICTURE = 0.01;
     
     /**
      * The time from when we fire to the time we capture and save an image

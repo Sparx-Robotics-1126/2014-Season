@@ -120,14 +120,14 @@ public class Vision extends GenericSubsystem {
      */
     public void execute() throws Exception {
         if (cameraResponding) {
-//            if(needImage){
+            if(needImage){
                 cameraLights.set(true);
                 freeImage();
                 getBestTarget();
                 needImage = false;
-//            }else{
-//                cameraLights.set(false);
-//            }
+            }else{
+                cameraLights.set(false);
+            }
         }
     }
 
@@ -512,7 +512,7 @@ public class Vision extends GenericSubsystem {
     public void saveImage() {
         if (ds.isEnabled()) {
             logWriter.writeImage(image);
-            log.logMessage("Image has ben saved");
+            log.logMessage("Image has been saved");
         }
     }
     
