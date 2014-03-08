@@ -170,14 +170,14 @@ public class Acquisitions extends GenericSubsystem{
      * The angle at which it is legal for the acquisition rollers to extend 
      * without breaking rules
      */
-    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 105;//TODO: CHECK
     
     
     /**
      * The angle at which the longer rollers must be retracted to be within the 
      * frame perimeter.
      */ 
-    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 65;
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 45;
     
     /**
      * The name of this subsystem.
@@ -235,7 +235,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The tolerance in degrees for pivoting.
      */
-    private static final double PIVOT_THRESHOLD                             = 0.25;
+    private static final double PIVOT_THRESHOLD                             = 4.5;
     
     /**
      * The motor output to start pivoting up at. 
@@ -254,7 +254,7 @@ public class Acquisitions extends GenericSubsystem{
     private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
     
     
-    private static final double TILT_HOLD_POSITION = -0.15;
+    private static final double TILT_HOLD_POSITION                          = -0.15;
     
     /**
      * The extended position for the brake
@@ -408,7 +408,7 @@ public class Acquisitions extends GenericSubsystem{
                     isEncoderDataSet = true;
                     rotateEncoderData.reset();
                     acquisitionState = AcqState.SAFE_STATE;
-                } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
+                } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
                     acquisitionState = wantedState;
@@ -443,7 +443,7 @@ public class Acquisitions extends GenericSubsystem{
                 if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
-                } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
+                } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else {
@@ -513,11 +513,16 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
         }
+        
         if(acquisitionState != AcqState.READY_TO_SHOOT){
             tensionSolenoid.set(!SHORT_SHOT_ACTIVATED);
         }
         tiltBrake.set(brakePosition);
-        setPivotMotor(rotationSpeed);
+        if(tiltBrake.get() != BRAKE_EXTENDED){
+            setPivotMotor(rotationSpeed);
+        }else{
+            setPivotMotor(0);
+        }
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
     }
@@ -635,7 +640,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param offset - the offset in degrees to rotate the shooter. Negative 
      *                 goes up, positive goes down.
      */ 
-    public void addOffset(int offset){
+    public void addOffset(double offset){
         wantedShooterAngle += offset;
         if(wantedShooterAngle < UP_POSITION){
             wantedShooterAngle = UP_POSITION;

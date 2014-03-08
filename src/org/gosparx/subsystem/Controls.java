@@ -17,7 +17,7 @@ public class Controls extends GenericSubsystem{
      * The amount in degrees to trim the shooter every time the trim buttons are
      * hit.
      */ 
-    private static final int TRIM_ANGLE                                 = 2;
+    private static final double TRIM_ANGLE                                 = 3.14;
     
     /**
      * The factor to divide the previous + the current joystick Y values. Used 
@@ -433,6 +433,8 @@ public class Controls extends GenericSubsystem{
                     shooter.setMode(Shooter.State.SET_HOME);
                 }else if(opR3 && !lastOPR3){
                     shooter.setMode(Shooter.State.STANDBY);
+                }else if(opL3){
+                    shooter.setMode(Shooter.State.WINDING);
                 }
                 
                 if(opR2 && !lastShoot){
