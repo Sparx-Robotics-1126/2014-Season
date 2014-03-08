@@ -62,6 +62,11 @@ public class Shooter extends GenericSubsystem{
     private static final double TIME_BETWEEN_SHOTS = 1.00;
     
     /**
+     * 
+     */
+    private static final double TIME_TO_TAKE_PICTURE = 0.25;
+    
+    /**
      * The time from when we fire to the time we capture and save an image
      * The amount of time that the pnu latch needs to completely latch the 
      * shooter
@@ -130,7 +135,10 @@ public class Shooter extends GenericSubsystem{
      */
     private boolean limitSwitchValue;
     
-
+    /**
+     * 
+     */
+    private boolean gotLastShot = false;
     
     /**
      * The subsystem name that all of the components are listed under in the
@@ -217,6 +225,12 @@ public class Shooter extends GenericSubsystem{
             // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
             // Then starts retracting the winch.
             case State.SHOOTER_COOLDOWN:
+                if(Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot){
+                    Vision.getInstance().saveImage();
+                    gotLastShot = true;
+                }else if(Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE){
+                    gotLastShot = false;
+                }
                 if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
                     if (limitSwitchValue) {
                         shooterState = State.STANDBY;

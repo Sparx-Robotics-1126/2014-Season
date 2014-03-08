@@ -210,7 +210,7 @@ public class LogWriter extends GenericSubsystem{
     private void increaseVisionFile(){
         visionConfigNumber++;
         if(visionConfigNumber >= 50){
-            visionConfigNumber = 50;
+            visionConfigNumber = 51;
         }
     }
     

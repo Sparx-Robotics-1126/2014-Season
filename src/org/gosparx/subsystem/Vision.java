@@ -69,13 +69,11 @@ public class Vision extends GenericSubsystem {
     private double pixelsToInches = 0;
     private static final int CENTER_OF_CAMERA = 160;
     private double startImageTime;
-    private boolean cameraResponding = true;//false
+    private boolean cameraResponding = false;
     private int timeOutNumber = 0;
     
     private int boundingRectHeight;
     private final static int MAX_STORED_PICTURES = 50;
-    private int pictureCount = 0;
-    private boolean keepImage = true;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -124,8 +122,8 @@ public class Vision extends GenericSubsystem {
         if (cameraResponding) {
 //            if(needImage){
                 cameraLights.set(true);
-                getBestTarget();
                 freeImage();
+                getBestTarget();
                 needImage = false;
 //            }else{
 //                cameraLights.set(false);
@@ -202,10 +200,6 @@ public class Vision extends GenericSubsystem {
         image = null;
         try {
             image = camera.getImage();
-            if (keepImage && ds.isEnabled()) {
-                logWriter.writeImage(image);
-                keepImage = false;
-            }
         } catch (Exception e) {
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
@@ -516,8 +510,12 @@ public class Vision extends GenericSubsystem {
      * Sets weather to store an image or release it
      */
     public void saveImage() {
-        keepImage = true;
+        if (ds.isEnabled()) {
+//            logWriter.writeImage(image);
+            log.logMessage("IMAGES HAS BEEN SAFED*********************8");
+        }
     }
+    
     public void logInfo() {
         log.logMessage("Dist to goal: " + getDistanceToGoal());
         log.logMessage("Dist to Target: " + getTargetDistance());
