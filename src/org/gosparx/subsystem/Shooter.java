@@ -136,7 +136,7 @@ public class Shooter extends GenericSubsystem{
     private boolean limitSwitchValue;
     
     /**
-     * 
+     * Determines if the camera should save a picture after shooting
      */
     private boolean gotLastShot = false;
     
