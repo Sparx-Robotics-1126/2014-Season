@@ -235,7 +235,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The tolerance in degrees for pivoting.
      */
-    private static final double PIVOT_THRESHOLD                             = 1;
+    private static final double PIVOT_THRESHOLD                             = 0.25;
     
     /**
      * The motor output to start pivoting up at. 
@@ -252,6 +252,9 @@ public class Acquisitions extends GenericSubsystem{
      * The motor output when we are CLOSE_TO_ACQUIRING.
      */ 
     private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
+    
+    
+    private static final double TILT_HOLD_POSITION = -0.15;
     
     /**
      * The extended position for the brake
@@ -387,7 +390,6 @@ public class Acquisitions extends GenericSubsystem{
      * @throws Exception - if thrown then the thread will try to restart itself
      */
     public void execute() throws Exception {
-        brakePosition = BRAKE_EXTENDED;
         ballDetectorPower.set(true);
         if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
            rotatingMotorPWM.set(0);
@@ -473,7 +475,7 @@ public class Acquisitions extends GenericSubsystem{
                 acquisitionState = AcqState.ROTATE_UP;
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                rotationSpeed = -0.2;//MAKES sure that the shooter stays down. (it can backdrive)
+                rotationSpeed = TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
@@ -496,6 +498,8 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                rotationSpeed = TILT_HOLD_POSITION;
+                brakePosition = BRAKE_EXTENDED;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
