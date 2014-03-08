@@ -17,7 +17,7 @@ public class Controls extends GenericSubsystem{
      * The amount in degrees to trim the shooter every time the trim buttons are
      * hit.
      */ 
-    private static final double TRIM_ANGLE                                 = 3.14;
+    private static final double TRIM_ANGLE                                 = 4;
     
     /**
      * The factor to divide the previous + the current joystick Y values. Used 

@@ -167,6 +167,11 @@ public class Acquisitions extends GenericSubsystem{
     private final static double ROTATE_UP_SPEED = -80;
     
     /**
+     * Degrees per second
+     */
+    private final static double ROTATE_DOWN_SPEED = 75;
+    
+    /**
      * The angle at which it is legal for the acquisition rollers to extend 
      * without breaking rules
      */
@@ -198,7 +203,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 52;
+   private final static int MID_SHOOTER_PRESET = 48;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
@@ -235,7 +240,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The tolerance in degrees for pivoting.
      */
-    private static final double PIVOT_THRESHOLD                             = 4.5;
+    private static final double PIVOT_THRESHOLD                             = 2;
     
     /**
      * The motor output to start pivoting up at. 
@@ -260,6 +265,8 @@ public class Acquisitions extends GenericSubsystem{
      * The extended position for the brake
      */
     private static final boolean BRAKE_EXTENDED = true;
+    
+    private static final double DEGREES_PER_TOOTH       = 5.5;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -447,12 +454,18 @@ public class Acquisitions extends GenericSubsystem{
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else {
-                    if (rotateEncoderData.getDistance() < CLOSE_TO_ACQUIRING_ANGLE) {
-                        rotationSpeed = PIVOT_DOWN_START_POWER;//MAY WANT TO RAMP
+                    if (rotateEncoderData.getSpeed() < ROTATE_DOWN_SPEED) {
+                        rotationSpeed -= .05;
                     } else {
-                        rotationSpeed = PIVOT_DOWN_CLOSE_POWER;
+                        rotationSpeed += .1;
+                    }
+                    if (rotationSpeed > 1) {
+                        rotationSpeed = 1;
+                    } else if (rotationSpeed < -1) {
+                        rotationSpeed = -1;
                     }
                 }
+                
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()
                         && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED) {
                     acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
@@ -501,8 +514,13 @@ public class Acquisitions extends GenericSubsystem{
                 rotationSpeed = TILT_HOLD_POSITION;
                 brakePosition = BRAKE_EXTENDED;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
+                if(rotateEncoderData.getDistance() > wantedShooterAngle + DEGREES_PER_TOOTH/2 ||
+                       rotateEncoderData.getDistance() < wantedShooterAngle - DEGREES_PER_TOOTH/2 ){
+                    acquisitionState = AcqState.FIX_OFF_BY_ONE;
+                }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 break;
@@ -511,6 +529,16 @@ public class Acquisitions extends GenericSubsystem{
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 wantedAcqSpeed = 0;
+                break;
+            case AcqState.FIX_OFF_BY_ONE:
+                if (rotateEncoderData.getDistance() < wantedShooterAngle) {//TO HIGH
+                    brakePosition = !BRAKE_EXTENDED;
+                    rotationSpeed = -0.5;
+                } else if (rotateEncoderData.getDistance() > wantedShooterAngle) {//TO LOW
+                    brakePosition = !BRAKE_EXTENDED;
+                    rotationSpeed = 0.5;
+                }
+                acquisitionState = AcqState.READY_TO_SHOOT;
                 break;
         }
         
@@ -580,6 +608,8 @@ public class Acquisitions extends GenericSubsystem{
                         break;
                     case AcqState.OFF_STATE:
                         acquisitionState = AcqState.OFF_STATE;
+                        break;
+                    
                 }
             }
     }
@@ -749,6 +779,7 @@ public class Acquisitions extends GenericSubsystem{
         public static final int READY_TO_SHOOT = 9;
         public static final int SAFE_STATE = 10;
         public static final int OFF_STATE = 11;
+        public static final int FIX_OFF_BY_ONE = 12;
         
         //USED FOR PRESETS:
         public static final int TRUSS_SHOOTER_PRESET = 20;
@@ -785,6 +816,8 @@ public class Acquisitions extends GenericSubsystem{
                     return "Safe State";
                 case OFF_STATE:
                     return "Off State";
+                case FIX_OFF_BY_ONE:
+                    return "Fix off by one";
                 default:
                     return "UNKNOWN";
             }
