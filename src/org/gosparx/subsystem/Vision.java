@@ -511,8 +511,8 @@ public class Vision extends GenericSubsystem {
      */
     public void saveImage() {
         if (ds.isEnabled()) {
-//            logWriter.writeImage(image);
-            log.logMessage("IMAGES HAS BEEN SAFED*********************8");
+            logWriter.writeImage(image);
+            log.logMessage("Image has ben saved");
         }
     }
     
