@@ -58,7 +58,7 @@ public class Vision extends GenericSubsystem {
      * If true then the imaging calculations will continue If false the thread
      * will sleep saving CPU power
      */
-    private boolean needImage = false;
+    private boolean needImage = true;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
@@ -122,14 +122,14 @@ public class Vision extends GenericSubsystem {
      */
     public void execute() throws Exception {
         if (cameraResponding) {
-            if(needImage){
+//            if(needImage){
                 cameraLights.set(true);
                 getBestTarget();
                 freeImage();
                 needImage = false;
-            }else{
-                cameraLights.set(false);
-            }
+//            }else{
+//                cameraLights.set(false);
+//            }
         }
     }
 
