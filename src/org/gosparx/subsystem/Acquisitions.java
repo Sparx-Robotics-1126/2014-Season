@@ -193,7 +193,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 34;
+    private final static int CLOSE_SHOOTER_PRESET = 38;
 
     /**
      * Truss Shooter preset. Used to shot the ball over the truss 
@@ -267,6 +267,8 @@ public class Acquisitions extends GenericSubsystem{
     private static final boolean BRAKE_EXTENDED = true;
     
     private static final double DEGREES_PER_TOOTH       = 5.5;
+    
+    private static final double CORRECTION_TIME = 0.02;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -346,6 +348,8 @@ public class Acquisitions extends GenericSubsystem{
      * The position in which the tension solenoid is set to.
      */
     private boolean shortShot;
+    
+    private double startCorrectTime = 0;
     
     /**
      * 
@@ -531,14 +535,18 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.FIX_OFF_BY_ONE:
-                if (rotateEncoderData.getDistance() < wantedShooterAngle) {//TO HIGH
-                    brakePosition = !BRAKE_EXTENDED;
-                    rotationSpeed = -0.5;
-                } else if (rotateEncoderData.getDistance() > wantedShooterAngle) {//TO LOW
-                    brakePosition = !BRAKE_EXTENDED;
-                    rotationSpeed = 0.5;
+                startCorrectTime = Timer.getFPGATimestamp();
+                if (Timer.getFPGATimestamp() - startCorrectTime < CORRECTION_TIME) {
+                    if (rotateEncoderData.getDistance() < wantedShooterAngle) {//TO HIGH
+                        brakePosition = !BRAKE_EXTENDED;
+                        rotationSpeed = -0.5;
+                    } else if (rotateEncoderData.getDistance() > wantedShooterAngle) {//TO LOW
+                        brakePosition = !BRAKE_EXTENDED;
+                        rotationSpeed = 0.5;
+                    }
+                }else{
+                    acquisitionState = AcqState.READY_TO_SHOOT;
                 }
-                acquisitionState = AcqState.READY_TO_SHOOT;
                 break;
         }
         

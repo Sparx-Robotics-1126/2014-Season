@@ -235,7 +235,7 @@ public class Shooter extends GenericSubsystem{
                 }
                 break;
             case State.UNWINDING:
-                wantedWinchSpeed = -WINCH_SPEED/2;
+                wantedWinchSpeed = -WINCH_SPEED;
                 if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
@@ -243,7 +243,7 @@ public class Shooter extends GenericSubsystem{
                 }
                 break;
            case State.WINDING:
-                wantedWinchSpeed = WINCH_SPEED/2;
+                wantedWinchSpeed = WINCH_SPEED;
                 if(potData.getInches() <= 0.2){
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
