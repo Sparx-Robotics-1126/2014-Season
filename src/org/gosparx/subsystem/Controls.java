@@ -3,6 +3,7 @@ package org.gosparx.subsystem;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.image.ShapeDetectionOptions;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
 import org.gosparx.util.Logger;
@@ -443,6 +444,8 @@ public class Controls extends GenericSubsystem{
                     shooter.setMode(Shooter.State.SET_HOME);
                 }else if(opR3 && !lastOPR3){
                     shooter.setMode(Shooter.State.STANDBY);
+                }else if(opL3){
+                    shooter.setMode(Shooter.State.WINDING);
                 }
                 
                 if(opR2 && !lastShoot){

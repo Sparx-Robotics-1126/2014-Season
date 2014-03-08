@@ -253,9 +253,9 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastWindTime >= WIND_TIMEOUT) || potData.getInches() <= 0){
+                if((Timer.getFPGATimestamp() - lastWindTime >= WIND_TIMEOUT) || potData.getInches() <= 0.2){
                     wantedWinchSpeed = 0;
-                    shooterState = State.UNWIND_WINCH;
+                    shooterState = State.STANDBY;
                 }
                 break;
             default:
