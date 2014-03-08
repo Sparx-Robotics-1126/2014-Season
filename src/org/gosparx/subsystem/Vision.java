@@ -1,18 +1,11 @@
 package org.gosparx.subsystem;
 
-import com.sun.squawk.microedition.io.FileConnection;
-import com.sun.squawk.pragma.ForceInlinedPragma;
 import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import javax.microedition.io.Connector;
 import org.gosparx.IO;
 import org.gosparx.util.LogWriter;
 
