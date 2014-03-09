@@ -227,7 +227,7 @@ public class Autonomous extends GenericSubsystem{
         {WAIT, 500},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
-        {DRIVES_GO_FORWARD, 65, 25},
+        {DRIVES_GO_FORWARD, 75, 25},
         {DRIVES_DONE},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},

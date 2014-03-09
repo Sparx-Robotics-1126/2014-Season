@@ -208,7 +208,7 @@ public class Acquisitions extends GenericSubsystem{
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 53;
+   private final static int FAR_SHOOTER_PRESET = 54;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -240,7 +240,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The tolerance in degrees for pivoting.
      */
-    private static final double PIVOT_THRESHOLD                             = 2;
+    private static final double PIVOT_THRESHOLD                             = 4;
     
     /**
      * The motor output to start pivoting up at. 
@@ -266,9 +266,9 @@ public class Acquisitions extends GenericSubsystem{
      */
     private static final boolean BRAKE_EXTENDED = true;
     
-    private static final double DEGREES_PER_TOOTH       = 5.5;
+    private static final double DEGREES_PER_TOOTH       = 6.5;
     
-    private static final double CORRECTION_TIME = 0.02;
+    private static final double CORRECTION_TIME = 0.2;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -475,8 +475,9 @@ public class Acquisitions extends GenericSubsystem{
                     acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                 }
                 
-                if (ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER <= rotateEncoderData.getDistance()) {
-                    acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);//Ball can't escape
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER - 40 <= rotateEncoderData.getDistance()) {
+//                    acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);//Ball can't escape
+                    wantedAcqSpeed = -INTAKE_ROLLER_SPEED;
                 }
                 
                 wantedAcqSpeed = 0;//turns motors off
@@ -515,14 +516,16 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                wantedAcqSpeed = 0;
                 rotationSpeed = TILT_HOLD_POSITION;
                 brakePosition = BRAKE_EXTENDED;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
-                if(rotateEncoderData.getDistance() > wantedShooterAngle + DEGREES_PER_TOOTH/2 ||
-                       rotateEncoderData.getDistance() < wantedShooterAngle - DEGREES_PER_TOOTH/2 ){
+                if(rotateEncoderData.getDistance() > (wantedShooterAngle + (DEGREES_PER_TOOTH/2)) ||
+                       rotateEncoderData.getDistance() < (wantedShooterAngle - (DEGREES_PER_TOOTH/2)) ){
+                    startCorrectTime = Timer.getFPGATimestamp();
                     acquisitionState = AcqState.FIX_OFF_BY_ONE;
                 }
                 break;
@@ -535,14 +538,13 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.FIX_OFF_BY_ONE:
-                startCorrectTime = Timer.getFPGATimestamp();
                 if (Timer.getFPGATimestamp() - startCorrectTime < CORRECTION_TIME) {
                     if (rotateEncoderData.getDistance() < wantedShooterAngle) {//TO HIGH
                         brakePosition = !BRAKE_EXTENDED;
-                        rotationSpeed = -0.5;
+                        rotationSpeed = -0.3;
                     } else if (rotateEncoderData.getDistance() > wantedShooterAngle) {//TO LOW
                         brakePosition = !BRAKE_EXTENDED;
-                        rotationSpeed = 0.5;
+                        rotationSpeed = 0.3;
                     }
                 }else{
                     acquisitionState = AcqState.READY_TO_SHOOT;
