@@ -472,6 +472,7 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                vision.setCameraMode(true);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
