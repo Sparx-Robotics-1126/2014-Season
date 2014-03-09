@@ -4,12 +4,13 @@ import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.camera.AxisCameraException;
 import edu.wpi.first.wpilibj.image.*;
 import edu.wpi.first.wpilibj.image.NIVision.MeasurementType;
 import org.gosparx.IO;
+import org.gosparx.util.LogWriter;
 
 public class Vision extends GenericSubsystem {
+    private LogWriter logWriter;
 
     private int imageLocation;//middle is 180, left is 0, right is 360
     private double imageDistance;//distance from target
@@ -45,16 +46,16 @@ public class Vision extends GenericSubsystem {
 
     //Maximum number of particles to process
     private static final int MAX_PARTICLES = 8;
-    
+
     /**
-     * If true then the imaging calculations will continue
-     * If false the thread will sleep saving CPU power
+     * If true then the imaging calculations will continue If false the thread
+     * will sleep saving CPU power
      */
-    private boolean needImage = false;
+    private boolean needImage = true;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
     private CriteriaCollection cc;      // the criteria for doing the particle filter operation
-    
+
     private double degrees = 0.0;
     private static final int TARGET_HEIGHT_INCHES = 32;
     public int cameraVerticalCount = 0;
@@ -65,6 +66,7 @@ public class Vision extends GenericSubsystem {
     private int timeOutNumber = 0;
     
     private int boundingRectHeight;
+    private final static int MAX_STORED_PICTURES = 50;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -74,6 +76,7 @@ public class Vision extends GenericSubsystem {
      * starts camera and some of the image criteria
      */
     public void init() {
+        logWriter = LogWriter.getInstance();
         target = new TargetReport();
         horizontalTargets = new int[MAX_PARTICLES];
         verticalTargets = new int[MAX_PARTICLES];
@@ -87,49 +90,51 @@ public class Vision extends GenericSubsystem {
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
-        while(!cameraResponding && timeOutNumber <= 30){
+        while (!cameraResponding && timeOutNumber <= 30) {
             try {
                 Thread.sleep(1000);
                 camera.getImage();
                 cameraResponding = true;
-            } catch (Exception e){
+            } catch (Exception e) {
                 timeOutNumber++;
             }
         }
-        
-        if(!cameraResponding){
+
+        if (!cameraResponding) {
+            log.logError("Camera not Responding");
             log.logMessage("THE CAMERA HAS FAILING (SILLY PEOPLE)!!!!!!!!!!");
         }
     }
-    
+
     /**
      * Runs all the systems
      *
      * @throws Exception
      */
     public void execute() throws Exception {
-        if(cameraResponding) {
-//            if(needImage){
+        if (cameraResponding) {
+            if(needImage){
                 cameraLights.set(true);
-                getBestTarget();
                 freeImage();
-//                needImage = false;
-//            }else{
-//                cameraLights.set(false);
-//            }
+                getBestTarget();
+                needImage = false;
+            }else{
+                cameraLights.set(false);
+            }
         }
     }
-    
+
     /**
      * Sets weather or not to use CPU power to calculate images
+     *
      * @param calculate. True if need calculations. False if not
      */
-    public void setCameraMode(boolean calculate){
+    public void setCameraMode(boolean calculate) {
         needImage = calculate;
     }
 
     public void liveWindow() {
-        
+
     }
 
     public int sleepTime() {
@@ -188,9 +193,10 @@ public class Vision extends GenericSubsystem {
         image = null;
         try {
             image = camera.getImage();
-        } catch (Exception e){
+        } catch (Exception e) {
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
+        
         thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
@@ -282,10 +288,10 @@ public class Vision extends GenericSubsystem {
         }
 
         if (verticalTargetCount > 0) {
-                                    //Information about the target is contained in the "target" structure
+            //Information about the target is contained in the "target" structure
             //To get measurement information such as sizes or locations use the
             //horizontal or vertical index to get the particle report as shown below
-            ParticleAnalysisReport distanceReport  = filteredImage.getParticleAnalysisReport(target.verticalIndex);
+            ParticleAnalysisReport distanceReport = filteredImage.getParticleAnalysisReport(target.verticalIndex);
             double distance = computeDistance(filteredImage, distanceReport, target.horizontalIndex);
             imageDistance = distance * 12;
             if (target.Hot) {
@@ -320,10 +326,13 @@ public class Vision extends GenericSubsystem {
      * @param report The Particle Analysis Report for the particle
      * @param outer True if the particle should be treated as an outer target,
      * false to treat it as a center target
-     * @return The estimated distance to the target in Inches.
-     * The equation takes the total amount of pixels of the image (240) and then multiplies if by the height
-     * of the projected image. This is then divided by the actual height of the target. (multiplied by 12 for the feet to become inches, 
-     * then it is multiplied by the field of view of the camera). This creates an imaginary triangle from which it is possible to determine distance. 
+     * @return The estimated distance to the target in Inches. The equation
+     * takes the total amount of pixels of the image (240) and then multiplies
+     * if by the height of the projected image. This is then divided by the
+     * actual height of the target. (multiplied by 12 for the feet to become
+     * inches, then it is multiplied by the field of view of the camera). This
+     * creates an imaginary triangle from which it is possible to determine
+     * distance.
      */
     private double computeDistance(BinaryImage image, ParticleAnalysisReport report, int particleNumber) throws NIVisionException {
         double rectLong, height;
@@ -335,9 +344,9 @@ public class Vision extends GenericSubsystem {
         height = Math.min(report.boundingRectHeight, rectLong);
         boundingRectHeight = report.boundingRectHeight;
         targetHeight = 11.5;
-        return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE*Math.PI/(180*2)));
+        return Y_IMAGE_RES * targetHeight / (height * 12 * 2 * Math.tan(VIEW_ANGLE * Math.PI / (180 * 2)));
     }
-   
+
     /**
      * Computes a score (0-100) comparing the aspect ratio to the ideal aspect
      * ratio for the target. This method uses the equivalent rectangle sides to
@@ -464,30 +473,43 @@ public class Vision extends GenericSubsystem {
     private int getLocation() {
         return imageLocation;
     }
-    
+
     /**
-     * The degrees are found by making an imaginary triangle. We already know the distance and the location of the center of the target.
-     * First, the inverse sin is 
-     * @return the angle from camera to target in degrees 
+     * The degrees are found by making an imaginary triangle. We already know
+     * the distance and the location of the center of the target. First, the
+     * inverse sin is
+     *
+     * @return the angle from camera to target in degrees
      */
-    public double getDegrees(){
-        pixelsToInches = cameraVerticalCount/TARGET_HEIGHT_INCHES;
-        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA)/pixelsToInches)/(imageDistance)));
+    public double getDegrees() {
+        pixelsToInches = cameraVerticalCount / TARGET_HEIGHT_INCHES;
+        degrees = Math.toDegrees(MathUtils.asin(((getLocation() - CENTER_OF_CAMERA) / pixelsToInches) / (imageDistance)));
         return degrees;
     }
-    
-    public double getDistanceToGoal(){
+
+    public double getDistanceToGoal() {
         return Math.abs(Math.cos(getDegrees()) * getTargetDistance());
     }
-     
+
     /**
-     * Allows for the getDegrees and getDistance methods to return there updated value
+     * Allows for the getDegrees and getDistance methods to return there updated
+     * value
      */
-    public double getLastImageTime(){
+    public double getLastImageTime() {
         return (Timer.getFPGATimestamp() - startImageTime);
     }
+
+    /**
+     * Sets weather to store an image or release it
+     */
+    public void saveImage() {
+        if (ds.isEnabled()) {
+            logWriter.writeImage(image);
+            log.logMessage("Image has been saved");
+        }
+    }
     
-    public void logInfo(){
+    public void logInfo() {
         log.logMessage("Dist to goal: " + getDistanceToGoal());
         log.logMessage("Dist to Target: " + getTargetDistance());
         log.logMessage("Hot Target: " + isHotGoal());

@@ -2,10 +2,13 @@ package org.gosparx.util;
 
 import com.sun.squawk.microedition.io.FileConnection;
 import edu.wpi.first.wpilibj.DriverStationLCD;
+import edu.wpi.first.wpilibj.image.ColorImage;
+import edu.wpi.first.wpilibj.image.NIVisionException;
 import edu.wpi.first.wpilibj.networktables2.util.List;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import javax.microedition.io.Connector;
 import org.gosparx.subsystem.GenericSubsystem;
 
@@ -19,17 +22,25 @@ public class LogWriter extends GenericSubsystem{
     private final List messagesToLog;
     private FileConnection fileCon;
     private FileConnection fileConConfig;
-    private DataOutputStream dos;
+    private OutputStream dos;
     private DataOutputStream dosConfig;
     private DataInputStream dis;
     private final String configPath = "file:///loggingConfig.txt";
     private final int MAX_LOGS = 5;
     private String[] prevMessages  = new String[6];
     private DriverStationLCD dsLCD = DriverStationLCD.getInstance();
+    private int toUse = 0;
     
     public static int LEVEL_DEBUG                                           = 0;
     public static int LEVEL_ERROR                                           = 1;
-   
+    
+    //VISION
+    private FileConnection photoConConfig;
+    private DataOutputStream dosPhotoConfig;
+    private DataInputStream disPhotoConfig;
+    private int visionConfigNumber;
+    public final String photoConfigPath = "//photoConfig.txt";
+    public final String photoPath = "file:///ShooterPictures//";
     /**
      * Returns the singleton LogWriter
      * @return the singleton LogWriter
@@ -71,7 +82,6 @@ public class LogWriter extends GenericSubsystem{
         prevMessages[4] = emptyString;
         prevMessages[5] = emptyString;
         try {
-            int toUse = 0;
             try {
                 fileConConfig = (FileConnection)Connector.open(configPath, Connector.READ_WRITE);
                 dis = fileConConfig.openDataInputStream();
@@ -100,16 +110,32 @@ public class LogWriter extends GenericSubsystem{
                 dosConfig.close();
                 }
             }
+            
+            //VISION
+            photoConConfig = (FileConnection)Connector.open(photoPath + photoConfigPath);
+            if(!photoConConfig.exists()){
+                photoConConfig.create();
+                dosPhotoConfig = photoConConfig.openDataOutputStream();
+                dosPhotoConfig.write((""+0).getBytes());
+                dosPhotoConfig.close();
+            }
+            disPhotoConfig = photoConConfig.openDataInputStream();
+            char lastUsedChar = (char) disPhotoConfig.read();
+            String currentNumber = "" + lastUsedChar;
+            visionConfigNumber = Integer.parseInt(currentNumber);
+            disPhotoConfig.close();
+            photoConConfig.close();
+
             fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
             if(fileCon.exists()){
                 fileCon.delete();
             }
             fileCon.create();
-            fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
-            dos = fileCon.openDataOutputStream();
+            fileCon.close();
         } catch (IOException ex) {
         }
     }
+    
     /**
      * Logs the first message to log in the queue every 20 ms
      */
@@ -127,14 +153,14 @@ public class LogWriter extends GenericSubsystem{
         messagesToLog.remove(0);
         }
         String toWrite = info + message + "\n";
-        dos.write(toWrite.getBytes());
+        updateDiognosis(toWrite.getBytes());
         System.out.print(toWrite);
         if(level == LEVEL_ERROR){
             prevMessages[0] = prevMessages[1];
             prevMessages[1] = prevMessages[2];
             prevMessages[2] = prevMessages[3];
             prevMessages[3] = prevMessages[4];
-            prevMessages[4] = info;
+            prevMessages[4] = prevMessages[5];
             prevMessages[5] = message;
             dsLCD.println(DriverStationLCD.Line.kUser1, 1, prevMessages[0]);
             dsLCD.println(DriverStationLCD.Line.kUser2, 1, prevMessages[1]);
@@ -143,6 +169,63 @@ public class LogWriter extends GenericSubsystem{
             dsLCD.println(DriverStationLCD.Line.kUser5, 1, prevMessages[4]);
             dsLCD.println(DriverStationLCD.Line.kUser6, 1, prevMessages[5]);
             dsLCD.updateLCD();
+        }
+        updateVisionConfig((""+visionConfigNumber).getBytes());//(""+visionConfigNumber).getBytes());
+    }
+    
+    private void updateDiognosis(byte[] write){
+        try {
+            fileCon = (FileConnection)Connector.open("file:///log" + toUse + ".txt", Connector.READ_WRITE);
+            dos = fileCon.openOutputStream(2);
+            dos.write(write);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }finally{
+            try {
+                dos.close();
+                fileCon.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void updateVisionConfig(byte[] currentImage){
+        try {
+            photoConConfig = (FileConnection)Connector.open(photoPath + photoConfigPath);
+            dosPhotoConfig = photoConConfig.openDataOutputStream();
+            dosPhotoConfig.write(currentImage);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }finally{
+            try {
+                dosPhotoConfig.close();
+                photoConConfig.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    private void increaseVisionFile(){
+        visionConfigNumber++;
+        if(visionConfigNumber >= 50){
+            visionConfigNumber = 51;
+        }
+    }
+    
+    public void writeImage(ColorImage image){
+        try {
+            image.write(photoPath + "Shot" + visionConfigNumber + ".png");
+            increaseVisionFile();
+        } catch (NIVisionException ex) {
+            ex.printStackTrace();
+        }finally{
+            try {
+                image.free();
+            } catch (NIVisionException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 

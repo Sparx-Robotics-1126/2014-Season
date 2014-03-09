@@ -517,6 +517,7 @@ public class Acquisitions extends GenericSubsystem{
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 wantedAcqSpeed = 0;
+                vision.setCameraMode(true);
                 rotationSpeed = TILT_HOLD_POSITION;
                 brakePosition = BRAKE_EXTENDED;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
