@@ -419,14 +419,19 @@ public class Controls extends GenericSubsystem{
                 
                 if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.UNWINDING);
                 }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.UNWINDING);
                 }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.WINDING);
                 }else if(opDPadXAxis == -1){
-                    acq.setPreset(Acquisitions.AcqState.TRUSS_SHOOTER_PRESET);
+                    acq.setPreset(Acquisitions.AcqState.LONG_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.UNWINDING);
                 }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
+                    shooter.setMode(Shooter.State.UNWINDING);
                 }
                 
                 //OFFSET

@@ -198,7 +198,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Truss Shooter preset. Used to shot the ball over the truss 
      */
-    private final static double TRUSS_SHOOTER_PRESET = 34;
+    private final static double LONG_SHOOTER_PRESET = 45;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
@@ -356,8 +356,6 @@ public class Acquisitions extends GenericSubsystem{
     private double lastCorrectionTime = 0;
     
     private boolean needUpperLimit = false;
-    
-    private boolean closeShot = false;
     
     /**
      * 
@@ -652,18 +650,16 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
-        closeShot = true;
         shortShot = !SHORT_SHOT_ACTIVATED;
         if(ds.isAutonomous()){
             wantedState = AcqState.READY_TO_SHOOT;
         }
         switch(preset){
-            case AcqState.TRUSS_SHOOTER_PRESET:
-                setAngle(TRUSS_SHOOTER_PRESET);
-                shortShot = SHORT_SHOT_ACTIVATED;
+            case AcqState.LONG_SHOOTER_PRESET:
+                setAngle(LONG_SHOOTER_PRESET);
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
-                closeShot = true;
+                shortShot = SHORT_SHOT_ACTIVATED;
                 break;
             case AcqState.MIDDLE_SHOOTER_PRESET:
                 setAngle(MID_SHOOTER_PRESET);
@@ -763,7 +759,7 @@ public class Acquisitions extends GenericSubsystem{
     }
     
     public boolean isCloseShot(){
-        return closeShot;
+        return (shortShot == SHORT_SHOT_ACTIVATED);
     }
 
     
@@ -819,7 +815,7 @@ public class Acquisitions extends GenericSubsystem{
         public static final int FIX_OFF_BY_ONE = 12;
         
         //USED FOR PRESETS:
-        public static final int TRUSS_SHOOTER_PRESET = 20;
+        public static final int LONG_SHOOTER_PRESET = 20;
         public static final int CLOSE_SHOOTER_PRESET = 21;
         public static final int MIDDLE_SHOOTER_PRESET = 22;
         public static final int FAR_SHOOTER_PRESET = 23;

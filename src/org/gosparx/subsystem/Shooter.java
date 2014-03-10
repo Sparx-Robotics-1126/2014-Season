@@ -267,7 +267,6 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                System.out.println("POT DISTANCE: " + potData.getInches());
                 if (potData.getInches() <= 5) {
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
