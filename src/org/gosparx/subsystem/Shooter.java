@@ -201,7 +201,7 @@ public class Shooter extends GenericSubsystem{
             case State.SHOOT:
                 latch.set(LATCH_DISENGAGED);
                 if(Acquisitions.getInstance().isCloseShot()){
-                   
+                   shooterState = State.SHOOT_UNWINDING;
                 }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
@@ -267,7 +267,8 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if (potData.getInches() <= 0.2) {
+                System.out.println("POT DISTANCE: " + potData.getInches());
+                if (potData.getInches() <= 5) {
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
@@ -277,7 +278,7 @@ public class Shooter extends GenericSubsystem{
                 if ((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND) {
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
-                    shooterState = State.STANDBY;
+                    shooterState = State.SHOOTER_COOLDOWN;
                 }
                 break;
             default:
