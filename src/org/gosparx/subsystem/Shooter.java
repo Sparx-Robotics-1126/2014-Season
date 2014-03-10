@@ -200,6 +200,9 @@ public class Shooter extends GenericSubsystem{
             // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
             case State.SHOOT:
                 latch.set(LATCH_DISENGAGED);
+                if(Acquisitions.getInstance().isCloseShot()){
+                   
+                }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
                 break;
@@ -217,11 +220,14 @@ public class Shooter extends GenericSubsystem{
             // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
             // Then starts retracting the winch.
             case State.SHOOTER_COOLDOWN:
-                if(Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot){
-                    Vision.getInstance().saveImage();
-                    gotLastShot = true;
-                }else if(Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE){
-                    gotLastShot = false;
+                try {
+                    if (Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot) {
+                        Vision.getInstance().saveImage();
+                        gotLastShot = true;
+                    } else if (Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE) {
+                        gotLastShot = false;
+                    }
+                }catch(Exception name){
                 }
                 if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
                     if (limitSwitchValue) {
@@ -261,7 +267,15 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if(potData.getInches() <= 0.2){
+                if (potData.getInches() <= 0.2) {
+                    wantedWinchSpeed = 0;
+                    shooterState = State.STANDBY;
+                }
+                break;
+            case State.SHOOT_UNWINDING:
+                wantedWinchSpeed = -WINCH_SPEED;
+                if ((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND) {
+                    log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
@@ -288,7 +302,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY){ //&& Acquisitions.getInstance().readyToShoot()){
+       if(shooterState == State.STANDBY && (Acquisitions.getInstance().readyToShoot() || ds.isOperatorControl())){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -346,6 +360,7 @@ public class Shooter extends GenericSubsystem{
         public static final int UNWIND_WINCH = 6;
         public static final int UNWINDING = 7;
         public static final int WINDING = 8;
+        public static final int SHOOT_UNWINDING = 9;
         
         /**
          * Returns a string version of the state.

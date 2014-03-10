@@ -193,28 +193,28 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 38;
+    private final static double CLOSE_SHOOTER_PRESET = 38;
 
     /**
      * Truss Shooter preset. Used to shot the ball over the truss 
      */
-    private final static int TRUSS_SHOOTER_PRESET = 34;
+    private final static double TRUSS_SHOOTER_PRESET = 34;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 48;
+   private final static double MID_SHOOTER_PRESET = 48;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 54;
+   private final static double FAR_SHOOTER_PRESET = 58.5;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
     * we do not slam back into the back supports and limit switches.
     */
-   private final static int CENTER_OF_GRAVITY_ANGLE = 25;
+   private final static double CENTER_OF_GRAVITY_ANGLE = 25;
    
    /**
     * The angle when we are close to the floor mode, or acquiring. It is used to
@@ -266,9 +266,11 @@ public class Acquisitions extends GenericSubsystem{
      */
     private static final boolean BRAKE_EXTENDED = true;
     
-    private static final double DEGREES_PER_TOOTH       = 6.5;
+    private static final double DEGREES_PER_TOOTH = 3.6;
     
-    private static final double CORRECTION_TIME = 0.2;
+    private static final double CORRECTION_TIME = 0.3;
+    
+    private static final double ERROR_CORRECT_TIME = 0.5;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -351,6 +353,12 @@ public class Acquisitions extends GenericSubsystem{
     
     private double startCorrectTime = 0;
     
+    private double lastCorrectionTime = 0;
+    
+    private boolean needUpperLimit = false;
+    
+    private boolean closeShot = false;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -386,7 +394,6 @@ public class Acquisitions extends GenericSubsystem{
         rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2, false);
         rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
         rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
-        rotateEncoderData.reset();
         lowerLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_ACQ_MODE_CHAN);
         acqShortPnu = new Solenoid(IO.DEFAULT_SLOT, IO.KEEP_IN_FRAME_CHAN);
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
@@ -394,6 +401,12 @@ public class Acquisitions extends GenericSubsystem{
         wantedState = AcqState.SAFE_STATE;
         ballDetectorPower =  new Solenoid(IO.ALTERNATE_SLOT, IO.BALL_SENSOR_POWER);//MAKES BALL SESNOR TURN ON
         tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
+        if(!upperLimit.get()){
+            rotateEncoderData.reset();
+            needUpperLimit = false;
+        }else{
+            needUpperLimit = true;
+        }
     }
 
     /**
@@ -414,10 +427,13 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.ROTATE_UP://rotate shooter up
                 brakePosition = !BRAKE_EXTENDED;
                 if (wantedShooterAngle == UP_POSITION && upperLimitSwitch) {//straight up and down
+                    if(needUpperLimit){
+                        rotateEncoderData.reset();
+                        needUpperLimit = false;
+                    }
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
                     isEncoderDataSet = true;
-                    rotateEncoderData.reset();
                     acquisitionState = AcqState.SAFE_STATE;
                 } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
                     rotationSpeed = 0;
@@ -524,10 +540,12 @@ public class Acquisitions extends GenericSubsystem{
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
-                if(rotateEncoderData.getDistance() > (wantedShooterAngle + (DEGREES_PER_TOOTH/2)) ||
-                       rotateEncoderData.getDistance() < (wantedShooterAngle - (DEGREES_PER_TOOTH/2)) ){
+                if((rotateEncoderData.getDistance() - (DEGREES_PER_TOOTH/2) > wantedShooterAngle ||
+                       rotateEncoderData.getDistance() + (DEGREES_PER_TOOTH/2) < wantedShooterAngle) &&
+                        Timer.getFPGATimestamp() - lastCorrectionTime > ERROR_CORRECT_TIME){
                     startCorrectTime = Timer.getFPGATimestamp();
                     acquisitionState = AcqState.FIX_OFF_BY_ONE;
+                    wantedState = AcqState.FIX_OFF_BY_ONE;
                 }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
@@ -548,7 +566,9 @@ public class Acquisitions extends GenericSubsystem{
                         rotationSpeed = 0.3;
                     }
                 }else{
+                    lastCorrectionTime = Timer.getFPGATimestamp();
                     acquisitionState = AcqState.READY_TO_SHOOT;
+                    wantedState = AcqState.READY_TO_SHOOT;
                 }
                 break;
         }
@@ -579,7 +599,7 @@ public class Acquisitions extends GenericSubsystem{
      * @return if the acquisitions system is ready to shoot or not 
      */
     public boolean readyToShoot(){
-        return(acquisitionState == AcqState.READY_TO_SHOOT);
+        return(acquisitionState == AcqState.READY_TO_SHOOT && wantedState != AcqState.FIX_OFF_BY_ONE);
     }
     
     /**
@@ -632,6 +652,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
+        closeShot = true;
         shortShot = !SHORT_SHOT_ACTIVATED;
         if(ds.isAutonomous()){
             wantedState = AcqState.READY_TO_SHOOT;
@@ -642,6 +663,7 @@ public class Acquisitions extends GenericSubsystem{
                 shortShot = SHORT_SHOT_ACTIVATED;
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
+                closeShot = true;
                 break;
             case AcqState.MIDDLE_SHOOTER_PRESET:
                 setAngle(MID_SHOOTER_PRESET);
@@ -664,7 +686,7 @@ public class Acquisitions extends GenericSubsystem{
      * UP_POSITION - straight up
      * DOWN_POSITION - acquiring
      */
-    private void setAngle(int angle){
+    private void setAngle(double angle){
         if(wantedState == AcqState.READY_TO_SHOOT){
             wantedShooterAngle = angle;
             rotateEncoderData.calculateSpeed();
@@ -738,6 +760,10 @@ public class Acquisitions extends GenericSubsystem{
     private void updateSmartDashboard(){
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, readyToShoot());
         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, wantedShooterAngle);
+    }
+    
+    public boolean isCloseShot(){
+        return closeShot;
     }
 
     

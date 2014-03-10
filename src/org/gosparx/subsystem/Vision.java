@@ -64,6 +64,7 @@ public class Vision extends GenericSubsystem {
     private double startImageTime;
     private boolean cameraResponding = false;
     private int timeOutNumber = 0;
+    private boolean firstImage = true;
     
     private int boundingRectHeight;
     private final static int MAX_STORED_PICTURES = 50;
@@ -115,9 +116,11 @@ public class Vision extends GenericSubsystem {
         if (cameraResponding) {
             if(needImage){
                 cameraLights.set(true);
-                freeImage();
+                if(!firstImage){
+                    freeImage();
+                }
                 getBestTarget();
-                needImage = false;
+                firstImage = false;
             }else{
                 cameraLights.set(false);
             }
