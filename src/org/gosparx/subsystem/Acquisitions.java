@@ -61,14 +61,12 @@ public class Acquisitions extends GenericSubsystem{
      * Used to control the angle of the shooter
      * mini-CIM driven with a 55/12 reduction (motor/output)
      */
-    private CANJaguar rotatingMotor;
     private Jaguar rotatingMotorPWM;
     
     /**
      * Used to control the intake rollers
      * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
-    private CANJaguar acqRoller;
     private Jaguar acqRollerPWM;
     
     /**
@@ -81,6 +79,11 @@ public class Acquisitions extends GenericSubsystem{
      * Should be extended once match begins
      */
     private Solenoid acqShortPnu;
+    
+    /**
+     * The solenoid used to make short shots
+     */
+    private Solenoid tensionSolenoid;
     
     /**
      * Limit Switch. Mounted on the acquisition rollers
@@ -106,6 +109,11 @@ public class Acquisitions extends GenericSubsystem{
      * Gives power to the ball detector system
      */
     private Solenoid ballDetectorPower;
+    
+    /**
+     * Locks the cage into a certain position by locking the rotating gear
+     */
+    private Solenoid tiltBrake;
             
     /**
      * Is attached to the motor that drives the rotating motion.
@@ -138,10 +146,15 @@ public class Acquisitions extends GenericSubsystem{
     private final static boolean ACQ_LONG_PNU_EXTENDED = true;//TODO: CHECK
     
     /**
+     * The position in which the tension solenoid has to be in to make a short shot 
+     */
+    private final static boolean SHORT_SHOT_ACTIVATED = true;//TODO: Check
+    
+    /**
      * The speed at which the rollers pick up a ball.
      * May have to be modified based on design. (slower may be better)
      */
-    private final static double INTAKE_ROLLER_SPEED = -1.0;//TODO: CHECK
+    private final static double INTAKE_ROLLER_SPEED = 1.0;//TODO: CHECK
     
     /**
      * The distance each tick travels. (in degrees)
@@ -154,17 +167,22 @@ public class Acquisitions extends GenericSubsystem{
     private final static double ROTATE_UP_SPEED = -80;
     
     /**
+     * Degrees per second
+     */
+    private final static double ROTATE_DOWN_SPEED = 75;
+    
+    /**
      * The angle at which it is legal for the acquisition rollers to extend 
      * without breaking rules
      */
-    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 110;//TODO: CHECK
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND = 105;//TODO: CHECK
     
     
     /**
      * The angle at which the longer rollers must be retracted to be within the 
      * frame perimeter.
      */ 
-    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 65;
+    private final static int ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER = 45;
     
     /**
      * The name of this subsystem.
@@ -175,24 +193,28 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Close Shooter preset. Use this angle if we are close to the goal.
      */
-    private final static int CLOSE_SHOOTER_PRESET = 34;
+    private final static double CLOSE_SHOOTER_PRESET = 38;
 
+    /**
+     * Truss Shooter preset. Used to shot the ball over the truss 
+     */
+    private final static double TRUSS_SHOOTER_PRESET = 34;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static int MID_SHOOTER_PRESET = 52;
+   private final static double MID_SHOOTER_PRESET = 48;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static int FAR_SHOOTER_PRESET = 60;
+   private final static double FAR_SHOOTER_PRESET = 58.5;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
     * we do not slam back into the back supports and limit switches.
     */
-   private final static int CENTER_OF_GRAVITY_ANGLE = 25;
+   private final static double CENTER_OF_GRAVITY_ANGLE = 25;
    
    /**
     * The angle when we are close to the floor mode, or acquiring. It is used to
@@ -218,7 +240,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The tolerance in degrees for pivoting.
      */
-    private static final double PIVOT_THRESHOLD                             = 1;
+    private static final double PIVOT_THRESHOLD                             = 4;
     
     /**
      * The motor output to start pivoting up at. 
@@ -235,6 +257,20 @@ public class Acquisitions extends GenericSubsystem{
      * The motor output when we are CLOSE_TO_ACQUIRING.
      */ 
     private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
+    
+    
+    private static final double TILT_HOLD_POSITION                          = -0.15;
+    
+    /**
+     * The extended position for the brake
+     */
+    private static final boolean BRAKE_EXTENDED = true;
+    
+    private static final double DEGREES_PER_TOOTH = 3.6;
+    
+    private static final double CORRECTION_TIME = 0.3;
+    
+    private static final double ERROR_CORRECT_TIME = 0.5;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -304,6 +340,26 @@ public class Acquisitions extends GenericSubsystem{
     private boolean lowerLimitSwitch = true;
     
     /**
+     * The wanted position for the brake;
+     * Extended = braking
+     * Retracted = free spin
+     */
+    private boolean brakePosition;
+    
+    /**
+     * The position in which the tension solenoid is set to.
+     */
+    private boolean shortShot;
+    
+    private double startCorrectTime = 0;
+    
+    private double lastCorrectionTime = 0;
+    
+    private boolean needUpperLimit = false;
+    
+    private boolean closeShot = false;
+    
+    /**
      * 
      * @returns the only running thread of Acquisitions.
      * This should be used instead of (new Acquisitions2)
@@ -328,32 +384,29 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        if(!IO.USE_PWM_CABLES){
-            try {
-                rotatingMotor = new CANJaguar(IO.CAN_ADRESS_PIVOT);
-                acqRoller = new CANJaguar(IO.CAN_ADRESS_ACQ);
-            } catch (CANTimeoutException ex) {
-                log.logError("CANBus Timeout in Acquisitions init()");
-                throw new RuntimeException("CAN timeout in acquisitions init");
-            }
-        }else{
-            rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
-            acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
-        }
+        rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
+        acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         vision = Vision.getInstance();
+        tiltBrake = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_BRAKE);
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         ballDetector = new DigitalInput(IO.DEFAULT_SLOT, IO.ACQ_BALL_DETECTOR);
         upperLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_SAFE_MODE_CHAN);
         rotateEncoder = new Encoder(IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_1, IO.DEFAULT_SLOT, IO.PIVOT_ENCODER_CHAN_2, false);
         rotateEncoder.setDistancePerPulse(DEGREES_PER_TICK);
         rotateEncoderData = new EncoderData(rotateEncoder, DEGREES_PER_TICK);
-        rotateEncoderData.reset();
         lowerLimit = new DigitalInput(IO.DEFAULT_SLOT, IO.SHOOTER_ACQ_MODE_CHAN);
         acqShortPnu = new Solenoid(IO.DEFAULT_SLOT, IO.KEEP_IN_FRAME_CHAN);
         acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);//Puts the rollers out of way of the shooter
         acquisitionState = AcqState.ROTATE_UP;//default state
         wantedState = AcqState.SAFE_STATE;
         ballDetectorPower =  new Solenoid(IO.ALTERNATE_SLOT, IO.BALL_SENSOR_POWER);//MAKES BALL SESNOR TURN ON
+        tensionSolenoid = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_TENSION);
+        if(!upperLimit.get()){
+            rotateEncoderData.reset();
+            needUpperLimit = false;
+        }else{
+            needUpperLimit = true;
+        }
     }
 
     /**
@@ -363,13 +416,8 @@ public class Acquisitions extends GenericSubsystem{
     public void execute() throws Exception {
         ballDetectorPower.set(true);
         if (ds.isTest() && ds.isDisabled()) {//ALL VALUES NEED TO BE SET TO 0
-            if (!IO.USE_PWM_CABLES) {
-                rotatingMotor.setX(0);
-                acqRoller.setX(0);
-            } else {
-                rotatingMotorPWM.set(0);
-                acqRollerPWM.set(0);
-            }
+           rotatingMotorPWM.set(0);
+           acqRollerPWM.set(0);
         }
         rotateEncoderData.calculateSpeed();//Calculates the distance and speed of the encoder
         isBallInRollers = ballDetector.get();
@@ -377,13 +425,17 @@ public class Acquisitions extends GenericSubsystem{
         lowerLimitSwitch = !lowerLimit.get();
         switch (acquisitionState) {
             case AcqState.ROTATE_UP://rotate shooter up
+                brakePosition = !BRAKE_EXTENDED;
                 if (wantedShooterAngle == UP_POSITION && upperLimitSwitch) {//straight up and down
+                    if(needUpperLimit){
+                        rotateEncoderData.reset();
+                        needUpperLimit = false;
+                    }
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
                     isEncoderDataSet = true;
-                    rotateEncoderData.reset();
                     acquisitionState = AcqState.SAFE_STATE;
-                } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
+                } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) >= rotateEncoderData.getDistance() && isEncoderDataSet) {
                     rotationSpeed = 0;
                     wantedAcqSpeed = 0;
                     acquisitionState = wantedState;
@@ -414,26 +466,34 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
+                brakePosition = !BRAKE_EXTENDED;
                 if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
-                } else if (Math.abs(wantedShooterAngle + PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
+                } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else {
-                    if (rotateEncoderData.getDistance() < CLOSE_TO_ACQUIRING_ANGLE) {
-                        rotationSpeed = PIVOT_DOWN_START_POWER;//MAY WANT TO RAMP
+                    if (rotateEncoderData.getSpeed() < ROTATE_DOWN_SPEED) {
+                        rotationSpeed -= .05;
                     } else {
-                        rotationSpeed = PIVOT_DOWN_CLOSE_POWER;
+                        rotationSpeed += .1;
+                    }
+                    if (rotationSpeed > 1) {
+                        rotationSpeed = 1;
+                    } else if (rotationSpeed < -1) {
+                        rotationSpeed = -1;
                     }
                 }
+                
                 if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()
                         && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED) {
                     acquisitionState = AcqState.ROTATE_READY_TO_EXTEND;
                 }
                 
-                if (ACQ_ROLLER_ALLOWED_TO_EXTEND <= rotateEncoderData.getDistance()) {
-                    acqLongPnu.set(ACQ_SHORT_PNU_EXTENDED);//Ball can't escape
+                if (ACQ_ROLLER_ALLOWED_TO_EXTEND_UPPER - 40 <= rotateEncoderData.getDistance()) {
+//                    acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);//Ball can't escape
+                    wantedAcqSpeed = -INTAKE_ROLLER_SPEED;
                 }
                 
                 wantedAcqSpeed = 0;//turns motors off
@@ -449,7 +509,7 @@ public class Acquisitions extends GenericSubsystem{
                 acquisitionState = AcqState.ROTATE_UP;
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                rotationSpeed = -0.2;//MAKES sure that the shooter stays down. (it can backdrive)
+                rotationSpeed = TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
@@ -472,10 +532,21 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                wantedAcqSpeed = 0;
                 vision.setCameraMode(true);
+                rotationSpeed = TILT_HOLD_POSITION;
+                brakePosition = BRAKE_EXTENDED;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
+                if((rotateEncoderData.getDistance() - (DEGREES_PER_TOOTH/2) > wantedShooterAngle ||
+                       rotateEncoderData.getDistance() + (DEGREES_PER_TOOTH/2) < wantedShooterAngle) &&
+                        Timer.getFPGATimestamp() - lastCorrectionTime > ERROR_CORRECT_TIME){
+                    startCorrectTime = Timer.getFPGATimestamp();
+                    acquisitionState = AcqState.FIX_OFF_BY_ONE;
+                    wantedState = AcqState.FIX_OFF_BY_ONE;
+                }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 break;
@@ -485,8 +556,32 @@ public class Acquisitions extends GenericSubsystem{
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 wantedAcqSpeed = 0;
                 break;
+            case AcqState.FIX_OFF_BY_ONE:
+                if (Timer.getFPGATimestamp() - startCorrectTime < CORRECTION_TIME) {
+                    if (rotateEncoderData.getDistance() < wantedShooterAngle) {//TO HIGH
+                        brakePosition = !BRAKE_EXTENDED;
+                        rotationSpeed = -0.3;
+                    } else if (rotateEncoderData.getDistance() > wantedShooterAngle) {//TO LOW
+                        brakePosition = !BRAKE_EXTENDED;
+                        rotationSpeed = 0.3;
+                    }
+                }else{
+                    lastCorrectionTime = Timer.getFPGATimestamp();
+                    acquisitionState = AcqState.READY_TO_SHOOT;
+                    wantedState = AcqState.READY_TO_SHOOT;
+                }
+                break;
         }
-        setPivotMotor(rotationSpeed);
+        
+        if(acquisitionState != AcqState.READY_TO_SHOOT){
+            tensionSolenoid.set(!SHORT_SHOT_ACTIVATED);
+        }
+        tiltBrake.set(brakePosition);
+        if(tiltBrake.get() != BRAKE_EXTENDED){
+            setPivotMotor(rotationSpeed);
+        }else{
+            setPivotMotor(0);
+        }
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
     }
@@ -496,15 +591,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param value - the desired motor output
      */ 
     private void setAcquiringMotor(double value){
-        if(!IO.USE_PWM_CABLES){
-            try {
-                acqRoller.setX(value * -1);//motor runs backwards. (silly motors)
-            } catch (CANTimeoutException ex) {
-                ex.printStackTrace();
-            }
-        }else{
-            acqRollerPWM.set(value * -1);
-        }
+            acqRollerPWM.set(value);
     }
     
     /**
@@ -512,7 +599,7 @@ public class Acquisitions extends GenericSubsystem{
      * @return if the acquisitions system is ready to shoot or not 
      */
     public boolean readyToShoot(){
-        return(acquisitionState == AcqState.READY_TO_SHOOT);
+        return(acquisitionState == AcqState.READY_TO_SHOOT && wantedState != AcqState.FIX_OFF_BY_ONE);
     }
     
     /**
@@ -552,6 +639,8 @@ public class Acquisitions extends GenericSubsystem{
                         break;
                     case AcqState.OFF_STATE:
                         acquisitionState = AcqState.OFF_STATE;
+                        break;
+                    
                 }
             }
     }
@@ -563,12 +652,18 @@ public class Acquisitions extends GenericSubsystem{
      * @param preset 
      */
     public void setPreset(int preset){
+        closeShot = true;
+        shortShot = !SHORT_SHOT_ACTIVATED;
         if(ds.isAutonomous()){
             wantedState = AcqState.READY_TO_SHOOT;
         }
         switch(preset){
+            case AcqState.TRUSS_SHOOTER_PRESET:
+                setAngle(TRUSS_SHOOTER_PRESET);
+                shortShot = SHORT_SHOT_ACTIVATED;
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
+                closeShot = true;
                 break;
             case AcqState.MIDDLE_SHOOTER_PRESET:
                 setAngle(MID_SHOOTER_PRESET);
@@ -582,6 +677,7 @@ public class Acquisitions extends GenericSubsystem{
             default:
                 wantedShooterAngle = UP_POSITION;
         }
+        tensionSolenoid.set(shortShot);
     }
     
     /**
@@ -590,7 +686,7 @@ public class Acquisitions extends GenericSubsystem{
      * UP_POSITION - straight up
      * DOWN_POSITION - acquiring
      */
-    private void setAngle(int angle){
+    private void setAngle(double angle){
         if(wantedState == AcqState.READY_TO_SHOOT){
             wantedShooterAngle = angle;
             rotateEncoderData.calculateSpeed();
@@ -607,7 +703,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param offset - the offset in degrees to rotate the shooter. Negative 
      *                 goes up, positive goes down.
      */ 
-    public void addOffset(int offset){
+    public void addOffset(double offset){
         wantedShooterAngle += offset;
         if(wantedShooterAngle < UP_POSITION){
             wantedShooterAngle = UP_POSITION;
@@ -634,15 +730,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param speed - the desired output of the pivot motor.
      */ 
     private void setPivotMotor(double speed){
-        if(!IO.USE_PWM_CABLES){
-            try {
-                rotatingMotor.setX(speed);
-            } catch (CANTimeoutException ex) {
-                log.logError("CAN Timeout while setting pivot motor: " + ex.getMessage());
-            }
-        }else{
-            rotatingMotorPWM.set(speed);
-        }
+        rotatingMotorPWM.set(speed);
     }
     
     /**
@@ -673,6 +761,10 @@ public class Acquisitions extends GenericSubsystem{
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, readyToShoot());
         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, wantedShooterAngle);
     }
+    
+    public boolean isCloseShot(){
+        return closeShot;
+    }
 
     
     /**
@@ -681,21 +773,17 @@ public class Acquisitions extends GenericSubsystem{
      * Sets up the live window screen used in test mode to control each system manually.
      */
     public void liveWindow() {
-        if(!IO.USE_PWM_CABLES){
-            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotor);
-            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRoller);
-        }else{
-            LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotorPWM);
-            LiveWindow.addActuator(subsystemName, "Acquisitions", acqRollerPWM);
-        }
+        LiveWindow.addActuator(subsystemName, "Pivot", rotatingMotorPWM);
+        LiveWindow.addActuator(subsystemName, "Acquisitions", acqRollerPWM);
         LiveWindow.addActuator(subsystemName, "Small Cylinder", acqShortPnu);
         LiveWindow.addActuator(subsystemName, "Large Cylinder", acqLongPnu);
+        LiveWindow.addActuator(subsystemName, "Brake", tiltBrake);
         LiveWindow.addSensor(subsystemName, "Upper Limit Switch", upperLimit);
         LiveWindow.addSensor(subsystemName, "Lower Limit Switch", lowerLimit);
         LiveWindow.addSensor(subsystemName, "Ball Detector", ballDetector);
         LiveWindow.addSensor(subsystemName, "Pivot Encoder", rotateEncoder);
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, false);
-         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
+        SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, 0);
     }
 
     public int sleepTime() {
@@ -728,11 +816,14 @@ public class Acquisitions extends GenericSubsystem{
         public static final int READY_TO_SHOOT = 9;
         public static final int SAFE_STATE = 10;
         public static final int OFF_STATE = 11;
+        public static final int FIX_OFF_BY_ONE = 12;
+        
         //USED FOR PRESETS:
-        public static final int CLOSE_SHOOTER_PRESET = 20;
-        public static final int MIDDLE_SHOOTER_PRESET = 21;
-        public static final int FAR_SHOOTER_PRESET = 22;
-        public static final int AUTO_PRESET = 23;
+        public static final int TRUSS_SHOOTER_PRESET = 20;
+        public static final int CLOSE_SHOOTER_PRESET = 21;
+        public static final int MIDDLE_SHOOTER_PRESET = 22;
+        public static final int FAR_SHOOTER_PRESET = 23;
+        public static final int AUTO_PRESET = 24;
         
         /**
          * @param state - the state to get the string version of
@@ -762,6 +853,8 @@ public class Acquisitions extends GenericSubsystem{
                     return "Safe State";
                 case OFF_STATE:
                     return "Off State";
+                case FIX_OFF_BY_ONE:
+                    return "Fix off by one";
                 default:
                     return "UNKNOWN";
             }

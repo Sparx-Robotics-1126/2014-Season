@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
@@ -27,13 +28,13 @@ public class Shooter extends GenericSubsystem{
     /**
      * The inches the pot travels per volt change.
      */
-    private static final double INCHES_PER_VOLT = -7.8539816339744830961566084581988;//1 and 1/4 inch wheel
+    private static final double INCHES_PER_VOLT = -12.566370614359172953850573533118;//2 inch wheel
     
     /**
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 17;
+    private static final double INCHES_TO_WIND = 14;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -79,10 +80,14 @@ public class Shooter extends GenericSubsystem{
     private AnalogPotentiometer winchPot;
     
     /**
-     * The motor controller for the winch.
+     * The motor controller for the right side of the winch.
      */
-    private CANJaguar winchMotor;
-    private Jaguar winchMotorPWM;
+    private Jaguar rightWinchMotor;
+
+    /**
+     * The motor controller for the left side of the winch
+     */
+    private Victor leftWinchMotor;
     
     /**
      * The limit switch for the winch latch.
@@ -98,7 +103,7 @@ public class Shooter extends GenericSubsystem{
      * The Solenoid of latch.
      */ 
     private Solenoid latch;
-    
+
     /**
      * The speed that the winch is set at the end of the execute() loop.
      */
@@ -134,12 +139,11 @@ public class Shooter extends GenericSubsystem{
      * The value of the limit switch
      */
     private boolean limitSwitchValue;
-    
+
     /**
      * Determines if the camera should save a picture after shooting
      */
     private boolean gotLastShot = false;
-    
     /**
      * The subsystem name that all of the components are listed under in the
      * livewindow.
@@ -167,16 +171,7 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        if(!IO.USE_PWM_CABLES){
-            try {
-                winchMotor = new CANJaguar(IO.CAN_ADRESS_WINCH);
-            } catch (CANTimeoutException ex) {
-                log.logError("CANBus timeout in Shooter init()");
-                throw new RuntimeException("Can Timout in shoot init");
-            }
-        }else{
-            winchMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
-        }
+        rightWinchMotor = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
@@ -188,6 +183,7 @@ public class Shooter extends GenericSubsystem{
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
+        leftWinchMotor = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
     }
 
     /**
@@ -195,11 +191,7 @@ public class Shooter extends GenericSubsystem{
      */ 
     public void execute() throws Exception {
         if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
-            if(IO.USE_PWM_CABLES){
-                winchMotor.setX(0);
-            }else{
-                winchMotorPWM.set(0);
-            }
+            rightWinchMotor.set(0);
         }
         wantedWinchSpeed = 0;
         limitSwitchValue = !latchSwitch.get();
@@ -208,6 +200,9 @@ public class Shooter extends GenericSubsystem{
             // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
             case State.SHOOT:
                 latch.set(LATCH_DISENGAGED);
+                if(Acquisitions.getInstance().isCloseShot()){
+                   shooterState = State.SHOOT_UNWINDING;
+                }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
                 break;
@@ -225,11 +220,14 @@ public class Shooter extends GenericSubsystem{
             // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
             // Then starts retracting the winch.
             case State.SHOOTER_COOLDOWN:
-                if(Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot){
-                    Vision.getInstance().saveImage();
-                    gotLastShot = true;
-                }else if(Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE){
-                    gotLastShot = false;
+                try {
+                    if (Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot) {
+                        Vision.getInstance().saveImage();
+                        gotLastShot = true;
+                    } else if (Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE) {
+                        gotLastShot = false;
+                    }
+                }catch(Exception name){
                 }
                 if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
                     if (limitSwitchValue) {
@@ -260,7 +258,7 @@ public class Shooter extends GenericSubsystem{
                 }
                 break;
             case State.UNWINDING:
-                wantedWinchSpeed = -WINCH_SPEED/2;
+                wantedWinchSpeed = -WINCH_SPEED;
                 if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
@@ -269,20 +267,26 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastWindTime >= WIND_TIMEOUT) || potData.getInches() <= 0){
+                System.out.println("POT DISTANCE: " + potData.getInches());
+                if (potData.getInches() <= 5) {
                     wantedWinchSpeed = 0;
-                    shooterState = State.UNWIND_WINCH;
+                    shooterState = State.STANDBY;
+                }
+                break;
+            case State.SHOOT_UNWINDING:
+                wantedWinchSpeed = -WINCH_SPEED;
+                if ((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND) {
+                    log.logMessage("UNWINDING COMPLETE");
+                    wantedWinchSpeed = 0;
+                    shooterState = State.SHOOTER_COOLDOWN;
                 }
                 break;
             default:
                 log.logError("Unknown Shooter state: " + shooterState);
                 break;
         }
-        if(!IO.USE_PWM_CABLES){
-            winchMotor.setX(wantedWinchSpeed);
-        }else{
-            winchMotorPWM.set(wantedWinchSpeed);
-        }
+        rightWinchMotor.set(wantedWinchSpeed);
+        leftWinchMotor.set(-wantedWinchSpeed);
     }
     
     /**
@@ -299,7 +303,7 @@ public class Shooter extends GenericSubsystem{
      * @return if the shooter attempted to shoot
      */ 
     public boolean shoot(){
-       if(shooterState == State.STANDBY){ //&& Acquisitions.getInstance().readyToShoot()){
+       if(shooterState == State.STANDBY && (Acquisitions.getInstance().readyToShoot() || ds.isOperatorControl())){
            shooterState = State.SHOOT;
            log.logMessage("Shooting");
            return true;
@@ -307,20 +311,16 @@ public class Shooter extends GenericSubsystem{
        log.logMessage("Attempted to shoot, but could not");
        return false;
     }
-
+    
     /**
      * Initializes and adds all of the components to the livewindow.
      */ 
     public void liveWindow() {
-        if(!IO.USE_PWM_CABLES){
-            LiveWindow.addActuator(subsystemName, "Winch", winchMotor);
-        }else{
-            LiveWindow.addActuator(subsystemName, "Winch", winchMotorPWM);
-        }
+        LiveWindow.addActuator(subsystemName, "Winch 1", rightWinchMotor);
         LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
+        LiveWindow.addActuator(subsystemName, "Winch 2", leftWinchMotor);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
-        
     }
 
     public int sleepTime() {
@@ -361,6 +361,7 @@ public class Shooter extends GenericSubsystem{
         public static final int UNWIND_WINCH = 6;
         public static final int UNWINDING = 7;
         public static final int WINDING = 8;
+        public static final int SHOOT_UNWINDING = 9;
         
         /**
          * Returns a string version of the state.
