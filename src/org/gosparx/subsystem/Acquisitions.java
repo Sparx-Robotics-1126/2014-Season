@@ -357,6 +357,8 @@ public class Acquisitions extends GenericSubsystem{
     
     private boolean needUpperLimit = false;
     
+    private boolean firstReadyToShot = true;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -532,18 +534,17 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 wantedAcqSpeed = 0;
                 vision.setCameraMode(true);
-                rotationSpeed = TILT_HOLD_POSITION;
-                brakePosition = BRAKE_EXTENDED;
+//                rotationSpeed = TILT_HOLD_POSITION;
+
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
                 acquisitionState = wantedState;
-                if((rotateEncoderData.getDistance() - (DEGREES_PER_TOOTH/2) > wantedShooterAngle ||
-                       rotateEncoderData.getDistance() + (DEGREES_PER_TOOTH/2) < wantedShooterAngle) &&
-                        Timer.getFPGATimestamp() - lastCorrectionTime > ERROR_CORRECT_TIME){
-                    startCorrectTime = Timer.getFPGATimestamp();
-                    acquisitionState = AcqState.FIX_OFF_BY_ONE;
-                    wantedState = AcqState.FIX_OFF_BY_ONE;
+                if(firstReadyToShot){
+                    lastCorrectionTime = Timer.getFPGATimestamp();
+                    firstReadyToShot = false;
+                }else if(Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME){
+                    brakePosition = BRAKE_EXTENDED;
                 }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
@@ -582,6 +583,9 @@ public class Acquisitions extends GenericSubsystem{
         }
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
+        if(acquisitionState != AcqState.READY_TO_SHOOT){
+            firstReadyToShot = true;
+        }
     }
     
     /**
