@@ -208,7 +208,7 @@ public class Acquisitions extends GenericSubsystem{
    /**
     * Far Shooter preset. Use if we are far from the goal.
     */
-   private final static double FAR_SHOOTER_PRESET = 58.5;
+   private final static double FAR_SHOOTER_PRESET = 57.6;
    
    /**
     * The angle where the shooter shifts center of gravity. Used to slow down so
@@ -271,6 +271,10 @@ public class Acquisitions extends GenericSubsystem{
     private static final double CORRECTION_TIME = 0.3;
     
     private static final double ERROR_CORRECT_TIME = 0.5;
+    
+    private static final double ACQUIRING_THRESHOLD = 90;
+    
+    private static final double SAFE_THRESHOLD = 10;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -467,7 +471,7 @@ public class Acquisitions extends GenericSubsystem{
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
                 brakePosition = !BRAKE_EXTENDED;
-                if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch) {//limit Switch reads false when touched
+                if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch && rotateEncoderData.getDistance() > ACQUIRING_THRESHOLD) {//limit Switch reads false when touched
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
                 } else if (Math.abs(wantedShooterAngle - PIVOT_THRESHOLD) <= rotateEncoderData.getDistance()) {
@@ -535,10 +539,9 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 vision.setCameraMode(true);
 //                rotationSpeed = TILT_HOLD_POSITION;
-
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
-                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 15;
+                rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 10;
                 acquisitionState = wantedState;
                 if(firstReadyToShot){
                     lastCorrectionTime = Timer.getFPGATimestamp();
@@ -661,6 +664,7 @@ public class Acquisitions extends GenericSubsystem{
         switch(preset){
             case AcqState.LONG_SHOOTER_PRESET:
                 setAngle(LONG_SHOOTER_PRESET);
+                break;
             case AcqState.CLOSE_SHOOTER_PRESET:
                 setAngle(CLOSE_SHOOTER_PRESET);
                 shortShot = SHORT_SHOT_ACTIVATED;
