@@ -175,15 +175,13 @@ public class Shooter extends GenericSubsystem{
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
-        if(!latchSwitch.get()){
-            shooterState = State.STANDBY;
-        }else{
-            shooterState = State.SET_HOME;
-        }
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
         leftWinchMotor = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+        if(!latchSwitch.get()){
+            potData.reset();
+        }
     }
 
     /**
@@ -201,7 +199,7 @@ public class Shooter extends GenericSubsystem{
             case State.SHOOT:
                 latch.set(LATCH_DISENGAGED);
                 if(Acquisitions.getInstance().isCloseShot()){
-                   shooterState = State.SHOOT_UNWINDING;
+                   shooterState = State.SHOOTER_UNWINDING;
                 }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
@@ -210,7 +208,7 @@ public class Shooter extends GenericSubsystem{
             case State.RETRACT:
                 latch.set(LATCH_DISENGAGED);
                 lastWindTime = Timer.getFPGATimestamp();
-                shooterState = State.WINDING;
+                shooterState = State.SHOOTER_WINDING;
                 break;
             // Does nothing
             case State.STANDBY:
@@ -265,19 +263,19 @@ public class Shooter extends GenericSubsystem{
                     shooterState = State.STANDBY;
                 }
                 break;
-           case State.WINDING:
+           case State.SHOOTER_WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
                 if (potData.getInches() <= 5) {
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
                 break;
-            case State.SHOOT_UNWINDING:
+            case State.SHOOTER_UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
-                if ((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND) {
+                if(potData.getInches() >= INCHES_TO_WIND){
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
-                    shooterState = State.SHOOTER_COOLDOWN;
+                    shooterState = State.STANDBY;
                 }
                 break;
             default:
@@ -340,16 +338,16 @@ public class Shooter extends GenericSubsystem{
      * A class used for storing possible states of the Shooter.
      * 
      * SHOOT - Shoots the ball
-     * RETRACT - disengages the latch and then sets to WINDIND
-     * STANDBY - Does nothing
-     * SHOOTER_COOLDOWN - Waits TIME_BETWEEN_SHOTS seconds after the shot, then
-     *                    starts winding
-     * SET_HOME - Drives the winch all the way back, sets the pot to 0, and then
-     *            engages the latch and unwinds the winch
-     * UNWIND_WINCH - Engages the latch then sets the state to UNWINDING
-     * UNWINDING - Unwinds the winch until the pot reaches INCHES_TO_WIND, then
-     *             Goes to Standby
-     * WINDING - Winds the winch until it reaches 0 or 
+ RETRACT - disengages the latch and then sets to WINDIND
+ STANDBY - Does nothing
+ SHOOTER_COOLDOWN - Waits TIME_BETWEEN_SHOTS seconds after the shot, then
+                    starts winding
+ SET_HOME - Drives the winch all the way back, sets the pot to 0, and then
+            engages the latch and unwinds the winch
+ UNWIND_WINCH - Engages the latch then sets the state to UNSHOOTER_WINDING
+ UNSHOOTER_WINDING - Unwinds the winch until the pot reaches INCHES_TO_WIND, then
+             Goes to Standby
+ SHOOTER_WINDING - Winds the winch until it reaches 0 or 
      */ 
     public static class State{
         public static final int SHOOT = 1;
@@ -359,8 +357,8 @@ public class Shooter extends GenericSubsystem{
         public static final int SET_HOME = 5;
         public static final int UNWIND_WINCH = 6;
         public static final int UNWINDING = 7;
-        public static final int WINDING = 8;
-        public static final int SHOOT_UNWINDING = 9;
+        public static final int SHOOTER_WINDING = 8;
+        public static final int SHOOTER_UNWINDING = 9;
         
         /**
          * Returns a string version of the state.
@@ -381,7 +379,7 @@ public class Shooter extends GenericSubsystem{
                     return "Starting Unwinding";
                 case UNWINDING:
                     return "Unwinding Winch";
-                case WINDING:
+                case SHOOTER_WINDING:
                     return "Winding Winch";
             }
             return "UNKOWN MODE: " + state;

@@ -419,19 +419,19 @@ public class Controls extends GenericSubsystem{
                 
                 if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                    shooter.setMode(Shooter.State.UNWINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                    shooter.setMode(Shooter.State.UNWINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
-                    shooter.setMode(Shooter.State.WINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_WINDING);
                 }else if(opDPadXAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.LONG_SHOOTER_PRESET);
-                    shooter.setMode(Shooter.State.UNWINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
-                    shooter.setMode(Shooter.State.UNWINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }
                 
                 //OFFSET
@@ -449,7 +449,7 @@ public class Controls extends GenericSubsystem{
                 }else if(opR3 && !lastOPR3){
                     shooter.setMode(Shooter.State.STANDBY);
                 }else if(opL3){
-                    shooter.setMode(Shooter.State.WINDING);
+                    shooter.setMode(Shooter.State.SHOOTER_WINDING);
                 }
                 
                 if(opR2 && !lastShoot){
