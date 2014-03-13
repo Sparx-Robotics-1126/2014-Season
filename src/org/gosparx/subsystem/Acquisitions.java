@@ -362,6 +362,8 @@ public class Acquisitions extends GenericSubsystem{
     
     private boolean needImageProccessing = false;
     
+    private boolean isBrakeEnabled = true;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -542,12 +544,16 @@ public class Acquisitions extends GenericSubsystem{
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 10;
                 acquisitionState = wantedState;
-                if(firstReadyToShot){
-                    lastCorrectionTime = Timer.getFPGATimestamp();
-                    firstReadyToShot = false;
-                }else if(Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME){
-                    brakePosition = BRAKE_EXTENDED;
-                    rotationSpeed = TILT_HOLD_POSITION;
+                if (isBrakeEnabled) {
+                    if (firstReadyToShot) {
+                        lastCorrectionTime = Timer.getFPGATimestamp();
+                        firstReadyToShot = false;
+                    } else if (Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME) {
+                        brakePosition = BRAKE_EXTENDED;
+                        rotationSpeed = TILT_HOLD_POSITION;
+                    }
+                }else{
+                    brakePosition = !BRAKE_EXTENDED;
                 }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
@@ -761,6 +767,7 @@ public class Acquisitions extends GenericSubsystem{
     private void updateSmartDashboard(){
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, readyToShoot());
         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, wantedShooterAngle);
+        SmartDashboard.putBoolean("Brake Enabled", isBrakeEnabled);
     }
     
     public boolean isCloseShot(){
@@ -789,6 +796,14 @@ public class Acquisitions extends GenericSubsystem{
 
     public int sleepTime() {
         return 20;
+    }
+
+    public boolean isBrakeEnabled() {
+        return isBrakeEnabled;
+    }
+    
+    public void setBrakeEnabled(boolean enabled){
+        isBrakeEnabled = enabled;
     }
     
     /**
