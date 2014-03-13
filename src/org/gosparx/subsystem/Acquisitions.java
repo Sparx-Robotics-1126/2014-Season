@@ -767,6 +767,7 @@ public class Acquisitions extends GenericSubsystem{
     private void updateSmartDashboard(){
         SmartDashboard.putBoolean(READY_TO_SHOOT_DISPLAY, readyToShoot());
         SmartDashboard.putNumber(WANTED_ANGLE_DISPLAY, wantedShooterAngle);
+        SmartDashboard.putBoolean("Brake Enabled", isBrakeEnabled);
     }
     
     public boolean isCloseShot(){
