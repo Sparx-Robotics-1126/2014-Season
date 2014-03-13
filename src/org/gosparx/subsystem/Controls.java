@@ -476,6 +476,7 @@ public class Controls extends GenericSubsystem{
 
     public void liveWindow() {
         SmartDashboard.putNumber("Timer", 0);
+        SmartDashboard.putBoolean("10 Seconds Left", false);
     }
     
     private void smartDashboardTimer(){

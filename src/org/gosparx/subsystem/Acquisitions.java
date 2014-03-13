@@ -1,14 +1,11 @@
 package org.gosparx.subsystem;
 
 import com.sun.squawk.util.MathUtils;
-import edu.wpi.first.wpilibj.AnalogChannel;
-import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.IO;
@@ -363,6 +360,8 @@ public class Acquisitions extends GenericSubsystem{
     
     private boolean firstReadyToShot = true;
     
+    private boolean needImageProccessing = false;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -427,6 +426,7 @@ public class Acquisitions extends GenericSubsystem{
         isBallInRollers = ballDetector.get();
         upperLimitSwitch = !upperLimit.get();
         lowerLimitSwitch = !lowerLimit.get();
+        needImageProccessing = false;
         switch (acquisitionState) {
             case AcqState.ROTATE_UP://rotate shooter up
                 brakePosition = !BRAKE_EXTENDED;
@@ -537,7 +537,7 @@ public class Acquisitions extends GenericSubsystem{
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 wantedAcqSpeed = 0;
-                vision.setCameraMode(true);
+                needImageProccessing = true;
 //                rotationSpeed = TILT_HOLD_POSITION;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
@@ -589,6 +589,7 @@ public class Acquisitions extends GenericSubsystem{
         if(acquisitionState != AcqState.READY_TO_SHOOT){
             firstReadyToShot = true;
         }
+        vision.setCameraMode(needImageProccessing);
     }
     
     /**

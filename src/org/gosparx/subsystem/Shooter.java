@@ -220,7 +220,8 @@ public class Shooter extends GenericSubsystem{
             case State.SHOOTER_COOLDOWN:
                 try {
                     if (Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot) {
-                        Vision.getInstance().saveImage();
+                        Vision.getInstance().setSaveImage();
+                        log.logMessage("Saved Image");
                         gotLastShot = true;
                     } else if (Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE) {
                         gotLastShot = false;
