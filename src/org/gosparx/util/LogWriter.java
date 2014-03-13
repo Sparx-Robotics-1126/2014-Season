@@ -213,18 +213,20 @@ public class LogWriter extends GenericSubsystem{
             visionConfigNumber = 51;
         }
     }
-    
-    public void writeImage(ColorImage image){
-        try {
-            image.write(photoPath + "Shot" + visionConfigNumber + ".png");
-            increaseVisionFile();
-        } catch (NIVisionException ex) {
-            ex.printStackTrace();
-        }finally{
+  
+    public void writeImage(ColorImage image) {
+        if (image != null) {
             try {
-                image.free();
+                image.write(photoPath + "Shot" + visionConfigNumber + ".png");
+                increaseVisionFile();
             } catch (NIVisionException ex) {
                 ex.printStackTrace();
+            } finally {
+                try {
+                    image.free();
+                } catch (NIVisionException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }
