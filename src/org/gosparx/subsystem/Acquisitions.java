@@ -253,10 +253,10 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * The motor output when we are CLOSE_TO_ACQUIRING.
      */ 
-    private static final double PIVOT_DOWN_CLOSE_POWER                      = -.15;
+    private static final double PIVOT_DOWN_CLOSE_POWER                      = -0.07;
     
     
-    private static final double TILT_HOLD_POSITION                          = -0.15;
+    private static final double TILT_HOLD_POSITION                          = -0.07;
     
     /**
      * The extended position for the brake
@@ -272,6 +272,10 @@ public class Acquisitions extends GenericSubsystem{
     private static final double ACQUIRING_THRESHOLD = 90;
     
     private static final double SAFE_THRESHOLD = 10;
+    
+    private static final double UNBRAKE_TIME = 0.2;
+    
+    private static final double MOTOR_OVERHEAT_TIME = 1.0;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -359,6 +363,10 @@ public class Acquisitions extends GenericSubsystem{
     
     private boolean isBrakeEnabled = true;
     
+    private double lastMotorCheck;
+    
+    private double lastUnBrakeTime;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -421,9 +429,11 @@ public class Acquisitions extends GenericSubsystem{
         needImageProccessing = false;
         switch (acquisitionState) {
             case AcqState.ROTATE_UP://rotate shooter up
-                brakePosition = !BRAKE_EXTENDED;
                 if(tiltBrake.get() == BRAKE_EXTENDED){
-                    rotationSpeed = 0;
+                    lastUnBrakeTime = Timer.getFPGATimestamp();
+                    brakePosition = !BRAKE_EXTENDED;
+                }else if(Timer.getFPGATimestamp() - lastUnBrakeTime < UNBRAKE_TIME){
+                    rotationSpeed = 0.15;
                     break;
                 }
                 if (wantedShooterAngle == UP_POSITION && upperLimitSwitch) {//straight up and down
@@ -461,11 +471,14 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 break;
             case AcqState.ROTATE_DOWN://rotate shooter down
-                brakePosition = !BRAKE_EXTENDED;
                 if(tiltBrake.get() == BRAKE_EXTENDED){
-                    rotationSpeed = 0;
+                    lastUnBrakeTime = Timer.getFPGATimestamp();
+                    brakePosition = !BRAKE_EXTENDED;
+                }else if(Timer.getFPGATimestamp() - lastUnBrakeTime < UNBRAKE_TIME){
+                    rotationSpeed = 0.15;
                     break;
                 }
+                
                 if (wantedShooterAngle == DOWN_POSITION && lowerLimitSwitch && (rotateEncoderData.getDistance() > ACQUIRING_THRESHOLD)) {
                     rotationSpeed = 0;
                     acquisitionState = wantedState;
@@ -503,7 +516,7 @@ public class Acquisitions extends GenericSubsystem{
                 acquisitionState = AcqState.ROTATE_UP;
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                rotationSpeed = TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
+                rotationSpeed = 0.035;//TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
@@ -575,13 +588,26 @@ public class Acquisitions extends GenericSubsystem{
             tensionSolenoid.set(!SHORT_SHOT_ACTIVATED);
         }
         tiltBrake.set(brakePosition);
-        setPivotMotor(rotationSpeed);
+        
+        if(Math.abs(rotationSpeed) > -TILT_HOLD_POSITION && Math.abs(rotateEncoderData.getSpeed()) < 1.0 && 
+                Timer.getFPGATimestamp() - lastMotorCheck > MOTOR_OVERHEAT_TIME){
+            setPivotMotor(0);
+            acquisitionState = AcqState.OFF_STATE;
+            log.logMessage("MOTOR HAS STALLED");
+        }else if(Math.abs(rotationSpeed) <= -TILT_HOLD_POSITION){
+            lastMotorCheck = Timer.getFPGATimestamp();
+        }else{
+            setPivotMotor(rotationSpeed);
+        }
+        
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
         if(acquisitionState != AcqState.READY_TO_SHOOT){
             firstReadyToShot = true;
         }
         vision.setCameraMode(needImageProccessing);
+        
+        
     }
     
     /**
