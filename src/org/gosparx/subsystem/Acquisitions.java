@@ -538,7 +538,6 @@ public class Acquisitions extends GenericSubsystem{
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
                 wantedAcqSpeed = 0;
                 needImageProccessing = true;
-//                rotationSpeed = TILT_HOLD_POSITION;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 10;
@@ -548,6 +547,7 @@ public class Acquisitions extends GenericSubsystem{
                     firstReadyToShot = false;
                 }else if(Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME){
                     brakePosition = BRAKE_EXTENDED;
+                    rotationSpeed = TILT_HOLD_POSITION;
                 }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
@@ -579,11 +579,7 @@ public class Acquisitions extends GenericSubsystem{
             tensionSolenoid.set(!SHORT_SHOT_ACTIVATED);
         }
         tiltBrake.set(brakePosition);
-        if(tiltBrake.get() != BRAKE_EXTENDED){
-            setPivotMotor(rotationSpeed);
-        }else{
-            setPivotMotor(0);
-        }
+        setPivotMotor(rotationSpeed);
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
         if(acquisitionState != AcqState.READY_TO_SHOOT){
