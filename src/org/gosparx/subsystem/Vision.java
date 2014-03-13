@@ -64,9 +64,11 @@ public class Vision extends GenericSubsystem {
     private double startImageTime;
     private boolean cameraResponding = false;
     private int timeOutNumber = 0;
+    private boolean firstImage = true;
     
     private int boundingRectHeight;
     private final static int MAX_STORED_PICTURES = 50;
+    private boolean shouldSaveImage = true;
 
     private Vision() {
         super("Vision", Thread.MIN_PRIORITY);
@@ -115,12 +117,15 @@ public class Vision extends GenericSubsystem {
         if (cameraResponding) {
             if(needImage){
                 cameraLights.set(true);
-                freeImage();
+                if(!firstImage){
+                    freeImage();
+                }
                 getBestTarget();
-                needImage = false;
+                firstImage = false;
             }else{
-                cameraLights.set(false);
+                cameraLights.set(false);   
             }
+            saveImage();
         }
     }
 
@@ -502,11 +507,16 @@ public class Vision extends GenericSubsystem {
     /**
      * Sets weather to store an image or release it
      */
-    public void saveImage() {
-        if (ds.isEnabled()) {
+    private void saveImage() {
+        if (ds.isEnabled() && shouldSaveImage) {
             logWriter.writeImage(image);
             log.logMessage("Image has been saved");
+            shouldSaveImage = false;
         }
+    }
+    
+    public void setSaveImage(){
+        shouldSaveImage = true;
     }
     
     public void logInfo() {

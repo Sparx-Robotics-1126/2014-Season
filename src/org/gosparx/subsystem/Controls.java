@@ -17,7 +17,7 @@ public class Controls extends GenericSubsystem{
      * The amount in degrees to trim the shooter every time the trim buttons are
      * hit.
      */ 
-    private static final int TRIM_ANGLE                                 = 2;
+    private static final double TRIM_ANGLE                                 = 4;
     
     /**
      * The factor to divide the previous + the current joystick Y values. Used 
@@ -97,16 +97,6 @@ public class Controls extends GenericSubsystem{
      * The last value of the drivers left trigger
      */ 
     private boolean lastDriverLeftTrigger;
-    
-    /**
-     * The last value of the operator's Dpad X axis
-     */
-    private int lastDPadX                                           = 0;
-        
-    /**
-     * The last value of the operator's Dpad Y axis
-     */ 
-    private int lastDPadY                                           = 0;
     
     /**
      * The last value of the RTWO button. 
@@ -346,8 +336,6 @@ public class Controls extends GenericSubsystem{
     public void execute() throws Exception {
         if(ds.isEnabled() && ds.isOperatorControl()){
             lastOPSelect = opSelect;
-            lastDPadX = (int) opDPadXAxis;
-            lastDPadY = (int) opDPadYAxis;
             lastOPR1 = opR1;
             lastOPR3 = opR3;
             lastOPCircle = opCircle;
@@ -429,14 +417,21 @@ public class Controls extends GenericSubsystem{
                     acq.setMode(Acquisitions.AcqState.SAFE_STATE);
                 }
                 
-                if(opDPadYAxis == 1 && opDPadYAxis != lastDPadY){
+                if(opDPadYAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                }else if(opDPadXAxis == 1 && opDPadXAxis != lastDPadX){
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                }else if(opDPadXAxis == 1){
                     acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                }else if(opDPadYAxis == -1 && opDPadYAxis != lastDPadY){
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                }else if(opDPadYAxis == -1){
                     acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.SHOOTER_WINDING);
+                }else if(opDPadXAxis == -1){
+                    acq.setPreset(Acquisitions.AcqState.LONG_SHOOTER_PRESET);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }else if(opSelect && !opSelect){
                     acq.setPreset(Acquisitions.AcqState.AUTO_PRESET);
+                    shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
                 }
                 
                 //OFFSET
@@ -453,6 +448,8 @@ public class Controls extends GenericSubsystem{
                     shooter.setMode(Shooter.State.SET_HOME);
                 }else if(opR3 && !lastOPR3){
                     shooter.setMode(Shooter.State.STANDBY);
+                }else if(opL3){
+                    shooter.setMode(Shooter.State.SHOOTER_WINDING);
                 }
                 
                 if(opR2 && !lastShoot){
@@ -479,6 +476,7 @@ public class Controls extends GenericSubsystem{
 
     public void liveWindow() {
         SmartDashboard.putNumber("Timer", 0);
+        SmartDashboard.putBoolean("10 Seconds Left", false);
     }
     
     private void smartDashboardTimer(){

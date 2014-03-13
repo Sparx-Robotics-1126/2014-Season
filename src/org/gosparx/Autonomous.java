@@ -236,12 +236,17 @@ public class Autonomous extends GenericSubsystem {
         {WAIT, 500},
         {ACQ_AQUIRE_BALL},
         {ACQ_ACQUIRE_IN_POSITION},
-        {DRIVES_GO_FORWARD, 30, 25},
+        {DRIVES_GO_FORWARD, 35, 25},
         {DRIVES_DONE},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
         {WAIT, 500},
         {SHOOTER_SHOOT},
+        {WAIT, 500},
+        {DRIVES_GO_FORWARD, 36, 25},
+        {DRIVES_DONE},
+        {DRIVES_GO_FORWARD, 12, 25},
+        {DRIVES_DONE},
         {END}
     };
 
@@ -424,7 +429,11 @@ public class Autonomous extends GenericSubsystem {
                     break;
                 case SHOOTER_SHOOT:
                     log.logMessage("Shoting Ball");
-                    shooter.shoot();
+                    if(shooter.shoot()){
+                        runNextStatement(true);
+                    }else{
+                        runNextStatement(false);
+                    }
                     break;
                 case SHOOTER_SET_PRESET:
                     log.logMessage("Setting Preset");
