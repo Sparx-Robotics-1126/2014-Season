@@ -1,13 +1,12 @@
 package org.gosparx.subsystem;
 
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.CANJaguar;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
-import edu.wpi.first.wpilibj.can.CANTimeoutException;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import org.gosparx.IO;
 import org.gosparx.sensors.PotentiometerData;
@@ -82,12 +81,12 @@ public class Shooter extends GenericSubsystem{
     /**
      * The motor controller for the right side of the winch.
      */
-    private Jaguar rightWinchMotor;
+    private Talon rightWinchMotor;
 
     /**
      * The motor controller for the left side of the winch
      */
-    private Victor leftWinchMotor;
+    private Talon leftWinchMotor;
     
     /**
      * The limit switch for the winch latch.
@@ -171,14 +170,14 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        rightWinchMotor = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_WINCH);
+        rightWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH);
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
-        leftWinchMotor = new Victor(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+        leftWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
         if(!latchSwitch.get()){
             potData.reset();
         }
