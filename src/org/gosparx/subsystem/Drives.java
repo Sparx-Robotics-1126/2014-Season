@@ -376,14 +376,14 @@ public class Drives extends GenericSubsystem {
                 } 
                 break;
             case State.FUNCT_DRIVE_STRAIGHT:
-                if(Math.abs(leftEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                if(inchesToGo - leftEncoderData.getDistance() < DRIVING_THRESHOLD){
                     leftMotorOutput = 0;
                 }
-                if(Math.abs(rightEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD){
+                if(inchesToGo - rightEncoderData.getDistance() < DRIVING_THRESHOLD){
                     rightMotorOutput = 0;
                 }
-                if((Math.abs(rightEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD) && 
-                        (Math.abs(leftEncoderData.getDistance() - inchesToGo) < DRIVING_THRESHOLD)){
+                if(inchesToGo - rightEncoderData.getDistance() < DRIVING_THRESHOLD && 
+                        inchesToGo - leftEncoderData.getDistance() < DRIVING_THRESHOLD){
                     log.logMessage("Done Driving Straight.");
                     setSpeed(0, 0);
                     resetSensors();
