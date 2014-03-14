@@ -220,7 +220,11 @@ public class Autonomous extends GenericSubsystem {
      */
     private static final String MOVE_FOWARD_NAME = "Move Foward";
     private static final int[][] moveFoward = {
+        {WAIT, 500},
+        {ACQ_READY},
+        {SHOOTER_READY},
         {DRIVES_GO_FORWARD, 36, 30},
+        {WAIT, 500},
         {DRIVES_DONE},
         {END}
     };
