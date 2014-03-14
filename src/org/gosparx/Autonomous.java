@@ -260,21 +260,21 @@ public class Autonomous extends GenericSubsystem {
         {SHOOTER_READY},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-        {WAIT, 500},
+        {WAIT, 2000},
         {SHOOTER_SHOOT},
         {DRIVES_GO_FORWARD, 60, 30},
         {DRIVES_DONE},
         {END}
     };
 
-    private static final String ONE_BALL_IN_HOT_HIGH = "One ball in high";
+    private static final String ONE_BALL_IN_HOT_HIGH = "One ball in hot high";
     private static final int[][] oneBallInHotHigh = {
         {ACQ_READY},
         {SHOOTER_READY},
         {TEST_SECONDS_LEFT, 7, 7},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-        {WAIT, 500},
+        {WAIT, 1000},
         {VISION_HOT_TARGET},
         {SHOOTER_SHOOT},
         {DRIVES_GO_FORWARD, 60, 30},

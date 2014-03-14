@@ -482,11 +482,13 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 
                 if (rotateEncoderData.getDistance() >= ACQ_ROLLER_ALLOWED_TO_EXTEND
-                        && acqLongPnu.get() != ACQ_LONG_PNU_EXTENDED) {
+                        && acqLongPnu.get() == !ACQ_LONG_PNU_EXTENDED) {
                     acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                     acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                     wantedAcqSpeed = INTAKE_ROLLER_SPEED;
                 }else{
+                    acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
                     wantedAcqSpeed = 0;//turns motors off
                 }
                 break;
@@ -520,12 +522,15 @@ public class Acquisitions extends GenericSubsystem{
                         firstReadyToShot = false;
                     } else if (Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME) {
                         brakePosition = BRAKE_EXTENDED;
+                        rotationSpeed = TILT_HOLD_POSITION;
                     }
                 }else{
                     brakePosition = !BRAKE_EXTENDED;
                 }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
+                acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
+                acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 rotationSpeed = -TILT_HOLD_POSITION;
                 if(rotateEncoderData.getDistance() < 0)
                     rotateEncoderData.reset();
