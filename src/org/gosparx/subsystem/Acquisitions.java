@@ -264,7 +264,7 @@ public class Acquisitions extends GenericSubsystem{
     
     private static final double UNBRAKE_TIME = 0.2;
     
-    private static final double MOTOR_OVERHEAT_TIME = 1.0;
+    private static final double MOTOR_OVERHEAT_TIME = 2.0;
     
     /*/************************VARIABLES***************************** /*/
     
@@ -596,6 +596,7 @@ public class Acquisitions extends GenericSubsystem{
      */
     public void setMode(int state) {
         wantedState = state;
+        log.logMessage("Switching state to: " + AcqState.getStateName(state));
         switch (state) {
             case AcqState.ACQUIRING:
                 wantedShooterAngle = DOWN_POSITION;
