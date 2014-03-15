@@ -1,10 +1,9 @@
 package org.gosparx.subsystem;
 
-import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,13 +51,13 @@ public class Acquisitions extends GenericSubsystem{
      * Used to control the angle of the shooter
      * mini-CIM driven with a 55/12 reduction (motor/output)
      */
-    private Jaguar rotatingMotorPWM;
+    private Talon rotatingMotorPWM;
     
     /**
      * Used to control the intake rollers
      * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
-    private Jaguar acqRollerPWM;
+    private Talon acqRollerPWM;
     
     /**
      * Used to fully extend the acquisition rollers to be able to acquire balls
@@ -379,8 +378,8 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
-        acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
+        rotatingMotorPWM = new Talon(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
+        acqRollerPWM = new Talon(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         tiltBrake = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_BRAKE);
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         acqShortPnu = new Solenoid(IO.DEFAULT_SLOT, IO.KEEP_IN_FRAME_CHAN);
