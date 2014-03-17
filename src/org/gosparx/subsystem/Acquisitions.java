@@ -1,10 +1,9 @@
 package org.gosparx.subsystem;
 
-import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Jaguar;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -52,13 +51,13 @@ public class Acquisitions extends GenericSubsystem{
      * Used to control the angle of the shooter
      * mini-CIM driven with a 55/12 reduction (motor/output)
      */
-    private Jaguar rotatingMotorPWM;
+    private Talon rotatingMotorPWM;
     
     /**
      * Used to control the intake rollers
      * Bag Motor/Fisher Price driven with a 5/1 reduction (motor/output)
      */
-    private Jaguar acqRollerPWM;
+    private Talon acqRollerPWM;
     
     /**
      * Used to fully extend the acquisition rollers to be able to acquire balls
@@ -379,8 +378,8 @@ public class Acquisitions extends GenericSubsystem{
      * Sets the short cylinder to its default position.
      */
     public void init() {
-        rotatingMotorPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
-        acqRollerPWM = new Jaguar(IO.DEFAULT_SLOT, IO.PWM_ACQ);
+        rotatingMotorPWM = new Talon(IO.DEFAULT_SLOT, IO.PWM_PIVOT);
+        acqRollerPWM = new Talon(IO.DEFAULT_SLOT, IO.PWM_ACQ);
         tiltBrake = new Solenoid(IO.DEFAULT_SLOT, IO.PNU_BRAKE);
         acqLongPnu = new Solenoid(IO.DEFAULT_SLOT, IO.ACQ_TOGGLE_CHAN);
         acqShortPnu = new Solenoid(IO.DEFAULT_SLOT, IO.KEEP_IN_FRAME_CHAN);
@@ -414,7 +413,7 @@ public class Acquisitions extends GenericSubsystem{
                     brakePosition = !BRAKE_EXTENDED;
                     break;
                 }else if(Timer.getFPGATimestamp() - lastUnBrakeTime < UNBRAKE_TIME){
-                    rotationSpeed = 0.15;
+                    rotationSpeed = -TILT_HOLD_POSITION;
                     break;
                 }
                 
@@ -456,7 +455,7 @@ public class Acquisitions extends GenericSubsystem{
                     brakePosition = !BRAKE_EXTENDED;
                     break;
                 }else if(Timer.getFPGATimestamp() - lastUnBrakeTime < UNBRAKE_TIME){
-                    rotationSpeed = 0.15;
+                    rotationSpeed = -TILT_HOLD_POSITION;
                     break;
                 }
                 
@@ -493,7 +492,7 @@ public class Acquisitions extends GenericSubsystem{
                 }
                 break;
             case AcqState.ACQUIRING://Rollers are running and we are getting a ball
-                rotationSpeed = 0.035;//TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
+                rotationSpeed = TILT_HOLD_POSITION;//MAKES sure that the shooter stays down. (it can backdrive)
                 acqLongPnu.set(ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 wantedAcqSpeed = INTAKE_ROLLER_SPEED;//Turns rollers on
@@ -518,11 +517,13 @@ public class Acquisitions extends GenericSubsystem{
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 7.5;
                 if (isBrakeEnabled) {
                     if (firstReadyToShot) {
+                        log.logMessage("Ready To Shoot - Settling Shooter");
                         lastCorrectionTime = Timer.getFPGATimestamp();
                         firstReadyToShot = false;
+                    } else if (Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME + .25){
+                        rotationSpeed = TILT_HOLD_POSITION;
                     } else if (Timer.getFPGATimestamp() - lastCorrectionTime >= ERROR_CORRECT_TIME) {
                         brakePosition = BRAKE_EXTENDED;
-                        rotationSpeed = TILT_HOLD_POSITION;
                     }
                 }else{
                     brakePosition = !BRAKE_EXTENDED;
@@ -543,6 +544,8 @@ public class Acquisitions extends GenericSubsystem{
                 break;
         }
         
+        if(brakePosition != tiltBrake.get())
+            log.logMessage("Brake is now " + (brakePosition == BRAKE_EXTENDED?"extended":"retracted"));
         tiltBrake.set(brakePosition);
         
         if(Math.abs(rotationSpeed) > -TILT_HOLD_POSITION && Math.abs(rotateEncoderData.getSpeed()) < 1.0 && 
@@ -550,12 +553,12 @@ public class Acquisitions extends GenericSubsystem{
             setPivotMotor(0);
             acquisitionState = AcqState.OFF_STATE;
             log.logMessage("MOTOR HAS STALLED");
-        }else if(Math.abs(rotationSpeed) <= -TILT_HOLD_POSITION){
-            lastMotorCheck = Timer.getFPGATimestamp();
-        }else{
-            setPivotMotor(rotationSpeed);
+        } else {
+            if (Math.abs(rotationSpeed) <= -TILT_HOLD_POSITION) {
+                lastMotorCheck = Timer.getFPGATimestamp();
+            } 
+            setPivotMotor(rotationSpeed);            
         }
-        
         setAcquiringMotor(wantedAcqSpeed);
         updateSmartDashboard();
     }
@@ -565,7 +568,7 @@ public class Acquisitions extends GenericSubsystem{
      * @param value - the desired motor output
      */ 
     private void setAcquiringMotor(double value){
-            acqRollerPWM.set(value);
+        acqRollerPWM.set(value);
     }
     
     /**
