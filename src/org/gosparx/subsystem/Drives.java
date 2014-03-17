@@ -489,7 +489,7 @@ public class Drives extends GenericSubsystem {
         double speed = 0;
         if(wantedSpeed != 0) {
             // TODO: Make ramping awsomeness!
-            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 3) + currentOutput;
+            speed = currentSpeed / MAX_ROBOT_SPEED;
         }
 
         return speed;
