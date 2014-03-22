@@ -330,23 +330,12 @@ public class Drives extends GenericSubsystem {
     public void execute() throws Exception {
         double leftCurrentSpeed, rightCurrentSpeed;
         
-        //ALL VALUES NEED TO BE SET TO 0
-        if(ds.isTest() && ds.isDisabled()){
-            rightFrontDrives.set(0);
-            rightRearDrives.set(0);
-            leftFrontDrives.set(0);
-            leftRearDrives.set(0);
-        }
-        
         currentAngle = gyro.getAngle();
         leftEncoderData.calculateSpeed();
         rightEncoderData.calculateSpeed();
         leftCurrentSpeed = leftEncoderData.getSpeed();
         rightCurrentSpeed = rightEncoderData.getSpeed();
-        leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
-        rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
         double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
-        
         averageDistEncoder = (leftEncoderData.getDistance() + rightEncoderData.getDistance())/2;
         
         switch(autoFunctionState){
@@ -376,6 +365,8 @@ public class Drives extends GenericSubsystem {
                 } 
                 break;
             case State.FUNCT_DRIVE_STRAIGHT:
+                leftMotorOutput = getMotorOutput(wantedLeftSpeed, leftCurrentSpeed, leftMotorOutput);
+                rightMotorOutput = getMotorOutput(wantedRightSpeed, rightCurrentSpeed, rightMotorOutput);
                 if(inchesToGo - leftEncoderData.getDistance() < DRIVING_THRESHOLD){
                     leftMotorOutput = 0;
                 }
@@ -409,6 +400,8 @@ public class Drives extends GenericSubsystem {
                 } 
                 break;
             case State.FUNCT_STANDBY:
+                leftMotorOutput = wantedLeftSpeed;
+                rightMotorOutput = wantedRightSpeed;
                break;
             default:
                 log.logMessage("UNKNOWN STATE: " + autoFunctionState);
@@ -467,7 +460,7 @@ public class Drives extends GenericSubsystem {
     public void logInfo(){
         log.logMessage("Gyro: " + gyro.getAngle());
         log.logMessage("Gyro Voltage: " + gyroAnalog.getVoltage());
-        log.logMessage("Left: " + wantedLeftSpeed + " Right: " + wantedRightSpeed);
+        log.logMessage("Left Wanted: " + wantedLeftSpeed + " Right Wanted: " + wantedRightSpeed);
         log.logMessage("Left Motor Output: " + leftMotorOutput + " Right Motor Output: " + rightMotorOutput);
         log.logMessage("Left Encoder Distance: " + leftEncoderData.getDistance() + " Right Encoder Distance: " + rightEncoderData.getDistance());
         log.logMessage("Left Encoder Rate: " + leftEncoderData.getSpeed() + " Right Encoder Rate:" + rightEncoderData.getSpeed());
@@ -489,7 +482,7 @@ public class Drives extends GenericSubsystem {
         double speed = 0;
         if(wantedSpeed != 0) {
             // TODO: Make ramping awsomeness!
-            speed = currentSpeed / MAX_ROBOT_SPEED;
+            speed = ((wantedSpeed - currentSpeed) / MAX_ROBOT_SPEED / 3) + currentOutput;
         }
 
         return speed;
@@ -498,8 +491,10 @@ public class Drives extends GenericSubsystem {
     /**
      * Set the speed of the individual drives in inches per second.
      *
-     * @param left speed of left drives system in Inches per Second
-     * @param right speed of left drives system in Inches per Second
+     * @param left speed of left drives system in Inches per Second if in auto,
+     * else motor output
+     * @param right speed of left drives system in Inches per Second if in auto,
+     * else motor output
      */
     public void setSpeed(double left, double right){
         wantedLeftSpeed = left;
