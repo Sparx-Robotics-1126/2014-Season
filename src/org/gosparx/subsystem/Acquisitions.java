@@ -176,9 +176,9 @@ public class Acquisitions extends GenericSubsystem{
     private final static String subsystemName = "Acquisitions";
     
     /**
-     * Close Shooter preset. Use this angle if we are close to the goal.
+     * One point Shooter preset. Use this angle if we are shooting in the one point goal.
      */
-    private final static double CLOSE_SHOOTER_PRESET = 38;
+    private final static double ONE_POINT_SHOT_PRESET = 15;
 
     /**
      * Truss Shooter preset. Used to shot the ball over the truss 
@@ -638,11 +638,11 @@ public class Acquisitions extends GenericSubsystem{
         shortShot = !SHORT_SHOT_ACTIVATED;
         wantedState = AcqState.READY_TO_SHOOT;
         switch(preset){
-            case AcqState.LONG_SHOOTER_PRESET:
+            case AcqState.TRUSS_SHOT_PRESET:
                 setAngle(LONG_SHOOTER_PRESET);
                 break;
-            case AcqState.CLOSE_SHOOTER_PRESET:
-                setAngle(CLOSE_SHOOTER_PRESET);
+            case AcqState.ONE_POINT_PRESET:
+                setAngle(ONE_POINT_SHOT_PRESET);
                 shortShot = SHORT_SHOT_ACTIVATED;
                 break;
             case AcqState.MIDDLE_SHOOTER_PRESET:
@@ -781,8 +781,8 @@ public class Acquisitions extends GenericSubsystem{
         public static final int OFF_STATE = 11;
         
         //USED FOR PRESETS:
-        public static final int LONG_SHOOTER_PRESET = 20;
-        public static final int CLOSE_SHOOTER_PRESET = 21;
+        public static final int TRUSS_SHOT_PRESET = 20;
+        public static final int ONE_POINT_PRESET = 21;
         public static final int MIDDLE_SHOOTER_PRESET = 22;
         public static final int FAR_SHOOTER_PRESET = 23;
         

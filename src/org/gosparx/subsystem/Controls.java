@@ -306,6 +306,12 @@ public class Controls extends GenericSubsystem {
     private double driverRightZAxis;
     private boolean driverRightTrigger;
     private boolean driverRightTopButton;
+    
+    private static final int DPAD_DOWN = 1;
+    private static final int DPAD_UP = -1;
+    private static final int DPAD_LEFT = -1;
+    private static final int DPAD_RIGHT = 1;
+    
 
     /**
      * Creates a new Controls
@@ -429,20 +435,24 @@ public class Controls extends GenericSubsystem {
                 acq.setMode(Acquisitions.AcqState.SAFE_STATE);
             }
 
-            if (opDPadYAxis == 1) {
+            if (opDPadYAxis == DPAD_DOWN) {
                 acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
                 shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
-            } else if (opDPadXAxis == 1) {
+            } else if (opDPadXAxis == DPAD_RIGHT) {
                 acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
                 shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
-            } else if (opDPadYAxis == -1) {
-                acq.setPreset(Acquisitions.AcqState.CLOSE_SHOOTER_PRESET);
+            } else if (opDPadYAxis == DPAD_UP) {
+                acq.setPreset(Acquisitions.AcqState.ONE_POINT_PRESET);
                 shooter.setMode(Shooter.State.SHOOTER_WINDING);
-            } else if (opDPadXAxis == -1) {
-                acq.setPreset(Acquisitions.AcqState.LONG_SHOOTER_PRESET);
+            } else if (opDPadXAxis == DPAD_LEFT) {
+                acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
                 shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
             }
-
+            if(opLeftYAxis == 1){
+                shooter.setMode(Shooter.State.SHOOTER_WINDING);
+            }else if(opLeftYAxis == -1){
+                shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+            }
             //OFFSET
             if (Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)) {
                 lastOffsetTime = Timer.getFPGATimestamp();
