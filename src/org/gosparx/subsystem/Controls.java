@@ -484,11 +484,10 @@ public class Controls extends GenericSubsystem {
      * formula
      */
     private double getSpeed(double joystickValue, double lastValue) {
-        //joystickValue = (joystickValue + lastValue) / SLOW_DOWN_RAMP;//closer to 1 = slower   
         if (Math.abs(joystickValue) < JOYSTICK_DEADZONE) {
             joystickValue = 0;
         }
-        return joystickValue;//(Drives.MAX_ROBOT_SPEED * ((joystickValue > 0) ? MathUtils.pow(joystickValue, 2) : -MathUtils.pow(joystickValue, 2)) * -1);
+        return -joystickValue;
     }
 
     public void liveWindow() {
