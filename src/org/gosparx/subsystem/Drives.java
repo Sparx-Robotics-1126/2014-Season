@@ -378,7 +378,7 @@ public class Drives extends GenericSubsystem {
                     log.logMessage("Done Driving Straight.");
                     setSpeed(0, 0);
                     resetSensors();
-                    autoFunctionState = State.FUNCT_HOLD_POS;
+                    autoFunctionState = State.FUNCT_STANDBY;
                 }
                 break;
             case State.FUNCT_HOLD_POS:
