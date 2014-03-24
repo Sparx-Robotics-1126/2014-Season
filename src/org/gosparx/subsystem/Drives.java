@@ -56,13 +56,13 @@ public class Drives extends GenericSubsystem {
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
-    private static final double DOWN_SHIFT_THRESHOLD    = 15;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
+    private static final double DOWN_SHIFT_THRESHOLD    = 10;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
     
     /**
      * The time (seconds) we wait for the robot to shift before resuming driver 
      * control.
      */
-    private static final double SHIFT_TIME              = .1;//MAY NOT BE OPTIMUM IN ALL SITUATION
+    private static final double SHIFT_TIME              = .05;//MAY NOT BE OPTIMUM IN ALL SITUATION
     
     /**
      * The max speed (inches per second) that the robot can obtain.
@@ -400,8 +400,8 @@ public class Drives extends GenericSubsystem {
                 } 
                 break;
             case State.FUNCT_STANDBY:
-                leftMotorOutput = (wantedLeftSpeed * .5) + (leftMotorOutput * .5);
-                rightMotorOutput = (wantedRightSpeed * .5) + (leftMotorOutput *.5);
+                leftMotorOutput = (wantedLeftSpeed * .66) + (leftMotorOutput * .33);
+                rightMotorOutput = (wantedRightSpeed * .66) + (leftMotorOutput *.33);
                break;
             default:
                 log.logMessage("UNKNOWN STATE: " + autoFunctionState);
@@ -432,7 +432,7 @@ public class Drives extends GenericSubsystem {
                 if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
                     drivesState = State.DRIVES_LOW_GEAR;
                 }
-                setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
+//                setSpeed(((wantedLeftSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED), ((wantedRightSpeed > 0) ? MOTOR_SHIFTING_SPEED : -MOTOR_SHIFTING_SPEED));
                 break;
             case State.DRIVES_SHIFT_HIGH_GEAR:
                 if(Timer.getFPGATimestamp() > shiftTime + SHIFT_TIME){
