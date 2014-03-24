@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.gosparx.subsystem.Acquisitions;
 import org.gosparx.subsystem.Drives;
 import org.gosparx.subsystem.GenericSubsystem;
