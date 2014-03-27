@@ -197,9 +197,6 @@ public class Shooter extends GenericSubsystem{
             // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
             case State.SHOOT:
                 latch.set(LATCH_DISENGAGED);
-                if(Acquisitions.getInstance().isCloseShot()){
-                   shooterState = State.SHOOTER_UNWINDING;
-                }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
                 break;
@@ -381,6 +378,8 @@ public class Shooter extends GenericSubsystem{
                     return "Unwinding Winch";
                 case SHOOTER_WINDING:
                     return "Winding Winch";
+                case SHOOTER_UNWINDING:
+                    return "Shooter Unwinding";
             }
             return "UNKOWN MODE: " + state;
         }

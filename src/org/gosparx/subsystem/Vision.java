@@ -54,7 +54,7 @@ public class Vision extends GenericSubsystem {
     private boolean needImage = true;
 
     private AxisCamera camera;          // the axis camera object (connected to the switch)
-    private CriteriaCollection cc;      // the criteria for doing the particle filter operation
+    private CriteriaCollection cc;      // the criteria for doing the particle filter operatio
 
     private double degrees = 0.0;
     private static final int TARGET_HEIGHT_INCHES = 32;
@@ -201,8 +201,7 @@ public class Vision extends GenericSubsystem {
         } catch (Exception e) {
             log.logError("Issue with getting image from the camera: " + e.getMessage());
         }
-        
-        thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
+        thresholdImage = image.thresholdRGB(0, 206, 225, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
     }
 
