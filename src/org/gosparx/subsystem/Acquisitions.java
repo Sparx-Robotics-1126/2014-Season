@@ -353,6 +353,8 @@ public class Acquisitions extends GenericSubsystem{
     
     private double lastUnBrakeTime;
     
+    private boolean manaulAcquisition;
+    
     /**
      * 
      * @returns the only running thread of Acquisitions.
@@ -535,6 +537,11 @@ public class Acquisitions extends GenericSubsystem{
                 rotationSpeed = -TILT_HOLD_POSITION;
                 if(rotateEncoderData.getDistance() < 0)
                     rotateEncoderData.reset();
+                if(manaulAcquisition){
+                    wantedAcqSpeed = INTAKE_ROLLER_SPEED;
+                }else{
+                    wantedAcqSpeed = 0;
+                }
                 break;
             case AcqState.OFF_STATE://Something has gone wrong. All motors are set to 0.0
                 rotationSpeed = 0;
@@ -723,7 +730,14 @@ public class Acquisitions extends GenericSubsystem{
     public boolean isCloseShot(){
         return (shortShot == SHORT_SHOT_ACTIVATED);
     }
+    
+    public void setManaulAcq(boolean acqOn){
+        manaulAcquisition = acqOn;
+    }
 
+    public boolean getManaulAcq(){
+        return manaulAcquisition;
+    }
     
     /**
      * Is called right after init().

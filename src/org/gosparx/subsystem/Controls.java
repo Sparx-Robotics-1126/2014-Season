@@ -479,6 +479,12 @@ public class Controls extends GenericSubsystem {
                 acq.setBrakeEnabled(!acq.isBrakeEnabled());
             }
             
+            if(opRightYAxis < 0.5){
+                acq.setManaulAcq(true);
+            }else{
+                acq.setManaulAcq(false);
+            }
+            
             smartDashboardTimer();
         } else {
             startingMatchTime = Timer.getFPGATimestamp();
