@@ -181,9 +181,10 @@ public class Acquisitions extends GenericSubsystem{
     private final static double ONE_POINT_SHOT_PRESET = 15;
 
     /**
-     * Truss Shooter preset. Used to shot the ball over the truss 
+     * Truss Shooter preset. Used to shot the ball over the truss from almost 
+     * anywhere on our side of the field
      */
-    private final static double LONG_SHOOTER_PRESET = 45;
+    private final static double TRUSS_SHOOTER_PRESET = 30;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
@@ -639,7 +640,7 @@ public class Acquisitions extends GenericSubsystem{
         wantedState = AcqState.READY_TO_SHOOT;
         switch(preset){
             case AcqState.TRUSS_SHOT_PRESET:
-                setAngle(LONG_SHOOTER_PRESET);
+                setAngle(TRUSS_SHOOTER_PRESET);
                 break;
             case AcqState.ONE_POINT_PRESET:
                 setAngle(ONE_POINT_SHOT_PRESET);
