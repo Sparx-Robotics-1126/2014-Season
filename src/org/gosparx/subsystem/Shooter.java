@@ -149,6 +149,8 @@ public class Shooter extends GenericSubsystem{
      */ 
     private String subsystemName = "Shooter";
     
+    private boolean lastShotWound = false;
+    
     /**
      * Returns an instance of a shooter. Used in the singleton model.
      */
@@ -225,7 +227,7 @@ public class Shooter extends GenericSubsystem{
                 }catch(Exception name){
                 }
                 if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
-                    if (limitSwitchValue) {
+                    if (limitSwitchValue || lastShotWound) {
                         shooterState = State.STANDBY;
                     } else {
                         shooterState = State.SET_HOME;
@@ -262,10 +264,11 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.SHOOTER_WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if (potData.getInches() <= 5) {
+                if (potData.getInches() <= 3) {
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
+                lastShotWound = true;
                 break;
             case State.SHOOTER_UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
@@ -274,6 +277,7 @@ public class Shooter extends GenericSubsystem{
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
+                lastShotWound = false;
                 break;
             default:
                 log.logError("Unknown Shooter state: " + shooterState);
