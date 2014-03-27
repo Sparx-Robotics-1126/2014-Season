@@ -437,21 +437,21 @@ public class Controls extends GenericSubsystem {
 
             if (opDPadYAxis == DPAD_DOWN) {
                 acq.setPreset(Acquisitions.AcqState.FAR_SHOOTER_PRESET);
-                shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                shooter.setAdjustSlack(Shooter.MAX_UNWIND_INCHES);
             } else if (opDPadXAxis == DPAD_RIGHT) {
                 acq.setPreset(Acquisitions.AcqState.MIDDLE_SHOOTER_PRESET);
-                shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                shooter.setAdjustSlack(Shooter.MAX_UNWIND_INCHES);
             } else if (opDPadYAxis == DPAD_UP) {
                 acq.setPreset(Acquisitions.AcqState.ONE_POINT_PRESET);
-                shooter.setMode(Shooter.State.SHOOTER_WINDING);
+                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);
             } else if (opDPadXAxis == DPAD_LEFT) {
                 acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
-                shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                shooter.setAdjustSlack(5);
             }
             if(opLeftYAxis == 1){
-                shooter.setMode(Shooter.State.SHOOTER_WINDING);
+                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);
             }else if(opLeftYAxis == -1){
-                shooter.setMode(Shooter.State.SHOOTER_UNWINDING);
+                shooter.setAdjustSlack(Shooter.MAX_UNWIND_INCHES);
             }
             //OFFSET
             if (Timer.getFPGATimestamp() - OFFSET_TIME >= lastOffsetTime && ds.isEnabled() && (opL1 || opL2)) {

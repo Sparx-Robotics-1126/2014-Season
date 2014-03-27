@@ -33,7 +33,9 @@ public class Shooter extends GenericSubsystem{
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 14;
+    public static final double MAX_UNWIND_INCHES = 14;
+    
+    public static final double MIN_UNWIND_INCHES = 3;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -151,6 +153,10 @@ public class Shooter extends GenericSubsystem{
     
     private boolean lastShotWound = false;
     
+    private double inchesUnwound;
+    
+    private double potInches = 0;
+    
     /**
      * Returns an instance of a shooter. Used in the singleton model.
      */
@@ -192,6 +198,7 @@ public class Shooter extends GenericSubsystem{
         if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
             rightWinchMotor.set(0);
         }
+        potInches = potData.getInches();
         wantedWinchSpeed = 0;
         limitSwitchValue = !latchSwitch.get();
         switch(shooterState){
@@ -256,7 +263,7 @@ public class Shooter extends GenericSubsystem{
                 break;
             case State.UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
+                if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potInches >= MAX_UNWIND_INCHES){
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
@@ -264,15 +271,16 @@ public class Shooter extends GenericSubsystem{
                 break;
            case State.SHOOTER_WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if (potData.getInches() <= 3) {
+                if (potInches <= inchesUnwound) {
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
+                    log.logMessage("Winding Complete");
                 }
                 lastShotWound = true;
                 break;
             case State.SHOOTER_UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
-                if(potData.getInches() >= INCHES_TO_WIND){
+                if(potInches >= inchesUnwound){
                     log.logMessage("UNWINDING COMPLETE");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
@@ -294,6 +302,15 @@ public class Shooter extends GenericSubsystem{
     public void setMode(int wantedState){
         shooterState = wantedState;
         log.logMessage("NEW STATE HAS BEEN SET TO: " + State.getState(wantedState));
+    }
+    
+    public void setAdjustSlack(double inchesUnwound){
+        this.inchesUnwound = inchesUnwound;
+        if(inchesUnwound < potInches){
+            shooterState = State.SHOOTER_WINDING;
+        }else{
+            shooterState = State.SHOOTER_UNWINDING;
+        }
     }
     
     /**
