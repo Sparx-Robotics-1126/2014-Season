@@ -401,7 +401,7 @@ public class Drives extends GenericSubsystem {
                 break;
             case State.FUNCT_STANDBY:
                 leftMotorOutput = (wantedLeftSpeed * .66) + (leftMotorOutput * .33);
-                rightMotorOutput = (wantedRightSpeed * .66) + (leftMotorOutput *.33);
+                rightMotorOutput = (wantedRightSpeed * .66) + (rightMotorOutput *.33);
                break;
             default:
                 log.logMessage("UNKNOWN STATE: " + autoFunctionState);
