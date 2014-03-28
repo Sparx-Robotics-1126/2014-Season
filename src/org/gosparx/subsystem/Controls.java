@@ -443,10 +443,10 @@ public class Controls extends GenericSubsystem {
                 shooter.setAdjustSlack(Shooter.MAX_UNWIND_INCHES);
             } else if (opDPadYAxis == DPAD_UP) {
                 acq.setPreset(Acquisitions.AcqState.ONE_POINT_PRESET);
-                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);
+                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES + 0.5);
             } else if (opDPadXAxis == DPAD_LEFT) {
                 acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
-                shooter.setAdjustSlack(5);
+                shooter.setAdjustSlack(5.5);
             }
             if(opLeftYAxis == 1){
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);
