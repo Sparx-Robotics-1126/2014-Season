@@ -462,7 +462,7 @@ public class Autonomous extends GenericSubsystem {
                 case VISION_HOT_TARGET:
                     vision.setCameraMode(true);
                     runNextStatement(vision.isHotGoal());
-                    log.logMessage("See Hot Goal");
+                    log.logMessage("See Hot Goal: " + vision.isHotGoal());
                     break;
                 case TEST_SECONDS_LEFT:
                     checkTime = true;
@@ -504,6 +504,7 @@ public class Autonomous extends GenericSubsystem {
             //Makes sure we have enough time left to move
             if (checkTime && Timer.getFPGATimestamp() - startAutoTime >= critalTime && currentAutoStep < criticalTimeAction) {
                 currentAutoStep = criticalTimeAction;
+                log.logMessage("Going to Critical Stip");
                 checkTime = false;
             }
         }

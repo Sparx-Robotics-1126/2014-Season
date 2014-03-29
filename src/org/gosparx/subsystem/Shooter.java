@@ -33,7 +33,9 @@ public class Shooter extends GenericSubsystem{
      * The # of inches to wind and unwind the cable when shooting.
      */
     //TODO: Confirm value
-    private static final double INCHES_TO_WIND = 14;
+    public static final double MAX_UNWIND_INCHES = 14;
+    
+    public static final double MIN_UNWIND_INCHES = 3;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -149,6 +151,12 @@ public class Shooter extends GenericSubsystem{
      */ 
     private String subsystemName = "Shooter";
     
+    private boolean lastShotWound = false;
+    
+    private double inchesUnwound;
+    
+    private double potInches = 0;
+    
     /**
      * Returns an instance of a shooter. Used in the singleton model.
      */
@@ -187,27 +195,19 @@ public class Shooter extends GenericSubsystem{
      * Loops. 
      */ 
     public void execute() throws Exception {
-        if(ds.isTest() && ds.isDisabled()){//ALL VALUES NEED TO BE SET TO 0
-            rightWinchMotor.set(0);
-        }
+        potInches = potData.getInches();
         wantedWinchSpeed = 0;
         limitSwitchValue = !latchSwitch.get();
         switch(shooterState){
             // Disengauges the latch and then sets the lastShotTime to the 
             // current FPGA time. Then sets the State to SHOOTER_COOLDOWN
             case State.SHOOT:
+                log.logMessage("Shooting");
                 latch.set(LATCH_DISENGAGED);
-                if(Acquisitions.getInstance().isCloseShot()){
-                   shooterState = State.SHOOTER_UNWINDING;
-                }
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
-                break;
-            // Retracts the winch until the limit switch is hit
-            case State.RETRACT:
-                latch.set(LATCH_DISENGAGED);
-                lastWindTime = Timer.getFPGATimestamp();
-                shooterState = State.SHOOTER_WINDING;
+                lastShotWound = potInches < MAX_UNWIND_INCHES/2;
+                log.logMessage("lastShotWound: " + lastShotWound + " potInches: " + potInches);
                 break;
             // Does nothing
             case State.STANDBY:
@@ -217,20 +217,21 @@ public class Shooter extends GenericSubsystem{
             // Does nothing for TIME_BETWEEN_SHOTS seconds after the last shot.
             // Then starts retracting the winch.
             case State.SHOOTER_COOLDOWN:
-                try {
-                    if (Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot) {
-                        Vision.getInstance().setSaveImage();
-                        log.logMessage("Saved Image");
-                        gotLastShot = true;
-                    } else if (Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE) {
-                        gotLastShot = false;
-                    }
-                }catch(Exception name){
+                if (Timer.getFPGATimestamp() - lastShotTime >= TIME_TO_TAKE_PICTURE && !gotLastShot) {
+                    Vision.getInstance().setSaveImage();
+                    log.logMessage("Saved Image");
+                    gotLastShot = true;
+                } else if (Timer.getFPGATimestamp() - lastShotTime <= TIME_TO_TAKE_PICTURE) {
+                    gotLastShot = false;
                 }
                 if (Timer.getFPGATimestamp() - lastShotTime >= TIME_BETWEEN_SHOTS) {
-                    if (limitSwitchValue) {
+                    log.logMessage("Shooter Cooldown Complete");
+                    if (limitSwitchValue || lastShotWound) {
+                        log.logMessage("Not auto winding because of limitSwitch:" + limitSwitchValue
+                                + " lastShotWound:"+lastShotWound);
                         shooterState = State.STANDBY;
                     } else {
+                        log.logMessage("Trying to set home");
                         shooterState = State.SET_HOME;
                     }
                 }
@@ -239,41 +240,42 @@ public class Shooter extends GenericSubsystem{
                 latch.set(LATCH_DISENGAGED);
                 wantedWinchSpeed = WINCH_SPEED;
                 if(limitSwitchValue){
-                    log.logMessage("LATCH HAS BEEN TRIGGERED");
-                    shooterState = State.UNWIND_WINCH;
+                    log.logMessage("latch has been triggered");
+                    shooterState = State.HOLD_WINCH;
                     potData.reset();
                     lastUnwindTime = Timer.getFPGATimestamp();
                 }
                 break;
-            case State.UNWIND_WINCH:
+            case State.HOLD_WINCH:
                 latch.set(LATCH_ENGAGED);
                 wantedWinchSpeed = WINCH_SPEED;
                 if(Timer.getFPGATimestamp() - lastUnwindTime >= LATCH_TIME){
                     lastUnwindTime = Timer.getFPGATimestamp();
-                    log.logMessage("Stopping Winch Motor");
+                    log.logMessage("Unwinding Winch");
                     wantedWinchSpeed = 0;
                     shooterState = State.UNWINDING;
                 }
                 break;
             case State.UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
-                if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potData.getInches() >= INCHES_TO_WIND){
-                    log.logMessage("UNWINDING COMPLETE");
+                if((Timer.getFPGATimestamp() - lastUnwindTime >= UNWIND_TIMEOUT) || potInches >= MAX_UNWIND_INCHES){
+                    log.logMessage("Unwinding complete");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
                 break;
            case State.SHOOTER_WINDING:
                 wantedWinchSpeed = WINCH_SPEED;
-                if (potData.getInches() <= 5) {
+                if (potInches <= inchesUnwound) {
+                    log.logMessage("Winding Complete");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
                 break;
             case State.SHOOTER_UNWINDING:
                 wantedWinchSpeed = -WINCH_SPEED;
-                if(potData.getInches() >= INCHES_TO_WIND){
-                    log.logMessage("UNWINDING COMPLETE");
+                if(potInches >= inchesUnwound){
+                    log.logMessage("Unwinding Complete");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
@@ -293,6 +295,15 @@ public class Shooter extends GenericSubsystem{
     public void setMode(int wantedState){
         shooterState = wantedState;
         log.logMessage("NEW STATE HAS BEEN SET TO: " + State.getState(wantedState));
+    }
+    
+    public void setAdjustSlack(double inchesUnwound){
+        this.inchesUnwound = inchesUnwound;
+        if(inchesUnwound < potInches){
+            shooterState = State.SHOOTER_WINDING;
+        }else{
+            shooterState = State.SHOOTER_UNWINDING;
+        }
     }
     
     /**
@@ -351,11 +362,10 @@ public class Shooter extends GenericSubsystem{
      */ 
     public static class State{
         public static final int SHOOT = 1;
-        public static final int RETRACT = 2;
         public static final int STANDBY = 3;
         public static final int SHOOTER_COOLDOWN = 4;
         public static final int SET_HOME = 5;
-        public static final int UNWIND_WINCH = 6;
+        public static final int HOLD_WINCH = 6;
         public static final int UNWINDING = 7;
         public static final int SHOOTER_WINDING = 8;
         public static final int SHOOTER_UNWINDING = 9;
@@ -369,18 +379,18 @@ public class Shooter extends GenericSubsystem{
                     return "Standby";
                 case SHOOT:
                     return "Shooting";
-                case RETRACT:
-                    return "Retracting";
                 case SHOOTER_COOLDOWN:
                     return "Shooter is cooling down";
                 case SET_HOME:
                     return "Setting home";
-                case UNWIND_WINCH:
-                    return "Starting Unwinding";
+                case HOLD_WINCH:
+                    return "Holding Winch";
                 case UNWINDING:
                     return "Unwinding Winch";
                 case SHOOTER_WINDING:
                     return "Winding Winch";
+                case SHOOTER_UNWINDING:
+                    return "Shooter Unwinding";
             }
             return "UNKOWN MODE: " + state;
         }
