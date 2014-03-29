@@ -207,6 +207,7 @@ public class Shooter extends GenericSubsystem{
                 lastShotTime = Timer.getFPGATimestamp();
                 shooterState = State.SHOOTER_COOLDOWN;
                 lastShotWound = potInches < MAX_UNWIND_INCHES/2;
+                log.logMessage("lastShotWound: " + lastShotTime + " potInches: " + potInches);
                 break;
             // Does nothing
             case State.STANDBY:
