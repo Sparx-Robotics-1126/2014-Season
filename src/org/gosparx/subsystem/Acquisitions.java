@@ -202,18 +202,7 @@ public class Acquisitions extends GenericSubsystem{
     */
    private final static double CENTER_OF_GRAVITY_ANGLE = 25;
    
-   /**
-    * The angle when we are close to the floor mode, or acquiring. It is used to
-    * slow down the motors so we do not bounce back when we attempt to aquire.
-    */ 
-   private final static int CLOSE_TO_ACQUIRING_ANGLE = 90;
-   
-   /**
-    * The time in seconds the limit switch must be pressed for so that it 
-    * actually counts. It is used to prevent noise from triggering acquisitions
-    */
-   private final static double BALL_DETECT_TIME = 0.1;
-       /**    
+   /**    
      * The group to display the ready to shoot rectangle on the livewindow under.
      */ 
     private static final String READY_TO_SHOOT_DISPLAY = "Ready To Shoot";
@@ -232,19 +221,7 @@ public class Acquisitions extends GenericSubsystem{
      * The motor output to start pivoting up at. 
      */ 
     private static final double PIVOT_UP_CLOSE_POWER                        = .1;
-    
-    /**
-     * The motor output to start pivoting the motor down at. It will go at this
-     * power until it reaches CLOSE_TO_ACQUIRING.
-     */ 
-    private static final double PIVOT_DOWN_START_POWER                      = -.35;
-    
-    /**
-     * The motor output when we are CLOSE_TO_ACQUIRING.
-     */ 
-    private static final double PIVOT_DOWN_CLOSE_POWER                      = -0.07;
-    
-    
+       
     private static final double TILT_HOLD_POSITION                          = -0.07;
     
     /**
@@ -252,16 +229,10 @@ public class Acquisitions extends GenericSubsystem{
      */
     private static final boolean BRAKE_EXTENDED = true;
     
-    private static final double DEGREES_PER_TOOTH = 3.6;
-    
-    private static final double CORRECTION_TIME = 0.3;
-    
     private static final double ERROR_CORRECT_TIME = 0.5;
     
     private static final double ACQUIRING_THRESHOLD = 110;
-    
-    private static final double SAFE_THRESHOLD = 10;
-    
+
     private static final double UNBRAKE_TIME = 0.2;
     
     private static final double MOTOR_OVERHEAT_TIME = 2.0;
@@ -291,13 +262,11 @@ public class Acquisitions extends GenericSubsystem{
      */
     private double wantedShooterAngle = 0;//Default
     
-    private double lastShooterAngle = FAR_SHOOTER_PRESET;
-    
     /**
-     * The last FPGA time we detected a ball at. Used to determine false
-     * positives on the limit switch
-     */
-    private double lastBallDetectTime = 0;
+     * The last angle the shooter was at. Set it to a default value to go to first
+     * here
+     */ 
+    private double lastShooterAngle = FAR_SHOOTER_PRESET;
     
     /**
      * Stores if we have hit the limit switch for the ball being sucked in by 
@@ -342,18 +311,35 @@ public class Acquisitions extends GenericSubsystem{
      */
     private boolean shortShot;
     
-    private double startCorrectTime = 0;
-    
+    /**
+     * The last FPGA time the pivot tried to correct itself.
+     */ 
     private double lastCorrectionTime = 0;
     
+    /**
+     * Stores if we are ready to shoot
+     */ 
     private boolean firstReadyToShot = true;
     
+    /**
+     * Stores if we are using the brake or using the encoder and motor to hold 
+     * the pivots position.
+     */ 
     private boolean isBrakeEnabled = true;
     
+    /**
+     * The last time we checked the motor to see if it is stalling.
+     */ 
     private double lastMotorCheck;
     
+    /**
+     * The last time we unbraked. Used to make sure we unbreak properly before pivoting.
+     */
     private double lastUnBrakeTime;
     
+    /**
+     * Stores if we are manually using the rollers to assist the human player throw.
+     */
     private boolean manaulAcquisition;
     
     /**
