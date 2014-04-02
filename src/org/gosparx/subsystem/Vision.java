@@ -204,6 +204,7 @@ public class Vision extends GenericSubsystem {
         
         thresholdImage = image.thresholdRGB(0, 255, 240, 255, 0, 255);   // keep only green objects
         filteredImage = thresholdImage.particleFilter(cc);           // filter out small particles 
+        filteredImage = filteredImage.removeSmallObjects(true, 2);
     }
 
     /**
