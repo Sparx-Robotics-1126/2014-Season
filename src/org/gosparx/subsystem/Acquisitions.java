@@ -536,8 +536,9 @@ public class Acquisitions extends GenericSubsystem{
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 rotationSpeed = -TILT_HOLD_POSITION;
-                if(rotateEncoderData.getDistance() < 0)
+                if(rotateEncoderData.getDistance() < 0){
                     rotateEncoderData.reset();
+                }
                 if(manaulAcquisition){
                     wantedAcqSpeed = INTAKE_ROLLER_SPEED;
                 }else{
@@ -552,8 +553,9 @@ public class Acquisitions extends GenericSubsystem{
                 break;
         }
         
-        if(brakePosition != tiltBrake.get())
+        if(brakePosition != tiltBrake.get()){
             log.logMessage("Brake is now " + (brakePosition == BRAKE_EXTENDED?"extended":"retracted"));
+        }
         tiltBrake.set(brakePosition);
         
         if(Math.abs(rotationSpeed) > -TILT_HOLD_POSITION && Math.abs(rotateEncoderData.getSpeed()) < 1.0 && 

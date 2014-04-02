@@ -49,8 +49,9 @@ public class EncoderData {
         long encoderCount = USE_COUNTER ? counter.get() : controlled.get();
         long elapsedTime = currentTime - lastTime;
         long deltaCount;
-        if (elapsedTime < 20000)
+        if (elapsedTime < 20000){
             return;
+        }
         deltaCount = encoderCount - lastEncoderCount;
         lastTime = currentTime;
         lastEncoderCount = encoderCount;
