@@ -19,13 +19,6 @@ public class Controls extends GenericSubsystem {
     private static final double TRIM_ANGLE = 4;
 
     /**
-     * The factor to divide the previous + the current joystick Y values. Used
-     * to slow down the drives to a complete stop so that they do not flip the
-     * robot on a sudden stop
-     */
-    private static final double SLOW_DOWN_RAMP = 1.35;
-
-    /**
      * The dead zone for the Driver joysticks. This is the zone in which the
      * drives will be set to 0.
      */
