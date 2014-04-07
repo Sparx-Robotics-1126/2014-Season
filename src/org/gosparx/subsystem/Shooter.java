@@ -17,11 +17,6 @@ import org.gosparx.util.Logger;
  */
 public class Shooter extends GenericSubsystem{
     
-     /**
-     * The timeout for winding the cable onto the winch, in seconds.
-     */ 
-    private static final double WIND_TIMEOUT = 5;//MAY BE MORE
-    
     /**
      * The inches the pot travels per volt change.
      */
@@ -30,9 +25,11 @@ public class Shooter extends GenericSubsystem{
     /**
      * The # of inches to wind and unwind the cable when shooting.
      */
-    //TODO: Confirm value
     public static final double MAX_UNWIND_INCHES = 14;
     
+    /**
+     * The minimum # of inches that the winch will unwind.
+     */
     public static final double MIN_UNWIND_INCHES = 3;
     
     /**
@@ -123,11 +120,6 @@ public class Shooter extends GenericSubsystem{
      * The PotentiometerData for the pot that is on the winch.
      */
     private PotentiometerData potData;
-    
-    /**
-     * The last FPGA time when we started winding the winch.
-     */ 
-    private double lastWindTime;
     
     /**
      * The last FPGA time we started unwinding the winch.
