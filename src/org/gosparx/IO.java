@@ -56,10 +56,10 @@ public class IO {
     public static final int CAN_ADRESS_PIVOT            = 4;
     public static final int PWM_PIVOT                   = 3;
     
-    public static final int PWM_WINCH_2                 = 6;
+    public static final int PWM_LEFT_WINCH                 = 6;
     
     public static final int CAN_ADRESS_WINCH            = 2;
-    public static final int PWM_WINCH                   = 1;
+    public static final int PWM_RIGHT_WINCH                   = 1;
     
     public static final int CAN_ADRESS_ACQ              = 3;
     public static final int PWM_ACQ                     = 2;
