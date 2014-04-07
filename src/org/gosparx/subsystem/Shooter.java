@@ -178,14 +178,14 @@ public class Shooter extends GenericSubsystem{
      * Initializes everything.
      */ 
     public void init() {
-        rightWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH);
+        rightWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_RIGHT_WINCH);
         latchSwitch = new DigitalInput(IO.DEFAULT_SLOT, IO.LATCH_LIMIT_SWITCH_CHAN);
         latch = new Solenoid(IO.DEFAULT_SLOT, IO.LATCH_CHAN);
         latch.set(LATCH_ENGAGED);
         shooterState = State.STANDBY;
         winchPot = new AnalogPotentiometer(IO.WINCH_POT_CHAN);
         potData = new PotentiometerData(winchPot, INCHES_PER_VOLT);
-        leftWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_WINCH_2);
+        leftWinchMotor = new Talon(IO.DEFAULT_SLOT, IO.PWM_LEFT_WINCH);
         if(!latchSwitch.get()){
             potData.reset();
         }
@@ -324,9 +324,9 @@ public class Shooter extends GenericSubsystem{
      * Initializes and adds all of the components to the livewindow.
      */ 
     public void liveWindow() {
-        LiveWindow.addActuator(subsystemName, "Winch 1", rightWinchMotor);
+        LiveWindow.addActuator(subsystemName, "Right Winch", rightWinchMotor);
         LiveWindow.addSensor(subsystemName, "Winch Pot", winchPot);
-        LiveWindow.addActuator(subsystemName, "Winch 2", leftWinchMotor);
+        LiveWindow.addActuator(subsystemName, "Left Winch", leftWinchMotor);
         LiveWindow.addActuator(subsystemName, "Fire", latch);
         LiveWindow.addSensor(subsystemName, "Winch Stop Limit", latchSwitch);
     }
