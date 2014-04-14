@@ -531,6 +531,9 @@ public class Acquisitions extends GenericSubsystem{
                 }else{
                     brakePosition = !BRAKE_EXTENDED;
                 }
+//                if(wantedShooterAngle == ONE_POINT_SHOT_PRESET){
+//                    acqShortPnu.set(!ACQ_SHORT_PNU_EXTENDED);
+//                }
                 break;
             case AcqState.SAFE_STATE://Shooter is in the robots perimeter
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
@@ -551,6 +554,8 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = 0;
                 break;
         }
+        
+        //REMOVE LATER
         
         if(brakePosition != tiltBrake.get())
             log.logMessage("Brake is now " + (brakePosition == BRAKE_EXTENDED?"extended":"retracted"));
