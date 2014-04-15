@@ -513,12 +513,15 @@ public class Acquisitions extends GenericSubsystem{
                 wantedAcqSpeed = -INTAKE_ROLLER_SPEED;
                 break;
             case AcqState.READY_TO_SHOOT://Rollers are out of the way, Shooting angle is set
+                if(wantedShooterAngle == FAR_SHOOTER_PRESET){
+                    wantedShooterAngle = FAR_SHOOTER_PRESET - 3.0;
+                }
                 lastShooterAngle = wantedShooterAngle;
                 wantedAcqSpeed = 0;
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 7.5;
-                if (isBrakeEnabled) {
+                if (isBrakeEnabled && wantedShooterAngle != MID_SHOOTER_PRESET) {
                     if (firstReadyToShot) {
                         log.logMessage("Ready To Shoot - Settling Shooter");
                         lastCorrectionTime = Timer.getFPGATimestamp();
