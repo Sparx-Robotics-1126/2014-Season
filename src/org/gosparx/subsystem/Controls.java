@@ -513,7 +513,13 @@ public class Controls extends GenericSubsystem {
     }
 
     private void smartDashboardTimer() {
-        SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
+        int matchTime = (int)(Timer.getFPGATimestamp() - startingMatchTime);
+        if(matchTime%60 < 10){
+            SmartDashboard.putString("Number Timer", matchTime/60 + ":0" + matchTime%60);
+        }else{
+            SmartDashboard.putString("Number Timer", matchTime/60 + ":" + matchTime%60);
+        }
+        SmartDashboard.putNumber("Timer", matchTime);
         if (Timer.getFPGATimestamp() - startingMatchTime > 130 && Timer.getFPGATimestamp() - startingMatchTime < 140) {//130, 140
             if (Timer.getFPGATimestamp() - lastFlashTime >= FLASH_TIME) {
                 SmartDashboard.putBoolean("10 Seconds Left", !SmartDashboard.getBoolean("10 Seconds Left"));
