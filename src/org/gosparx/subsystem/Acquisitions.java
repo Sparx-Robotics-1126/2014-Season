@@ -184,7 +184,7 @@ public class Acquisitions extends GenericSubsystem{
      * Truss Shooter preset. Used to shot the ball over the truss from almost 
      * anywhere on our side of the field
      */
-    private final static double TRUSS_SHOOTER_PRESET = 15;
+    private final static double TRUSS_SHOOTER_PRESET = 18;
     
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.

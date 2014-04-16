@@ -430,7 +430,8 @@ public class Controls extends GenericSubsystem {
             } else if (opTriangle && !lastOPTriangle) {
                 acq.setMode(Acquisitions.AcqState.EJECT_BALL);
             } else if (opStart && !lastOPStart) {
-                acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
+                acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
+                shooter.setAdjustSlack(3.50);
             } else if (opSquare && !lastOPSquare) {
                 acq.setMode(Acquisitions.AcqState.SAFE_STATE);
             }
@@ -446,7 +447,7 @@ public class Controls extends GenericSubsystem {
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES + 0.85);
             } else if (opDPadXAxis == DPAD_LEFT) {
                 acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
-                shooter.setAdjustSlack(5.5);
+                shooter.setAdjustSlack(2.75);
             }
             if(opLeftYAxis == 1){
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);

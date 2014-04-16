@@ -43,7 +43,7 @@ public class EntryPoint extends SimpleRobot {
                 {Autonomous.getInstance()},
                 {Acquisitions.getInstance()},
                 {Shooter.getInstance()},
-                {Vision.getInstance()}
+//                {Vision.getInstance()}
                 };
 
         logger = new Logger("Robot State");
