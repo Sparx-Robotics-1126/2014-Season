@@ -430,7 +430,8 @@ public class Controls extends GenericSubsystem {
             } else if (opTriangle && !lastOPTriangle) {
                 acq.setMode(Acquisitions.AcqState.EJECT_BALL);
             } else if (opStart && !lastOPStart) {
-                acq.setMode(Acquisitions.AcqState.READY_TO_SHOOT);
+                acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
+                shooter.setAdjustSlack(3.50);
             } else if (opSquare && !lastOPSquare) {
                 acq.setMode(Acquisitions.AcqState.SAFE_STATE);
             }
@@ -443,10 +444,10 @@ public class Controls extends GenericSubsystem {
                 shooter.setAdjustSlack(Shooter.MAX_UNWIND_INCHES);
             } else if (opDPadYAxis == DPAD_UP) {
                 acq.setPreset(Acquisitions.AcqState.ONE_POINT_PRESET);
-                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES + 0.5);
+                shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES + 0.85);
             } else if (opDPadXAxis == DPAD_LEFT) {
                 acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
-                shooter.setAdjustSlack(5.5);
+                shooter.setAdjustSlack(2.75);
             }
             if(opLeftYAxis == 1){
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);
@@ -512,7 +513,13 @@ public class Controls extends GenericSubsystem {
     }
 
     private void smartDashboardTimer() {
-        SmartDashboard.putNumber("Timer", Timer.getFPGATimestamp() - startingMatchTime);
+        int matchTime = (int)(Timer.getFPGATimestamp() - startingMatchTime);
+        if(matchTime%60 < 10){
+            SmartDashboard.putString("Number Timer", matchTime/60 + ":0" + matchTime%60);
+        }else{
+            SmartDashboard.putString("Number Timer", matchTime/60 + ":" + matchTime%60);
+        }
+        SmartDashboard.putNumber("Timer", matchTime);
         if (Timer.getFPGATimestamp() - startingMatchTime > 130 && Timer.getFPGATimestamp() - startingMatchTime < 140) {//130, 140
             if (Timer.getFPGATimestamp() - lastFlashTime >= FLASH_TIME) {
                 SmartDashboard.putBoolean("10 Seconds Left", !SmartDashboard.getBoolean("10 Seconds Left"));

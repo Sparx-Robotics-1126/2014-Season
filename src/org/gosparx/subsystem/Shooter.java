@@ -35,7 +35,7 @@ public class Shooter extends GenericSubsystem{
     //TODO: Confirm value
     public static final double MAX_UNWIND_INCHES = 14;
     
-    public static final double MIN_UNWIND_INCHES = 3;
+    public static final double MIN_UNWIND_INCHES = 1.5;
     
     /**
      * The timeout in seconds for unwinding the cable on the winch
@@ -265,16 +265,16 @@ public class Shooter extends GenericSubsystem{
                 }
                 break;
            case State.SHOOTER_WINDING:
-                wantedWinchSpeed = WINCH_SPEED;
-                if (potInches <= inchesUnwound) {
+                wantedWinchSpeed = -(Math.abs(potInches - inchesUnwound) / 7.5) - 0.20;
+                if (potInches <= inchesUnwound - 0.05) {
                     log.logMessage("Winding Complete");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
                 }
                 break;
             case State.SHOOTER_UNWINDING:
-                wantedWinchSpeed = -WINCH_SPEED;
-                if(potInches >= inchesUnwound){
+                wantedWinchSpeed = (Math.abs(potInches - inchesUnwound) / 7.5) + 0.20;
+                if(potInches >= inchesUnwound + 0.05){
                     log.logMessage("Unwinding Complete");
                     wantedWinchSpeed = 0;
                     shooterState = State.STANDBY;
@@ -298,6 +298,7 @@ public class Shooter extends GenericSubsystem{
     }
     
     public void setAdjustSlack(double inchesUnwound){
+        log.logMessage("Slack adjusted to: " + inchesUnwound);
         this.inchesUnwound = inchesUnwound;
         if(inchesUnwound < potInches){
             shooterState = State.SHOOTER_WINDING;
