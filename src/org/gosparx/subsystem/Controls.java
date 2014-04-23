@@ -1,6 +1,5 @@
 package org.gosparx.subsystem;
 
-import com.sun.squawk.util.MathUtils;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -18,19 +17,12 @@ public class Controls extends GenericSubsystem {
      * hit.
      */
     private static final double TRIM_ANGLE = 4;
-
-    /**
-     * The factor to divide the previous + the current joystick Y values. Used
-     * to slow down the drives to a complete stop so that they do not flip the
-     * robot on a sudden stop
-     */
-    private static final double SLOW_DOWN_RAMP = 1.35;
-
+    
     /**
      * The dead zone for the Driver joysticks. This is the zone in which the
      * drives will be set to 0.
      */
-    private double JOYSTICK_DEADZONE = .04;
+    private static final double JOYSTICK_DEADZONE = .04;
 
     /**
      * Time (in seconds) between offset

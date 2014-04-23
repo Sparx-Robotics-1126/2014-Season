@@ -26,7 +26,6 @@ public class EntryPoint extends SimpleRobot {
     private GenericSubsystem[] subsystems;
     private Logger logger;
     private Autonomous auto;
-    private Vision vision;
     
     /**
      * Robot-wide initialization code should go here. Users should override this 
@@ -36,20 +35,20 @@ public class EntryPoint extends SimpleRobot {
      */
     public void robotInit(){
         logger = new Logger("Robot State");
-        GenericSubsystem subsystems[][]= {
-                {LogWriter.getInstance()},
-                {Drives.getInstance()},
-                {Controls.getInstance()},
-                {Autonomous.getInstance()},
-                {Acquisitions.getInstance()},
-                {Shooter.getInstance()},
-                {Vision.getInstance()}
+        subsystems= new GenericSubsystem[]{
+                LogWriter.getInstance(),
+                Drives.getInstance(),
+                Controls.getInstance(),
+                Autonomous.getInstance(),
+                Acquisitions.getInstance(),
+                Shooter.getInstance(),
+                Vision.getInstance()
                 };
 
         logger = new Logger("Robot State");
         auto = Autonomous.getInstance();
         for (int i = 0; i < subsystems.length; i++) {
-            subsystems[i][0].start();
+            subsystems[i].start();
         }
         logger.logMessage("Robot init ended");
     }

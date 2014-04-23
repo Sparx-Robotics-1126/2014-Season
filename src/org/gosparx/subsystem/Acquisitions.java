@@ -357,8 +357,9 @@ public class Acquisitions extends GenericSubsystem{
     private boolean manaulAcquisition;
     
     /**
+     * Gets the instance of Acquisitions.
      * 
-     * @returns the only running thread of Acquisitions.
+     * @return the only running thread of Acquisitions.
      * This should be used instead of (new Acquisitions2)
      */
     public static Acquisitions getInstance(){
@@ -571,6 +572,7 @@ public class Acquisitions extends GenericSubsystem{
             setPivotMotor(rotationSpeed);            
         }
         setAcquiringMotor(wantedAcqSpeed);
+        ballDetectorPower.set(true);
         updateSmartDashboard();
     }
     
