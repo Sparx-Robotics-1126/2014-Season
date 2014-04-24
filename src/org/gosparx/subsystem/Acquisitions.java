@@ -522,7 +522,7 @@ public class Acquisitions extends GenericSubsystem{
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 7.5;
-                if (isBrakeEnabled && wantedShooterAngle != MID_SHOOTER_PRESET) {
+                if (isBrakeEnabled) {
                     if (firstReadyToShot) {
                         log.logMessage("Ready To Shoot - Settling Shooter");
                         lastCorrectionTime = Timer.getFPGATimestamp();
