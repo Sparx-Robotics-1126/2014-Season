@@ -189,7 +189,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static double MID_SHOOTER_PRESET = 48;
+   private final static double MID_SHOOTER_PRESET = 46.5;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
