@@ -348,6 +348,7 @@ public class Drives extends GenericSubsystem {
         leftCurrentSpeed = leftEncoderData.getSpeed();
         rightCurrentSpeed = rightEncoderData.getSpeed();
         double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
+        boolean areBothDriving = leftCurrentSpeed != 0 && rightCurrentSpeed != 0;
         averageDistEncoder = (leftEncoderData.getDistance() + rightEncoderData.getDistance())/2;
         
         switch(autoFunctionState){
@@ -421,7 +422,7 @@ public class Drives extends GenericSubsystem {
 
         switch(drivesState){
             case State.DRIVES_LOW_GEAR:
-                if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
+                if(((averageSpeed > UP_SHIFT_THRESHOLD && areBothDriving && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
                     needsToManuallyShiftUp = false;
                     needsToManuallyShiftDown = false;
                     log.logMessage("Up Shift!");
