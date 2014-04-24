@@ -56,7 +56,7 @@ public class Drives extends GenericSubsystem {
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
-    private static final double DOWN_SHIFT_THRESHOLD    = 10;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
+    private static final double DOWN_SHIFT_THRESHOLD    = 6;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
     
     /**
      * The time (seconds) we wait for the robot to shift before resuming driver 
