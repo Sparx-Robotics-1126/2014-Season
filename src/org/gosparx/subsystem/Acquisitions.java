@@ -189,7 +189,7 @@ public class Acquisitions extends GenericSubsystem{
     /**
      * Mid Shooter preset. Use this preset if we are midrange from the goal.
      */
-   private final static double MID_SHOOTER_PRESET = 48;
+   private final static double MID_SHOOTER_PRESET = 46.5;
    
    /**
     * Far Shooter preset. Use if we are far from the goal.
@@ -522,7 +522,7 @@ public class Acquisitions extends GenericSubsystem{
                 acqShortPnu.set(ACQ_SHORT_PNU_EXTENDED);
                 acqLongPnu.set(!ACQ_LONG_PNU_EXTENDED);
                 rotationSpeed = (rotateEncoderData.getDistance() - wantedShooterAngle) / 7.5;
-                if (isBrakeEnabled && wantedShooterAngle != MID_SHOOTER_PRESET) {
+                if (isBrakeEnabled) {
                     if (firstReadyToShot) {
                         log.logMessage("Ready To Shoot - Settling Shooter");
                         lastCorrectionTime = Timer.getFPGATimestamp();

@@ -439,7 +439,7 @@ public class Controls extends GenericSubsystem {
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES + 0.85);
             } else if (opDPadXAxis == DPAD_LEFT) {
                 acq.setPreset(Acquisitions.AcqState.TRUSS_SHOT_PRESET);
-                shooter.setAdjustSlack(2.75);
+                shooter.setAdjustSlack(2.95);
             }
             if(opLeftYAxis == 1){
                 shooter.setAdjustSlack(Shooter.MIN_UNWIND_INCHES);

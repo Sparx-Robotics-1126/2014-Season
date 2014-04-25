@@ -51,12 +51,12 @@ public class Drives extends GenericSubsystem {
     /**
      * The speed (inches per second) that we shift up into high gear at.
      */
-    private static final double UP_SHIFT_THRESHOLD      = 33;    
+    private static final double UP_SHIFT_THRESHOLD      = 20;    
     
     /**
      * The speed (inches per second) that we shift down into low gear at.
      */
-    private static final double DOWN_SHIFT_THRESHOLD    = 10;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
+    private static final double DOWN_SHIFT_THRESHOLD    = 6;//TODO: Check to se if this value has to be so much lower that up_shift_threshold
     
     /**
      * The time (seconds) we wait for the robot to shift before resuming driver 
@@ -348,6 +348,7 @@ public class Drives extends GenericSubsystem {
         leftCurrentSpeed = leftEncoderData.getSpeed();
         rightCurrentSpeed = rightEncoderData.getSpeed();
         double averageSpeed = Math.abs((leftCurrentSpeed+rightCurrentSpeed)/2);
+        boolean areBothDriving = leftCurrentSpeed != 0 && rightCurrentSpeed != 0;
         averageDistEncoder = (leftEncoderData.getDistance() + rightEncoderData.getDistance())/2;
         
         switch(autoFunctionState){
@@ -421,7 +422,7 @@ public class Drives extends GenericSubsystem {
 
         switch(drivesState){
             case State.DRIVES_LOW_GEAR:
-                if(((averageSpeed > UP_SHIFT_THRESHOLD && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
+                if(((averageSpeed > UP_SHIFT_THRESHOLD && areBothDriving && !manualShifting) || (needsToManuallyShiftUp && manualShifting)) && !forceLowGear){
                     needsToManuallyShiftUp = false;
                     needsToManuallyShiftDown = false;
                     log.logMessage("Up Shift!");
