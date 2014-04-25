@@ -745,6 +745,10 @@ public class Acquisitions extends GenericSubsystem{
         return manaulAcquisition;
     }
     
+    public double getRotateAngle(){
+        return rotateEncoderData.getDistance();
+    }
+    
     /**
      * Is called right after init().
      * This groups all of the motors/sensors/solenoid together.

@@ -466,6 +466,7 @@ public class Controls extends GenericSubsystem {
 
             if (opR2 && !lastShoot) {
                 shooter.shoot();
+                log.logMessage("SHOT FIRED at " + acq.getRotateAngle() + " degrees");
             }
             
             if(opSelect && !lastOPSelect){
