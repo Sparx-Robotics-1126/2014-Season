@@ -273,7 +273,7 @@ public class Autonomous extends GenericSubsystem {
         {TEST_SECONDS_LEFT, 7, 7},
         {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
         {SHOOTER_READY_TO_SHOOT},
-        {WAIT, 1000},
+        {WAIT, 2000},
         {VISION_HOT_TARGET},
         {SHOOTER_SHOOT},
         {DRIVES_GO_FORWARD, 60, 30},
