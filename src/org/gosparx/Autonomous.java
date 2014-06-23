@@ -227,6 +227,20 @@ public class Autonomous extends GenericSubsystem {
         {DRIVES_DONE},
         {END}
     };
+    
+    /**
+     * Drives forward 20 feet
+     */
+    private static final String MOVE_FOWARD_EXTRA_NAME = "Move Foward";
+    private static final int[][] moveFowardExtra = {
+        {WAIT, 500},
+        {ACQ_READY},
+        {SHOOTER_READY},
+        {DRIVES_GO_FORWARD, 84, 15},
+        {WAIT, 500},
+        {DRIVES_DONE},
+        {END}
+    };
 
     private static final String TWO_BALLS_IN_HIGH = "Two balls in high";
     private static final int[][] twoBallsInHigh = {
@@ -265,6 +279,21 @@ public class Autonomous extends GenericSubsystem {
         {DRIVES_DONE},
         {END}
     };
+    
+    private static final String MOVE_ONE_BALL_IN_HIGH = "Move one ball in high";
+    private static final int[][] moveOneBallInHigh = {
+        {ACQ_READY},
+        {SHOOTER_READY},
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
+        {DRIVES_GO_FORWARD, 24, 19},
+        {SHOOTER_READY_TO_SHOOT},
+        {DRIVES_DONE},
+        {WAIT, 1000},
+        {SHOOTER_SHOOT},
+        {DRIVES_GO_FORWARD, 32, 30},
+        {DRIVES_DONE},
+        {END}
+    };
 
     private static final String ONE_BALL_IN_HOT_HIGH = "One ball in hot high";
     private static final int[][] oneBallInHotHigh = {
@@ -277,6 +306,23 @@ public class Autonomous extends GenericSubsystem {
         {VISION_HOT_TARGET},
         {SHOOTER_SHOOT},
         {DRIVES_GO_FORWARD, 60, 30},
+        {DRIVES_DONE},
+        {END}
+    };
+    
+    private static final String MOVE_ONE_BALL_IN_HOT_HIGH = "One ball in hot high";
+    private static final int[][] moveOneBallInHotHigh = {
+        {ACQ_READY},
+        {SHOOTER_READY},
+        {TEST_SECONDS_LEFT, 7, 9},//time, action
+        {SHOOTER_SET_PRESET, Acquisitions.AcqState.FAR_SHOOTER_PRESET},
+        {DRIVES_GO_FORWARD, 24, 19},
+        {SHOOTER_READY_TO_SHOOT},
+        {WAIT, 1000},
+        {DRIVES_DONE},
+        {VISION_HOT_TARGET},
+        {SHOOTER_SHOOT},
+        {DRIVES_GO_FORWARD, 32, 30},
         {DRIVES_DONE},
         {END}
     };
@@ -352,16 +398,16 @@ public class Autonomous extends GenericSubsystem {
                 selectedAutoName = TWO_BALLS_IN_HIGH;
                 break;
             case 5:
-                currentAutonomous = noAuto;
-                selectedAutoName = NO_AUTO_NAME;
+                currentAutonomous = moveFowardExtra;
+                selectedAutoName = MOVE_FOWARD_EXTRA_NAME;
                 break;
             case 6:
-                currentAutonomous = noAuto;
-                selectedAutoName = NO_AUTO_NAME;
+                currentAutonomous = moveOneBallInHigh;
+                selectedAutoName = MOVE_ONE_BALL_IN_HIGH;
                 break;
             case 7:
-                currentAutonomous = noAuto;
-                selectedAutoName = NO_AUTO_NAME;
+                currentAutonomous = moveOneBallInHotHigh;
+                selectedAutoName = MOVE_ONE_BALL_IN_HOT_HIGH;
                 break;
             case 8:
                 currentAutonomous = noAuto;
@@ -568,14 +614,14 @@ public class Autonomous extends GenericSubsystem {
      */
     public void liveWindow() {
         smartChoose = new SendableChooser();
-        smartChoose.addDefault("No Auto", new Integer(0));
-        smartChoose.addObject("Move foward", new Integer(1));
-        smartChoose.addObject("One ball in top", new Integer(2));
-        smartChoose.addObject("One ball in hot top", new Integer(3));
-        smartChoose.addObject("Two balls in top", new Integer(4));
-        smartChoose.addObject("Auto 4", new Integer(5));
-        smartChoose.addObject("Auto 5", new Integer(6));
-        smartChoose.addObject("Auto 6", new Integer(7));
+        smartChoose.addDefault(NO_AUTO_NAME, new Integer(0));
+        smartChoose.addObject(MOVE_FOWARD_NAME, new Integer(1));
+        smartChoose.addObject(ONE_BALL_IN_HIGH, new Integer(2));
+        smartChoose.addObject(ONE_BALL_IN_HOT_HIGH, new Integer(3));
+        smartChoose.addObject(TWO_BALLS_IN_HIGH, new Integer(4));
+        smartChoose.addObject(MOVE_FOWARD_EXTRA_NAME, new Integer(5));
+        smartChoose.addObject(MOVE_ONE_BALL_IN_HIGH, new Integer(6));
+        smartChoose.addObject(MOVE_ONE_BALL_IN_HOT_HIGH, new Integer(7));
         smartChoose.addObject("Auto 7", new Integer(8));
         SmartDashboard.putData("Auto Mode", smartChoose);
         SmartDashboard.putBoolean(smartChooser, false);
